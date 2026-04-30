@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: chatwoot
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: chatwoot_secure_db_2024_prod
+      POSTGRES_PASSWORD: f28aa46c7224d75d34aeb80085912030
     volumes:
       - a2-postgres-data:/var/lib/postgresql/data
     restart: always
@@ -35,9 +35,9 @@ services:
       # 🔴 OBRIGATÓRIAS - SEM ESSAS NÃO FUNCIONA
       # ═══════════════════════════════════════════════════════════════════════════════
 
-      DATABASE_URL: postgresql://postgres:chatwoot_secure_db_2024_prod@a2-postgres:5432/chatwoot
+      DATABASE_URL: postgresql://postgres:f28aa46c7224d75d34aeb80085912030@a2-postgres:5432/chatwoot
       REDIS_URL: redis://a2-redis:6379
-      SECRET_KEY_BASE: 3a2b8f9c4e1d5a7b9f2c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2a4c6e8a0b2d4f
+      SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
       RAILS_ENV: production
 
       # ═══════════════════════════════════════════════════════════════════════════════
@@ -99,11 +99,10 @@ services:
       # TWILIO_ACCOUNT_SID: seu_id
       # TWILIO_AUTH_TOKEN: seu_token
 
-      # ═══════════════════════════════════════════════════════════════════════════════
       # 🟣 OPCIONAIS - Habilitar Signup
       # ═══════════════════════════════════════════════════════════════════════════════
 
-      # ENABLE_ACCOUNT_SIGNUP: "true"
+      ENABLE_ACCOUNT_SIGNUP: "true"
 
     depends_on:
       a2-postgres:
@@ -123,9 +122,9 @@ services:
       context: .
       dockerfile: ./Dockerfile
     environment:
-      DATABASE_URL: postgresql://postgres:chatwoot_secure_db_2024_prod@a2-postgres:5432/chatwoot
+      DATABASE_URL: postgresql://postgres:f28aa46c7224d75d34aeb80085912030@a2-postgres:5432/chatwoot
       REDIS_URL: redis://a2-redis:6379
-      SECRET_KEY_BASE: 3a2b8f9c4e1d5a7b9f2c4e6a8b0d2f4a6c8e0b2d4f6a8c0e2a4c6e8a0b2d4f
+      SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
       RAILS_ENV: production
       RAILS_LOG_TO_STDOUT: "true"
       FRONTEND_URL: https://clientes-tools-a2.am5xdk.easypanel.host
