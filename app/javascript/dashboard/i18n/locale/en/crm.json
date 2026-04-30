@@ -11,6 +11,11 @@
     "LOADING": "Loading pipeline...",
     "NO_PIPELINES": "No pipelines found",
     "NO_PIPELINES_SUBTITLE": "The CRM pipeline has not been provisioned yet for this account.",
-    "EMPTY_STAGE": "No deals in this stage yet."
+    "EMPTY_STAGE": "No deals in this stage yet.",
+    "ADD_STAGE": "Add Stage",
+    "ADD_PIPELINE": "New Pipeline",
+    "SAVE": "Save",
+    "CANCEL": "Cancel",
+    "PHONE": "Phone"
   }
 }

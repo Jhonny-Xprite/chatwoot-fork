@@ -1,8 +1,10 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, onUnmounted } from 'vue';
 import { useStore } from 'vuex';
+import { useRouter } from 'vue-router';
 import PipelineBoard from 'dashboard/components/crm/PipelineBoard.vue';
 import FilterBar from 'dashboard/components/crm/FilterBar.vue';
+import NextButton from 'dashboard/components-next/button/Button.vue';
 
 const store = useStore();
 
@@ -30,8 +32,39 @@ onMounted(async () => {
   }
 });
 
-const onDealSelect = () => {
-  // Navigation or detail view
+const unsubscribe = store.subscribeAction(action => {
+  if (action.type === 'addMessage') {
+    store.dispatch('crmPipeline/addMessage', action.payload);
+  }
+  if (action.type === 'updateConversation') {
+    store.dispatch('crmPipeline/updateConversation', action.payload);
+  }
+});
+
+onUnmounted(() => {
+  unsubscribe();
+});
+
+const router = useRouter();
+
+const onDealSelect = deal => {
+  const { id } = deal;
+  const accountId = store.getters.getCurrentAccountId;
+  router.push({
+    name: 'inbox_conversation',
+    params: { accountId, conversation_id: id },
+  });
+};
+
+const createPipeline = async () => {
+  const name = prompt('Nome da nova pipeline:');
+  if (name) {
+    try {
+      await store.dispatch('crmPipeline/createPipeline', name);
+    } catch (error) {
+      // Error handling
+    }
+  }
 };
 </script>
 
@@ -56,6 +89,15 @@ const onDealSelect = () => {
             </option>
           </select>
         </div>
+
+        <NextButton
+          variant="faded"
+          color="slate"
+          size="sm"
+          icon="i-lucide-plus"
+          :label="$t('CRM.ADD_PIPELINE')"
+          @click="createPipeline"
+        />
       </div>
     </header>
     <FilterBar />

@@ -37,11 +37,29 @@ const mutations = {
   SET_PIPELINES(_state, pipelines) {
     _state.pipelines = pipelines;
   },
+  ADD_PIPELINE(_state, pipeline) {
+    _state.pipelines.push(pipeline);
+  },
+  REMOVE_PIPELINE(_state, pipelineId) {
+    _state.pipelines = _state.pipelines.filter(p => p.id !== pipelineId);
+  },
   SET_ACTIVE_PIPELINE(_state, pipelineId) {
     _state.activePipelineId = pipelineId;
   },
   SET_STAGES(_state, stages) {
     _state.stages = stages;
+  },
+  ADD_STAGE(_state, stage) {
+    _state.stages.push(stage);
+  },
+  UPDATE_STAGE(_state, stage) {
+    const index = _state.stages.findIndex(s => s.id === stage.id);
+    if (index > -1) {
+      _state.stages.splice(index, 1, stage);
+    }
+  },
+  REMOVE_STAGE(_state, stageId) {
+    _state.stages = _state.stages.filter(s => s.id !== stageId);
   },
   SET_FILTER(_state, { key, value }) {
     _state.filters[key] = value;
@@ -110,6 +128,37 @@ const mutations = {
       });
     });
   },
+  UPDATE_CONVERSATION(_state, conversation) {
+    const stageId = conversation.pipeline_stage_id;
+    if (!stageId) return;
+
+    const conversations = _state.conversationsByStage[stageId] || [];
+    const index = conversations.findIndex(c => c.id === conversation.id);
+    if (index > -1) {
+      // Create a new array and object to ensure reactivity
+      const newConversations = [...conversations];
+      newConversations[index] = { ...newConversations[index], ...conversation };
+      _state.conversationsByStage[stageId] = newConversations;
+    }
+  },
+  ADD_MESSAGE(_state, message) {
+    const { conversation_id: conversationId } = message;
+    Object.keys(_state.conversationsByStage).forEach(stageId => {
+      const conversations = _state.conversationsByStage[stageId] || [];
+      const index = conversations.findIndex(c => c.id === conversationId);
+      if (index > -1) {
+        const newConversations = [...conversations];
+        const conv = { ...newConversations[index] };
+        conv.last_non_activity_message = message;
+        conv.updated_at = message.created_at;
+        newConversations[index] = conv;
+        _state.conversationsByStage[stageId] = newConversations;
+      }
+    });
+  },
+  REORDER_CONVERSATIONS(_state, { stageId, conversations }) {
+    _state.conversationsByStage[stageId] = conversations;
+  },
 };
 
 const actions = {
@@ -153,6 +202,30 @@ const actions = {
     return null;
   },
 
+  async createPipeline({ commit }, name) {
+    try {
+      const response = await PipelineAPI.create({ name });
+      commit('ADD_PIPELINE', response.data);
+      commit('SET_ACTIVE_PIPELINE', response.data.id);
+      commit('SET_STAGES', []);
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+
+  async deletePipeline({ commit, state: _state, dispatch }) {
+    const pipelineId = _state.activePipelineId;
+    if (!pipelineId) return;
+
+    try {
+      await PipelineAPI.delete(pipelineId);
+      commit('REMOVE_PIPELINE', pipelineId);
+      dispatch('fetchPipelines');
+    } catch (error) {
+      throw new Error(error);
+    }
+  },
+
   async fetchStages({ commit }, pipelineId) {
     commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: true });
     commit('SET_ACTIVE_PIPELINE', pipelineId);
@@ -164,6 +237,39 @@ const actions = {
       // Handle error
     } finally {
       commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: false });
+    }
+  },
+  async createStage({ commit, state: _state }, stageName) {
+    try {
+      const response = await PipelineAPI.createStage(_state.activePipelineId, {
+        name: stageName,
+        position: _state.stages.length,
+      });
+      commit('ADD_STAGE', response.data);
+    } catch (error) {
+      // Handle error
+    }
+  },
+
+  async updateStage({ commit, state: _state }, { stageId, name }) {
+    try {
+      const response = await PipelineAPI.updateStage(
+        _state.activePipelineId,
+        stageId,
+        { name }
+      );
+      commit('UPDATE_STAGE', response.data);
+    } catch (error) {
+      // Handle error
+    }
+  },
+
+  async deleteStage({ commit, state: _state }, stageId) {
+    try {
+      await PipelineAPI.deleteStage(_state.activePipelineId, stageId);
+      commit('REMOVE_STAGE', stageId);
+    } catch (error) {
+      // Handle error
     }
   },
 
@@ -213,6 +319,14 @@ const actions = {
     } finally {
       commit('SET_UI_FLAG', { flag: 'isMovingConversation', value: false });
     }
+  },
+
+  updateConversation({ commit }, conversation) {
+    commit('UPDATE_CONVERSATION', conversation);
+  },
+
+  addMessage({ commit }, message) {
+    commit('ADD_MESSAGE', message);
   },
 };
 

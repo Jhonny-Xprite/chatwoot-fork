@@ -1,9 +1,11 @@
+/* eslint-disable no-alert */
 <script setup>
 import { computed, ref, onMounted } from 'vue';
 import draggable from 'vuedraggable';
 import DealCard from './DealCard.vue';
 import DealCardSkeleton from './DealCardSkeleton.vue';
 import { useStore } from 'vuex';
+import NextButton from 'dashboard/components-next/button/Button.vue';
 
 const props = defineProps({
   stage: {
@@ -17,9 +19,16 @@ defineEmits(['select']);
 const store = useStore();
 const scrollContainer = ref(null);
 
-const conversations = computed(() =>
-  store.getters['crmPipeline/getConversationsByStage'](props.stage.id)
-);
+const conversations = computed({
+  get: () =>
+    store.getters['crmPipeline/getConversationsByStage'](props.stage.id),
+  set: value => {
+    store.commit('crmPipeline/REORDER_CONVERSATIONS', {
+      stageId: props.stage.id,
+      conversations: value,
+    });
+  },
+});
 const isLoading = computed(() =>
   store.getters['crmPipeline/isStageLoading'](props.stage.id)
 );
@@ -54,6 +63,22 @@ const handleScroll = e => {
   }
 };
 
+const renameStage = () => {
+  const name = window.prompt('Novo nome da etapa:', props.stage.name);
+  if (name && name !== props.stage.name) {
+    store.dispatch('crmPipeline/updateStage', {
+      stageId: props.stage.id,
+      name,
+    });
+  }
+};
+
+const deleteStage = () => {
+  if (window.confirm('Tem certeza que deseja excluir esta etapa?')) {
+    store.dispatch('crmPipeline/deleteStage', props.stage.id);
+  }
+};
+
 onMounted(() => {
   if (conversations.value.length === 0) {
     store.dispatch('crmPipeline/fetchConversations', {
@@ -66,11 +91,14 @@ onMounted(() => {
 
 <template>
   <div
-    class="flex flex-col flex-shrink-0 w-80 bg-n-slate-2 rounded-xl p-2 max-h-full"
+    class="flex flex-col flex-shrink-0 w-80 bg-n-slate-2 rounded-xl p-2 max-h-full transition-all group/column"
   >
     <div class="flex items-center justify-between px-2 py-3 mb-2">
       <div class="flex items-center gap-2">
-        <h2 class="text-sm font-semibold text-n-slate-12">
+        <h2
+          class="text-sm font-bold text-n-slate-12 cursor-pointer hover:text-n-brand transition-colors"
+          @click="renameStage"
+        >
           {{ stage.name }}
         </h2>
         <span
@@ -78,6 +106,18 @@ onMounted(() => {
         >
           {{ totalCount }}
         </span>
+      </div>
+      <div
+        class="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity"
+      >
+        <NextButton
+          variant="ghost"
+          color="slate"
+          size="xs"
+          icon="i-lucide-trash-2"
+          class="!text-n-ruby-9 hover:!bg-n-ruby-9/10"
+          @click="deleteStage"
+        />
       </div>
     </div>
 
@@ -87,16 +127,24 @@ onMounted(() => {
       @scroll="handleScroll"
     >
       <draggable
-        :list="conversations"
+        v-model="conversations"
         group="conversations"
         item-key="id"
-        class="min-h-[10px]"
-        ghost-class="opacity-50"
-        drag-class="rotate-3"
+        class="min-h-[150px] pb-20"
+        ghost-class="opacity-40"
+        drag-class="rotate-[2deg] scale-105 shadow-xl"
+        :animation="200"
+        :delay="10"
+        :disabled="false"
         @change="onDragChange"
       >
         <template #item="{ element }">
-          <DealCard :conversation="element" @select="$emit('select', $event)" />
+          <transition name="list-complete">
+            <DealCard
+              :conversation="element"
+              @select="$emit('select', $event)"
+            />
+          </transition>
         </template>
       </draggable>
 
@@ -112,3 +160,24 @@ onMounted(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+.list-complete-enter-active,
+.list-complete-leave-active {
+  transition: all 0.3s ease;
+}
+
+.list-complete-enter-from,
+.list-complete-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.sortable-ghost {
+  @apply bg-n-slate-3 border-dashed border-2 border-n-slate-4 shadow-none opacity-40;
+}
+
+.sortable-drag {
+  @apply shadow-2xl scale-[1.02] rotate-1 z-[1000] cursor-grabbing;
+}
+</style>

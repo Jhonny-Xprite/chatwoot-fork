@@ -125,5 +125,7 @@ Thumbs.db
 
 # AIOX Local (AIOX)
 .aiox-core/local/
-.aiox/install-log.txt
+.aiox/
+.aios/
+squads/
 .env.access

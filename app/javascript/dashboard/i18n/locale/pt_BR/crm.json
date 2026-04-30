@@ -1,0 +1,21 @@
+{
+  "CRM": {
+    "HEADER": "Pipeline do CRM",
+    "SEARCH_PLACEHOLDER": "Buscar por nome do contato...",
+    "ASSIGNEE": "Responsável",
+    "ALL_ASSIGNEES": "Todos os agentes",
+    "LABELS": "Etiquetas",
+    "LABELS_PLACEHOLDER": "Filtrar por etiquetas",
+    "CLEAR_FILTERS": "Limpar filtros",
+    "DEAL_ID": "ID #{id}",
+    "LOADING": "Carregando pipeline...",
+    "NO_PIPELINES": "Nenhum pipeline encontrado",
+    "NO_PIPELINES_SUBTITLE": "O pipeline do CRM ainda não foi provisionado para esta conta.",
+    "EMPTY_STAGE": "Nenhuma negociação nesta etapa ainda.",
+    "ADD_STAGE": "Adicionar Etapa",
+    "ADD_PIPELINE": "Novo Pipeline",
+    "SAVE": "Salvar",
+    "CANCEL": "Cancelar",
+    "PHONE": "Telefone"
+  }
+}

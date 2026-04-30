@@ -6,8 +6,32 @@ class PipelineAPI extends ApiClient {
     super('crm/pipelines', { accountScoped: true });
   }
 
+  create(data) {
+    return axios.post(this.url, data);
+  }
+
+  delete(pipelineId) {
+    return axios.delete(`${this.url}/${pipelineId}`);
+  }
+
   getStages(pipelineId) {
     return axios.get(`${this.url}/${pipelineId}/stages`);
+  }
+
+  createStage(pipelineId, stageData) {
+    return axios.post(`${this.url}/${pipelineId}/stages`, {
+      stage: stageData,
+    });
+  }
+
+  updateStage(pipelineId, stageId, stageData) {
+    return axios.patch(`${this.url}/${pipelineId}/stages/${stageId}`, {
+      stage: stageData,
+    });
+  }
+
+  deleteStage(pipelineId, stageId) {
+    return axios.delete(`${this.url}/${pipelineId}/stages/${stageId}`);
   }
 
   getConversations(stageId, page = 1, filters = {}) {
