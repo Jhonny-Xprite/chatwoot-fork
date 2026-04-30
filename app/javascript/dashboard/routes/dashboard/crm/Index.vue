@@ -1,25 +1,24 @@
 <script setup>
 import { computed, onMounted } from 'vue';
-import { useCrmPipelineStore } from 'dashboard/store/crm/pipeline';
+import { useStore } from 'vuex';
 import PipelineBoard from 'dashboard/components/crm/PipelineBoard.vue';
 import FilterBar from 'dashboard/components/crm/FilterBar.vue';
 
-const store = useCrmPipelineStore();
+const store = useStore();
 
-const pipelines = computed(() => store.pipelines);
-const currentPipelineStages = computed(() => store.stages);
+const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
+const currentPipelineStages = computed(() => store.getters['crmPipeline/getStages']);
 const selectedPipelineId = computed({
-  get: () => store.currentPipelineId,
+  get: () => store.getters['crmPipeline/getActivePipeline']?.id || null,
   set: val => {
-    store.currentPipelineId = val;
-    store.fetchStages(val);
+    store.dispatch('crmPipeline/fetchStages', val);
   },
 });
-const isLoading = computed(() => store.loading);
+const isLoading = computed(() => store.getters['crmPipeline/uiFlags'].isFetchingPipelines);
 
 onMounted(async () => {
-  await store.fetchPipelines();
-  if (pipelines.value.length > 0 && !store.currentPipelineId) {
+  await store.dispatch('crmPipeline/fetchPipelines');
+  if (pipelines.value.length > 0 && !selectedPipelineId.value) {
     selectedPipelineId.value = pipelines.value[0].id;
   }
 });

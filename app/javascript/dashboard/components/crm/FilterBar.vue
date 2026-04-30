@@ -1,20 +1,18 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
-import { useCrmPipelineStore } from 'dashboard/store/crm/pipeline';
 import { useStore } from 'vuex';
 import debounce from 'lodash/debounce';
 
-const store = useCrmPipelineStore();
 const vuexStore = useStore();
 
-const searchQuery = ref(store.filters.q);
-const selectedAssigneeId = ref(store.filters.assigneeId);
-const selectedLabels = ref(store.filters.labels.join(', '));
+const searchQuery = ref(vuexStore.getters['crmPipeline/appliedFilters'].q);
+const selectedAssigneeId = ref(vuexStore.getters['crmPipeline/appliedFilters'].assigneeId);
+const selectedLabels = ref(vuexStore.getters['crmPipeline/appliedFilters'].labels.join(', '));
 
 const agents = computed(() => vuexStore.getters['agents/getAgents']);
 
 const updateSearch = debounce(val => {
-  store.setFilter('q', val);
+  vuexStore.dispatch('crmPipeline/setFilter', { key: 'q', value: val });
 }, 300);
 
 watch(searchQuery, (newVal) => {
@@ -22,7 +20,7 @@ watch(searchQuery, (newVal) => {
 });
 
 watch(selectedAssigneeId, (newVal) => {
-  store.setFilter('assigneeId', newVal);
+  vuexStore.dispatch('crmPipeline/setFilter', { key: 'assigneeId', value: newVal });
 });
 
 onMounted(() => {
@@ -32,14 +30,14 @@ onMounted(() => {
 
 const onLabelChange = (e) => {
   const labelsList = e.target.value.split(',').map(l => l.trim()).filter(l => l !== '');
-  store.setFilter('labels', labelsList);
+  vuexStore.dispatch('crmPipeline/setFilter', { key: 'labels', value: labelsList });
 };
 
 const clearFilters = () => {
   searchQuery.value = '';
   selectedAssigneeId.value = null;
   selectedLabels.value = '';
-  store.clearFilters();
+  vuexStore.dispatch('crmPipeline/clearFilters');
 };
 </script>
 

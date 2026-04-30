@@ -3,7 +3,7 @@ import { computed, ref, onMounted } from 'vue';
 import draggable from 'vuedraggable';
 import DealCard from './DealCard.vue';
 import DealCardSkeleton from './DealCardSkeleton.vue';
-import { useCrmPipelineStore } from 'dashboard/store/crm/pipeline';
+import { useStore } from 'vuex';
 
 const props = defineProps({
   stage: {
@@ -14,21 +14,21 @@ const props = defineProps({
 
 defineEmits(['select']);
 
-const store = useCrmPipelineStore();
+const store = useStore();
 const scrollContainer = ref(null);
 
 const conversations = computed(
-  () => store.conversationsByStage[props.stage.id] || []
+  () => store.getters['crmPipeline/getConversationsByStage'](props.stage.id)
 );
-const isLoading = computed(() => store.uiFlags.isFetchingConversations);
+const isLoading = computed(() => store.getters['crmPipeline/uiFlags'].isFetchingConversations);
 const totalCount = computed(
-  () => store.metaByStage[props.stage.id]?.total_count || 0
+  () => store.getters['crmPipeline/getMetaByStage'](props.stage.id)?.total_count || 0
 );
 
 const onDragChange = evt => {
   if (evt.added) {
     const { element } = evt.added;
-    store.moveConversation({
+    store.dispatch('crmPipeline/moveConversation', {
       conversationId: element.id,
       fromStageId: null, // Store handles finding the old stage
       toStageId: props.stage.id,
@@ -39,16 +39,16 @@ const onDragChange = evt => {
 const handleScroll = e => {
   const { scrollTop, scrollHeight, clientHeight } = e.target;
   if (scrollHeight - scrollTop <= clientHeight + 100) {
-    const meta = store.metaByStage[props.stage.id];
+    const meta = store.getters['crmPipeline/getMetaByStage'](props.stage.id);
     if (meta && meta.current_page < meta.total_pages) {
-      store.fetchConversations(props.stage.id, meta.current_page + 1);
+      store.dispatch('crmPipeline/fetchConversations', { stageId: props.stage.id, page: meta.current_page + 1 });
     }
   }
 };
 
 onMounted(() => {
   if (conversations.value.length === 0) {
-    store.fetchConversations(props.stage.id);
+    store.dispatch('crmPipeline/fetchConversations', { stageId: props.stage.id, page: 1 });
   }
 });
 </script>
