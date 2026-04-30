@@ -1,9 +1,6 @@
-version: '3.9'
-
 services:
   postgres:
     image: pgvector/pgvector:pg17
-    container_name: chatwoot-postgres
     environment:
       POSTGRES_DB: chatwoot
       POSTGRES_USER: postgres
@@ -19,7 +16,6 @@ services:
 
   redis:
     image: valkey/valkey:7.2.5-alpine
-    container_name: chatwoot-redis
     command: valkey-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -32,9 +28,6 @@ services:
 
   chatwoot:
     image: jhonnyxprite/chatwoot-crm:latest
-    container_name: chatwoot-app
-    ports:
-      - "3000:3000"
     environment:
       DATABASE_URL: postgresql://postgres:postgres_secure_2024@postgres:5432/chatwoot
       REDIS_URL: redis://redis:6379
@@ -59,7 +52,6 @@ services:
 
   sidekiq:
     image: jhonnyxprite/chatwoot-crm:latest
-    container_name: chatwoot-sidekiq
     environment:
       DATABASE_URL: postgresql://postgres:postgres_secure_2024@postgres:5432/chatwoot
       REDIS_URL: redis://redis:6379
