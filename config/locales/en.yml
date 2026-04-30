@@ -48,6 +48,9 @@ en:
     inbox_deletetion_response: Your inbox deletion request will be processed in some time.
 
   errors:
+    messages:
+      rate_limited: 'Too many requests. Please wait %{seconds} seconds and try again.'
+      login_rate_limited: 'Too many login attempts. Please wait %{seconds} seconds and try again.'
     account:
       reporting_timezone:
         invalid: is not a valid timezone

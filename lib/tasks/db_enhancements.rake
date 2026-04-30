@@ -24,8 +24,10 @@ db_namespace = namespace :db do
       end
 
       db_namespace['migrate'].invoke
+      Installation::BootstrapService.new.perform
     rescue ActiveRecord::NoDatabaseError
       db_namespace['setup'].invoke
+      Installation::BootstrapService.new.perform
     end
   end
 end

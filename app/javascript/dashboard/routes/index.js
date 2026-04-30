@@ -5,6 +5,7 @@ import dashboard from './dashboard/dashboard.routes';
 import store from 'dashboard/store';
 import { validateLoggedInRoutes } from '../helper/routeHelpers';
 import AnalyticsHelper from '../helper/AnalyticsHelper';
+import { installViteChunkReload } from 'shared/helpers/viteChunkReload';
 
 const routes = [...dashboard.routes];
 
@@ -37,6 +38,7 @@ export const validateAuthenticateRoutePermission = (to, next) => {
 
 export const initalizeRouter = () => {
   const userAuthentication = store.dispatch('setUser');
+  installViteChunkReload(router);
 
   router.beforeEach((to, _from, next) => {
     AnalyticsHelper.page(to.name || '', {
