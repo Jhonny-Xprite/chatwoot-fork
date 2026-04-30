@@ -30,33 +30,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    environment:
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # 🔴 OBRIGATÓRIAS - SEM ESSAS NÃO FUNCIONA
-      # ═══════════════════════════════════════════════════════════════════════════════
-
-      DATABASE_URL: postgresql://postgres:f28aa46c7224d75d34aeb80085912030@a2-postgres:5432/chatwoot
-      REDIS_URL: redis://a2-redis:6379
-      SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
-      RAILS_ENV: production
-
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # 🟡 RECOMENDADAS - Melhor deixar como está
-      # ═══════════════════════════════════════════════════════════════════════════════
-
-      RAILS_LOG_TO_STDOUT: "true"
-      RAILS_SERVE_STATIC_FILES: "true"
-      FRONTEND_URL: https://clientes-tools-a2.am5xdk.easypanel.host
-      RAILS_MAX_THREADS: "4"
-      RAILS_MIN_THREADS: "2"
-
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # 🟢 OPCIONAIS - CRM Features (seu projeto)
-      # ═══════════════════════════════════════════════════════════════════════════════
-
-      FEATURE_CRM_ENABLED: "true"
-
-      # ═══════════════════════════════════════════════════════════════════════════════
+    env_file:
+      - .env
       # 🔵 OPCIONAIS - Email/Mailer (SMTP)
       # ═══════════════════════════════════════════════════════════════════════════════
       # Descomente se quiser enviar emails
@@ -121,19 +96,8 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    environment:
-      DATABASE_URL: postgresql://postgres:f28aa46c7224d75d34aeb80085912030@a2-postgres:5432/chatwoot
-      REDIS_URL: redis://a2-redis:6379
-      SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
-      RAILS_ENV: production
-      RAILS_LOG_TO_STDOUT: "true"
-      FRONTEND_URL: https://clientes-tools-a2.am5xdk.easypanel.host
-      FEATURE_CRM_ENABLED: "true"
-
-      # Mesmos opcionais do a2-chatwoot acima se necessário
-      # SMTP_ADDRESS: ...
-      # AWS_ACCESS_KEY_ID: ...
-      # etc
+    env_file:
+      - .env
 
     depends_on:
       - a2-postgres
