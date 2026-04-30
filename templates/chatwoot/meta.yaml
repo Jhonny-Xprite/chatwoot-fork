@@ -1,105 +1,121 @@
-name: Chatwoot CRM
-description: |
-  Chatwoot com CRM Pipeline Kanban - Gerenciamento de conversas e deals.
-  Inclui PostgreSQL, Redis e Sidekiq pré-configurados.
-  Seu sistema próprio, customizado com filtros avançados e automação.
-
-instructions: null
-
-changeLog:
-  - date: 2026-04-30
-    description: Chatwoot com CRM customizado (Kanban + Filtros + Automação)
-  - date: 2026-04-29
-    description: Implementação de template para instalação simplificada no EasyPanel
-
-links:
-  - label: Documentação CRM
-    url: https://github.com/seu-user/chatwoot-fork/blob/main/docs/CRM-PIPELINE-PLAN.md
-  - label: GitHub Fork
-    url: https://github.com/seu-user/chatwoot-fork
-
-contributors:
-  - name: Seu Nome
-    url: https://github.com/seu-user
-
-schema:
-  type: object
-  required:
-    - defaultLocale
-    - appServiceName
-    - appServiceImage
-    - sidekiqServiceName
-    - databaseServiceName
-    - redisServiceName
-  properties:
-    defaultLocale:
-      type: string
-      title: Idioma Padrão
-      default: pt-br
-
-    appServiceName:
-      type: string
-      title: Nome do Serviço App
-      default: chatwoot-crm
-
-    appServiceImage:
-      type: string
-      title: Docker Image (sua imagem customizada)
-      default: seu-dockerhub-user/chatwoot-crm:latest
-
-    sidekiqServiceName:
-      type: string
-      title: Nome do Serviço Sidekiq
-      default: chatwoot-sidekiq
-
-    databaseServiceName:
-      type: string
-      title: Nome do Serviço Database
-      default: chatwoot-db
-
-    redisServiceName:
-      type: string
-      title: Nome do Serviço Redis
-      default: chatwoot-redis
-
-benefits:
-  - title: CRM Pipeline Kanban
-    description: |
-      Gerencie deals em um quadro Kanban com drag & drop.
-      Altere automaticamente estágios ao adicionar labels.
-
-  - title: Filtros Avançados
-    description: |
-      Filtre por labels, assignees e busque contatos em tempo real.
-      Encontre exatamente o que você precisa.
-
-  - title: Automação Inteligente
-    description: |
-      Automatize a movimentação de deals entre estágios
-      com base em eventos e labels.
-
-features:
-  - title: Quadro Kanban
-    description: Visualize todos os deals em colunas por estágio.
-
-  - title: Drag & Drop
-    description: Mova deals entre estágios com um clique.
-
-  - title: Filtros em Tempo Real
-    description: Busque e filtre deals instantaneamente.
-
-  - title: Automação de Labels
-    description: Movimente automaticamente com labels.
-
-  - title: PostgreSQL Integrado
-    description: Banco de dados persistente pré-configurado.
-
-  - title: Redis Cache
-    description: Cache de alta performance para sessões e jobs.
-
-tags:
-  - Chat
-  - CRM
-  - Customer Support
-  - Pipeline
-  - Kanban
+{
+  "name": "Chatwoot CRM",
+  "description": "Chatwoot com CRM Pipeline Kanban - Gerenciamento de conversas e deals. Inclui PostgreSQL, Redis e Sidekiq pré-configurados. Seu sistema próprio, customizado com filtros avançados e automação.",
+  "instructions": null,
+  "changeLog": [
+    {
+      "date": "2026-04-30",
+      "description": "Chatwoot com CRM customizado (Kanban + Filtros + Automação)"
+    },
+    {
+      "date": "2026-04-29",
+      "description": "Implementação de template para instalação simplificada no EasyPanel"
+    }
+  ],
+  "links": [
+    {
+      "label": "Documentação CRM",
+      "url": "https://github.com/seu-user/chatwoot-fork/blob/main/docs/CRM-PIPELINE-PLAN.md"
+    },
+    {
+      "label": "GitHub Fork",
+      "url": "https://github.com/seu-user/chatwoot-fork"
+    }
+  ],
+  "contributors": [
+    {
+      "name": "Seu Nome",
+      "url": "https://github.com/seu-user"
+    }
+  ],
+  "schema": {
+    "type": "object",
+    "required": [
+      "defaultLocale",
+      "appServiceName",
+      "appServiceImage",
+      "sidekiqServiceName",
+      "databaseServiceName",
+      "redisServiceName"
+    ],
+    "properties": {
+      "defaultLocale": {
+        "type": "string",
+        "title": "Idioma Padrão",
+        "default": "pt-br"
+      },
+      "appServiceName": {
+        "type": "string",
+        "title": "Nome do Serviço App",
+        "default": "chatwoot-crm"
+      },
+      "appServiceImage": {
+        "type": "string",
+        "title": "Docker Image (sua imagem customizada)",
+        "default": "seu-dockerhub-user/chatwoot-crm:latest"
+      },
+      "sidekiqServiceName": {
+        "type": "string",
+        "title": "Nome do Serviço Sidekiq",
+        "default": "chatwoot-sidekiq"
+      },
+      "databaseServiceName": {
+        "type": "string",
+        "title": "Nome do Serviço Database",
+        "default": "chatwoot-db"
+      },
+      "redisServiceName": {
+        "type": "string",
+        "title": "Nome do Serviço Redis",
+        "default": "chatwoot-redis"
+      }
+    }
+  },
+  "benefits": [
+    {
+      "title": "CRM Pipeline Kanban",
+      "description": "Gerencie deals em um quadro Kanban com drag & drop. Altere automaticamente estágios ao adicionar labels."
+    },
+    {
+      "title": "Filtros Avançados",
+      "description": "Filtre por labels, assignees e busque contatos em tempo real. Encontre exatamente o que você precisa."
+    },
+    {
+      "title": "Automação Inteligente",
+      "description": "Automatize a movimentação de deals entre estágios com base em eventos e labels."
+    }
+  ],
+  "features": [
+    {
+      "title": "Quadro Kanban",
+      "description": "Visualize todos os deals em colunas por estágio."
+    },
+    {
+      "title": "Drag & Drop",
+      "description": "Mova deals entre estágios com um clique."
+    },
+    {
+      "title": "Filtros em Tempo Real",
+      "description": "Busque e filtre deals instantaneamente."
+    },
+    {
+      "title": "Automação de Labels",
+      "description": "Movimente automaticamente com labels."
+    },
+    {
+      "title": "PostgreSQL Integrado",
+      "description": "Banco de dados persistente pré-configurado."
+    },
+    {
+      "title": "Redis Cache",
+      "description": "Cache de alta performance para sessões e jobs."
+    }
+  ],
+  "tags": [
+    "Chat",
+    "CRM",
+    "Customer Support",
+    "Pipeline",
+    "Kanban"
+  ]
+}
