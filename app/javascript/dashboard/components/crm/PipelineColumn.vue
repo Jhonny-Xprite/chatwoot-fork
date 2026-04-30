@@ -79,11 +79,6 @@ onMounted(() => {
           {{ totalCount }}
         </span>
       </div>
-      <button
-        class="p-1 hover:bg-n-slate-4 rounded-md transition-colors text-n-slate-11"
-      >
-        <i class="i-lucide-more-horizontal w-4 h-4" />
-      </button>
     </div>
 
     <div
