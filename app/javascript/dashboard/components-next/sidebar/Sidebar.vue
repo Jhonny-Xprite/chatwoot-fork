@@ -311,6 +311,13 @@ const menuItems = computed(() => {
       ],
     },
     {
+      name: 'CRM',
+      label: t('SIDEBAR.CRM'),
+      icon: 'i-lucide-layout-kanban',
+      to: accountScopedRoute('crm_dashboard'),
+      activeOn: ['crm_dashboard'],
+    },
+    {
       name: 'Captain',
       icon: 'i-woot-captain',
       label: t('SIDEBAR.CAPTAIN'),

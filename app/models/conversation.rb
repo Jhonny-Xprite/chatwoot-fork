@@ -58,6 +58,9 @@ class Conversation < ApplicationRecord
   include AutoAssignmentHandler
   include ActivityMessageHandler
   include UrlHelper
+
+  belongs_to :pipeline, class_name: 'CrmPipeline', optional: true
+  belongs_to :pipeline_stage, class_name: 'CrmPipelineStage', counter_cache: true, optional: true
   include SortHandler
   include PushDataHelper
   include ConversationMuteHelpers
@@ -95,6 +98,12 @@ class Conversation < ApplicationRecord
       "INNER JOIN (#{last_messaged_conversations.to_sql}) AS grouped_conversations
       ON grouped_conversations.conversation_id = conversations.id"
     ).sort_on_last_user_message_at
+  }
+
+  scope :search_by_contact_name, lambda { |query|
+    return all if query.blank?
+
+    joins(:contact).where('contacts.name ILIKE :query OR contacts.email ILIKE :query OR contacts.phone_number ILIKE :query', query: "%#{query}%")
   }
 
   belongs_to :account
