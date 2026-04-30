@@ -1,0 +1,121 @@
+import {
+  Output,
+  randomPassword,
+  randomString,
+  Services,
+} from "~templates-utils";
+import { Input } from "./meta";
+
+export function generate(input: Input): Output {
+  const services: Services = [];
+  const secretkey = randomString(32);
+  const randomPasswordRedis = randomPassword();
+  const randomPasswordPostgres = randomPassword();
+
+  // 🎯 Variáveis de ambiente compartilhadas entre todos os serviços
+  const env = [
+    `SECRET_KEY_BASE=${secretkey}`,
+    `DEFAULT_LOCALE=${input.defaultLocale}`,
+    `FORCE_SSL=false`,
+    `ENABLE_ACCOUNT_SIGNUP=true`,
+    `REDIS_URL=redis://default@$(PROJECT_NAME)_${input.redisServiceName}:6379`,
+    `REDIS_PASSWORD=${randomPasswordRedis}`,
+    `REDIS_OPENSSL_VERIFY_MODE=none`,
+    `POSTGRES_DATABASE=$(PROJECT_NAME)`,
+    `POSTGRES_HOST=$(PROJECT_NAME)_${input.databaseServiceName}`,
+    `POSTGRES_USERNAME=postgres`,
+    `POSTGRES_PASSWORD=${randomPasswordPostgres}`,
+    `RAILS_MAX_THREADS=5`,
+    `NODE_ENV=production`,
+    `RAILS_ENV=production`,
+    `INSTALLATION_ENV=docker`,
+    `TRUSTED_PROXIES=*`,
+    // ✨ CRM Específico - Seu customizado
+    `FEATURE_CRM_ENABLED=true`,
+  ].join("\n");
+
+  // 🚀 Serviço Principal - Chatwoot App (com CRM)
+  services.push({
+    type: "app",
+    data: {
+      serviceName: input.appServiceName,
+      env: [
+        `FRONTEND_URL=https://$(PRIMARY_DOMAIN)`,
+        ...env.split("\n"),
+      ].join("\n"),
+      source: {
+        type: "image",
+        image: input.appServiceImage,
+      },
+      domains: [
+        {
+          host: "$(EASYPANEL_DOMAIN)",
+          port: 3000,
+        },
+      ],
+      deploy: {
+        command:
+          "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0",
+      },
+      mounts: [
+        {
+          type: "volume",
+          name: "data",
+          mountPath: "/data/storage",
+        },
+        {
+          type: "volume",
+          name: "app",
+          mountPath: "/app/storage",
+        },
+      ],
+    },
+  });
+
+  // 🔧 Serviço Sidekiq - Background Jobs (processamento de automações, envio de emails, etc)
+  services.push({
+    type: "app",
+    data: {
+      serviceName: input.sidekiqServiceName,
+      env: [
+        `FRONTEND_URL=https://$(PROJECT_NAME)-${input.appServiceName}.$(EASYPANEL_HOST)`,
+        ...env.split("\n"),
+      ].join("\n"),
+      source: {
+        type: "image",
+        image: input.appServiceImage,
+      },
+      deploy: {
+        command: "bundle exec sidekiq -C config/sidekiq.yml",
+      },
+      mounts: [
+        {
+          type: "bind",
+          hostPath: `/etc/easypanel/projects/$(PROJECT_NAME)/${input.appServiceName}/volumes/app`,
+          mountPath: "/app/storage",
+        },
+      ],
+    },
+  });
+
+  // 🔴 Redis - Cache & Sessions (gerenciado automaticamente pelo EasyPanel)
+  services.push({
+    type: "redis",
+    data: {
+      serviceName: input.redisServiceName,
+      password: randomPasswordRedis,
+    },
+  });
+
+  // 🗄️ PostgreSQL - Database (gerenciado automaticamente pelo EasyPanel)
+  services.push({
+    type: "postgres",
+    data: {
+      serviceName: input.databaseServiceName,
+      image: "pgvector/pgvector:pg17",
+      password: randomPasswordPostgres,
+    },
+  });
+
+  return { services };
+}
