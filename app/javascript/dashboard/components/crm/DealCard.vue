@@ -1,10 +1,14 @@
 <script setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from 'vue-i18n';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
-import InlineInput from 'dashboard/components-next/inline-input/InlineInput.vue';
-import AddLabel from 'dashboard/components-next/label/AddLabel.vue';
 import NextLabel from 'dashboard/components-next/label/Label.vue';
+import AddLabel from 'dashboard/components-next/label/AddLabel.vue';
+import Popover from 'dashboard/components-next/popover/Popover.vue';
+import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
+import Icon from 'dashboard/components-next/icon/Icon.vue';
+import { useAlert } from 'dashboard/composables';
 
 const props = defineProps({
   conversation: {
@@ -13,13 +17,44 @@ const props = defineProps({
   },
 });
 
-defineEmits(['select']);
+const emit = defineEmits(['select']);
 
 const store = useStore();
+const { t } = useI18n();
 
 const contact = computed(() => props.conversation.meta?.sender || {});
 const assignee = computed(() => props.conversation.meta?.assignee);
 const labels = computed(() => props.conversation.labels || []);
+const inboxId = computed(() => props.conversation.inbox_id);
+
+// Agents list for assignment
+const assignableAgents = computed(() => 
+  store.getters['inboxAssignableAgents/getAssignableAgents'](inboxId.value) || []
+);
+
+const agentMenuItems = computed(() => {
+  const items = assignableAgents.value.map(agent => ({
+    label: agent.name,
+    value: agent.id,
+    action: 'assign',
+    thumbnail: {
+      name: agent.name,
+      src: agent.thumbnail,
+    },
+    isSelected: assignee.value?.id === agent.id,
+  }));
+
+  // Add "None" option
+  items.unshift({
+    label: t('AGENT_MGMT.MULTI_SELECTOR.LIST.NONE'),
+    value: 0,
+    action: 'assign',
+    icon: 'i-lucide-user-minus',
+    isSelected: !assignee.value,
+  });
+
+  return items;
+});
 
 const allLabels = computed(() => store.getters['labels/getLabels']);
 const labelMenuItems = computed(() => {
@@ -31,21 +66,6 @@ const labelMenuItems = computed(() => {
   }));
 });
 
-const isEditing = ref(false);
-const editableName = ref(contact.value.name || '');
-const editableEmail = ref(contact.value.email || '');
-const editablePhone = ref(contact.value.phone_number || '');
-
-watch(
-  contact,
-  newContact => {
-    editableName.value = newContact.name || '';
-    editableEmail.value = newContact.email || '';
-    editablePhone.value = newContact.phone_number || '';
-  },
-  { deep: true }
-);
-
 const lastMessageContent = computed(() => {
   const lastMessage = props.conversation.last_non_activity_message;
   return lastMessage?.content || '';
@@ -53,49 +73,32 @@ const lastMessageContent = computed(() => {
 
 const priorityBadgeClass = computed(() => {
   const priorities = {
-    urgent: 'text-red-500 bg-red-50 dark:bg-red-900/20',
-    high: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20',
-    medium: 'text-blue-500 bg-blue-50 dark:bg-blue-900/20',
-    low: 'text-gray-500 bg-gray-50 dark:bg-gray-900/20',
+    urgent: 'text-red-600 bg-red-50 dark:bg-red-900/20 border-red-100',
+    high: 'text-orange-600 bg-orange-50 dark:bg-orange-900/20 border-orange-100',
+    medium: 'text-blue-600 bg-blue-50 dark:bg-blue-900/20 border-blue-100',
+    low: 'text-gray-600 bg-gray-50 dark:bg-gray-900/20 border-gray-100',
   };
-  return `px-1.5 py-0.5 text-[9px] uppercase font-bold rounded ${priorities[props.conversation.priority] || ''}`;
+  return `px-1.5 py-0.5 text-[10px] uppercase font-bold rounded border ${priorities[props.conversation.priority] || ''}`;
 });
 
-const toggleEdit = e => {
-  e.stopPropagation();
-  isEditing.value = !isEditing.value;
-};
+const onAssignAgent = ({ value }) => {
+  const agentId = value === 0 ? null : value;
+  const agent = assignableAgents.value.find(a => a.id === agentId);
 
-const saveContact = async () => {
-  if (!isEditing.value) return;
-
-  try {
-    const response = await store.dispatch('contacts/update', {
-      id: contact.value.id,
-      name: editableName.value,
-      email: editableEmail.value,
-      phoneNumber: editablePhone.value,
-    });
-
+  store.dispatch('assignAgent', {
+    conversationId: props.conversation.id,
+    agentId,
+  }).then(() => {
+    useAlert(t('CONVERSATION.CHANGE_AGENT'));
+    // Update local state for immediate feedback
     store.dispatch('crmPipeline/updateConversation', {
       ...props.conversation,
       meta: {
         ...props.conversation.meta,
-        sender: response.data.payload,
+        assignee: agent || null,
       },
     });
-
-    isEditing.value = false;
-  } catch (error) {
-    // Error handled by store
-  }
-};
-
-const cancelEdit = () => {
-  editableName.value = contact.value.name || '';
-  editableEmail.value = contact.value.email || '';
-  editablePhone.value = contact.value.phone_number || '';
-  isEditing.value = false;
+  });
 };
 
 const onUpdateLabel = async label => {
@@ -112,8 +115,6 @@ const onUpdateLabel = async label => {
       conversationId: props.conversation.id,
       labels: newLabels,
     });
-    // Local update is usually handled by store subscription,
-    // but we can force it if needed
   } catch (error) {
     // Error
   }
@@ -130,109 +131,66 @@ const removeLabel = labelTitle => {
 
 <template>
   <div
-    class="group/card p-3 mb-3 bg-white border rounded-lg shadow-sm border-n-weak hover:border-n-brand dark:bg-n-slate-1 transition-all cursor-grab active:cursor-grabbing relative"
-    @click="!isEditing && $emit('select', conversation)"
+    class="group/card p-4 bg-white dark:bg-n-slate-1 border border-n-weak rounded-xl shadow-sm hover:shadow-md hover:border-n-brand transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3"
+    @click="$emit('select', conversation)"
   >
-    <div class="flex items-start gap-2 mb-2">
+    <!-- Top Row: Avatar & Basic Info -->
+    <div class="flex items-start gap-3">
       <Avatar
         :src="contact.thumbnail"
         :name="contact.name"
-        size="20px"
-        class="mt-0.5"
+        size="40px"
+        rounded-full
+        class="flex-shrink-0"
       />
       <div class="flex-1 min-w-0">
-        <template v-if="!isEditing">
-          <h3
-            class="text-sm font-semibold text-n-slate-12 truncate leading-tight flex items-center gap-1"
-          >
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-sm font-semibold text-n-slate-12 truncate">
             {{ contact.name }}
-            <button
-              class="opacity-0 group-hover/card:opacity-100 p-0.5 hover:bg-n-slate-2 rounded transition-all"
-              @click="toggleEdit"
-            >
-              <i class="i-lucide-pencil w-3 h-3 text-n-slate-10" />
-            </button>
           </h3>
-          <div class="flex flex-col gap-0.5 mt-1">
-            <div
-              v-if="contact.email"
-              class="flex items-center gap-1.5 text-[11px] text-n-slate-11 truncate"
-            >
-              <i class="i-lucide-mail w-3 h-3 flex-shrink-0" />
-              <span class="truncate">{{ contact.email }}</span>
-            </div>
-            <div
-              v-if="contact.phone_number"
-              class="flex items-center gap-1.5 text-[11px] text-n-slate-11"
-            >
-              <i class="i-lucide-phone w-3 h-3 flex-shrink-0" />
-              <span>{{ contact.phone_number }}</span>
-            </div>
+          <span v-if="conversation.priority" :class="priorityBadgeClass">
+            {{ conversation.priority }}
+          </span>
+        </div>
+        <!-- Contact Subtext below name -->
+        <div class="flex flex-col gap-0.5 mt-1">
+          <div
+            v-if="contact.email"
+            class="flex items-center gap-1.5 text-[11px] text-n-slate-11 truncate"
+          >
+            <i class="i-lucide-mail w-3 h-3 flex-shrink-0" />
+            <span class="truncate">{{ contact.email }}</span>
           </div>
-        </template>
-        <template v-else>
-          <div class="flex flex-col gap-2" @click.stop>
-            <InlineInput
-              v-model="editableName"
-              placeholder="Nome"
-              class="!h-7 font-semibold"
-              focus-on-mount
-              @enter-press="saveContact"
-              @escape-press="cancelEdit"
-            />
-            <InlineInput
-              v-model="editableEmail"
-              placeholder="E-mail"
-              class="!h-6 text-xs"
-              @enter-press="saveContact"
-              @escape-press="cancelEdit"
-            />
-            <InlineInput
-              v-model="editablePhone"
-              :placeholder="$t('CRM.PHONE')"
-              class="!h-6 text-xs"
-              @enter-press="saveContact"
-              @escape-press="cancelEdit"
-            />
-            <div class="flex items-center gap-2 mt-1">
-              <button
-                class="px-2 py-1 bg-n-brand text-white text-[10px] rounded font-medium hover:brightness-110"
-                @click="saveContact"
-              >
-                {{ $t('CRM.SAVE') }}
-              </button>
-              <button
-                class="px-2 py-1 bg-n-slate-3 text-n-slate-11 text-[10px] rounded font-medium hover:bg-n-slate-4"
-                @click="cancelEdit"
-              >
-                {{ $t('CRM.CANCEL') }}
-              </button>
-            </div>
+          <div
+            v-if="contact.phone_number"
+            class="flex items-center gap-1.5 text-[11px] text-n-slate-11"
+          >
+            <i class="i-lucide-phone w-3 h-3 flex-shrink-0" />
+            <span>{{ contact.phone_number }}</span>
           </div>
-        </template>
+        </div>
       </div>
-      <span v-if="conversation.priority" :class="priorityBadgeClass">
-        {{ conversation.priority }}
-      </span>
     </div>
 
+    <!-- Message Snippet -->
     <p
-      v-if="lastMessageContent && !isEditing"
-      class="text-xs text-n-slate-11 mb-3 line-clamp-2"
+      v-if="lastMessageContent"
+      class="text-xs text-n-slate-11 line-clamp-2 italic opacity-80"
     >
-      {{ lastMessageContent }}
+      "{{ lastMessageContent }}"
     </p>
 
-    <!-- Labels Section -->
-    <div class="flex flex-wrap gap-1 mb-3 min-h-[1.5rem]">
+    <!-- Labels Row -->
+    <div class="flex flex-wrap gap-1 items-center min-h-[24px]">
       <NextLabel
         v-for="label in labels"
         :key="label"
         :label="label"
         compact
         color="slate"
+        class="!py-0.5 !px-2"
       >
-        <template v-if="isEditing" #action>
+        <template #action>
           <button
             class="hover:text-n-ruby-9 transition-colors ml-1"
             @click.stop="removeLabel(label)"
@@ -241,21 +199,56 @@ const removeLabel = labelTitle => {
           </button>
         </template>
       </NextLabel>
-      <AddLabel
-        v-if="isEditing"
-        :label-menu-items="labelMenuItems"
-        @update-label="onUpdateLabel"
-      />
+      <div @click.stop>
+        <AddLabel
+          :label-menu-items="labelMenuItems"
+          class="hover:scale-110 transition-transform"
+          @update-label="onUpdateLabel"
+        />
+      </div>
     </div>
 
-    <div class="flex items-center justify-end h-5">
-      <Avatar
-        v-if="assignee"
-        :src="assignee.thumbnail"
-        :name="assignee.name"
-        size="20px"
-        :title="assignee.name"
-      />
+    <!-- Divider -->
+    <div class="h-px bg-n-weak w-full" />
+
+    <!-- Footer: Assignee & Date -->
+    <div class="flex items-center justify-between mt-1">
+      <Popover @click.stop>
+        <template #trigger>
+          <button
+            class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-n-slate-2 dark:hover:bg-n-alpha-2 transition-all group/assignee"
+          >
+            <Avatar
+              v-if="assignee"
+              :src="assignee.thumbnail"
+              :name="assignee.name"
+              size="20px"
+              rounded-full
+            />
+            <div
+              v-else
+              class="w-5 h-5 rounded-full border border-dashed border-n-slate-6 flex items-center justify-center text-n-slate-8 group-hover/assignee:border-n-brand group-hover/assignee:text-n-brand transition-all"
+            >
+              <i class="i-lucide-user-plus w-3 h-3" />
+            </div>
+            <span class="text-[10px] font-medium text-n-slate-11 group-hover/assignee:text-n-slate-12">
+              {{ assignee ? assignee.name : t('CONVERSATION_SIDEBAR.SELF_ASSIGN') }}
+            </span>
+          </button>
+        </template>
+        <template #content>
+          <DropdownMenu
+            :menu-items="agentMenuItems"
+            class="!static shadow-2xl min-w-[180px]"
+            show-search
+            @action="onAssignAgent"
+          />
+        </template>
+      </Popover>
+
+      <span class="text-[10px] text-n-slate-9 font-medium">
+        {{ new Date(conversation.created_at).toLocaleDateString() }}
+      </span>
     </div>
   </div>
 </template>

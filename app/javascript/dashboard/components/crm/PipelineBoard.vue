@@ -23,22 +23,23 @@ const addStage = () => {
 </script>
 
 <template>
-  <div class="flex-1 overflow-x-auto bg-n-surface-1 min-h-0">
-    <div class="flex h-full gap-4 p-4 min-w-max items-start">
+  <div class="flex-1 overflow-x-auto bg-[#F8FAFC] dark:bg-n-slate-1 min-h-0 custom-scrollbar">
+    <div class="flex h-full gap-5 p-6 min-w-max items-start">
       <PipelineColumn
         v-for="stage in stages"
         :key="stage.id"
         :stage="stage"
+        class="shadow-sm border border-n-weak hover:shadow-md transition-shadow"
         @select="$emit('select', $event)"
       />
 
       <!-- Add Stage Button -->
       <button
-        class="flex items-center justify-center w-80 h-12 bg-n-slate-2 hover:bg-n-slate-3 border-2 border-dashed border-n-slate-4 rounded-xl text-n-slate-11 font-medium transition-all gap-2"
+        class="flex items-center justify-center w-80 h-[52px] bg-white dark:bg-n-slate-2 hover:bg-n-brand/5 border-2 border-dashed border-n-slate-4 hover:border-n-brand rounded-xl text-n-slate-11 hover:text-n-brand font-bold transition-all gap-2 flex-shrink-0 group/add-stage"
         @click="addStage"
       >
-        <i class="i-lucide-plus w-4 h-4" />
-        {{ $t('CRM.ADD_STAGE') }}
+        <i class="i-lucide-plus w-5 h-5 group-hover/add-stage:scale-110 transition-transform" />
+        <span class="text-sm uppercase tracking-wide">{{ $t('CRM.ADD_STAGE') }}</span>
       </button>
     </div>
   </div>

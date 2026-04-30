@@ -93,32 +93,46 @@ onMounted(() => {
   <div
     class="flex flex-col flex-shrink-0 w-80 bg-n-slate-2 rounded-xl p-2 max-h-full transition-all group/column"
   >
-    <div class="flex items-center justify-between px-2 py-3 mb-2">
-      <div class="flex items-center gap-2">
+    <div class="flex items-center justify-between px-3 py-4 mb-1">
+      <div class="flex items-center gap-2.5 min-w-0">
         <h2
-          class="text-sm font-bold text-n-slate-12 cursor-pointer hover:text-n-brand transition-colors"
-          @click="renameStage"
+          class="text-sm font-bold text-n-slate-12 truncate uppercase tracking-tight"
         >
           {{ stage.name }}
         </h2>
-        <span
-          class="px-2 py-0.5 text-[10px] bg-n-slate-3 text-n-slate-11 rounded-full font-bold"
+        <div
+          class="px-2 py-0.5 text-[10px] bg-n-alpha-2 text-n-slate-11 rounded-md font-bold border border-n-weak"
         >
           {{ totalCount }}
-        </span>
+        </div>
       </div>
-      <div
-        class="flex items-center gap-1 opacity-0 group-hover/column:opacity-100 transition-opacity"
-      >
-        <NextButton
-          variant="ghost"
-          color="slate"
-          size="xs"
-          icon="i-lucide-trash-2"
-          class="!text-n-ruby-9 hover:!bg-n-ruby-9/10"
-          @click="deleteStage"
-        />
-      </div>
+      
+      <Popover @click.stop>
+        <template #trigger>
+          <button class="p-1 hover:bg-n-alpha-1 rounded-lg transition-colors text-n-slate-10 hover:text-n-slate-12">
+            <i class="i-lucide-more-horizontal w-4 h-4" />
+          </button>
+        </template>
+        <template #content>
+          <div class="bg-n-solid-1 border border-n-weak rounded-xl shadow-2xl p-1 min-w-[140px] z-50">
+            <button 
+              class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-n-slate-12 hover:bg-n-alpha-1 rounded-lg transition-colors"
+              @click="renameStage"
+            >
+              <i class="i-lucide-pencil w-3.5 h-3.5" />
+              Renomear Etapa
+            </button>
+            <div class="h-px bg-n-weak my-1" />
+            <button 
+              class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-n-ruby-9 hover:bg-n-ruby-9/10 rounded-lg transition-colors"
+              @click="deleteStage"
+            >
+              <i class="i-lucide-trash-2 w-3.5 h-3.5" />
+              Excluir Etapa
+            </button>
+          </div>
+        </template>
+      </Popover>
     </div>
 
     <div
