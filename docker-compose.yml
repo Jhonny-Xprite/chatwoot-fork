@@ -46,7 +46,7 @@ services:
 
       RAILS_LOG_TO_STDOUT: "true"
       RAILS_SERVE_STATIC_FILES: "true"
-      FRONTEND_URL: http://localhost:3000
+      FRONTEND_URL: https://clientes-tools-a2.am5xdk.easypanel.host
       RAILS_MAX_THREADS: "4"
       RAILS_MIN_THREADS: "2"
 
