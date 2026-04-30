@@ -1,6 +1,6 @@
 {
   "name": "Chatwoot CRM",
-  "description": "Chatwoot com CRM Pipeline Kanban - Gerenciamento de conversas e deals. Inclui PostgreSQL, Redis e Sidekiq pré-configurados. Seu sistema próprio, customizado com filtros avançados e automação.",
+  "description": "Chatwoot com CRM Pipeline Kanban - Gerenciamento de conversas e deals. Inclui PostgreSQL, Redis e Sidekiq pré-configurados. Sistema customizado com filtros avançados e automação inteligente.",
   "instructions": null,
   "changeLog": [
     {
@@ -15,17 +15,21 @@
   "links": [
     {
       "label": "Documentação CRM",
-      "url": "https://github.com/seu-user/chatwoot-fork/blob/main/docs/CRM-PIPELINE-PLAN.md"
+      "url": "https://github.com/Jhonny-Xprite/chatwoot-fork/blob/feat/crm-advanced-filters-automation/docs/CRM-PIPELINE-PLAN.md"
     },
     {
       "label": "GitHub Fork",
-      "url": "https://github.com/seu-user/chatwoot-fork"
+      "url": "https://github.com/Jhonny-Xprite/chatwoot-fork"
+    },
+    {
+      "label": "Kanban Features",
+      "url": "https://github.com/Jhonny-Xprite/chatwoot-fork/blob/feat/crm-advanced-filters-automation/docs/stories/2.2-advanced-filters-automation.story.md"
     }
   ],
   "contributors": [
     {
-      "name": "Seu Nome",
-      "url": "https://github.com/seu-user"
+      "name": "Jhonny Xprite",
+      "url": "https://github.com/Jhonny-Xprite"
     }
   ],
   "schema": {
@@ -52,7 +56,7 @@
       "appServiceImage": {
         "type": "string",
         "title": "Docker Image (sua imagem customizada)",
-        "default": "seu-dockerhub-user/chatwoot-crm:latest"
+        "default": "jhonnyxprite/chatwoot-crm:latest"
       },
       "sidekiqServiceName": {
         "type": "string",
@@ -96,19 +100,19 @@
     },
     {
       "title": "Filtros em Tempo Real",
-      "description": "Busque e filtre deals instantaneamente."
+      "description": "Busque e filtre deals instantaneamente por labels, assignees e contatos."
     },
     {
       "title": "Automação de Labels",
-      "description": "Movimente automaticamente com labels."
+      "description": "Movimente automaticamente com labels (ex: GADS-Qualified → stage Qualified)."
     },
     {
       "title": "PostgreSQL Integrado",
-      "description": "Banco de dados persistente pré-configurado."
+      "description": "Banco de dados persistente pré-configurado com pgvector para IA."
     },
     {
       "title": "Redis Cache",
-      "description": "Cache de alta performance para sessões e jobs."
+      "description": "Cache de alta performance para sessões, jobs e processamento async."
     }
   ],
   "tags": [
@@ -116,6 +120,7 @@
     "CRM",
     "Customer Support",
     "Pipeline",
-    "Kanban"
+    "Kanban",
+    "Sales"
   ]
 }
