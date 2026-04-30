@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "required": [
+    "defaultLocale",
+    "appServiceName",
+    "appServiceImage",
+    "sidekiqServiceName",
+    "databaseServiceName",
+    "redisServiceName"
+  ],
+  "properties": {
+    "defaultLocale": {
+      "type": "string",
+      "title": "Idioma Padrão",
+      "default": "pt-br"
+    },
+    "appServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço App",
+      "default": "chatwoot-crm"
+    },
+    "appServiceImage": {
+      "type": "string",
+      "title": "Docker Image",
+      "default": "jhonnyxprite/chatwoot-crm:latest"
+    },
+    "sidekiqServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço Sidekiq",
+      "default": "chatwoot-sidekiq"
+    },
+    "databaseServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço Database",
+      "default": "chatwoot-db"
+    },
+    "redisServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço Redis",
+      "default": "chatwoot-redis"
+    }
+  }
+}
