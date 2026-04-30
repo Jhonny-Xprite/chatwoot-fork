@@ -108,6 +108,7 @@ class Account < ApplicationRecord
 
   before_validation :validate_limit_keys
   after_create_commit :notify_creation
+  after_create_commit :bootstrap_default_crm_pipeline
   after_destroy :remove_account_sequences
 
   def agents
@@ -163,6 +164,12 @@ class Account < ApplicationRecord
 
   def notify_creation
     Rails.configuration.dispatcher.dispatch(ACCOUNT_CREATED, Time.zone.now, account: self)
+  end
+
+  def bootstrap_default_crm_pipeline
+    return unless feature_enabled?('crm')
+
+    Crm::PipelineBootstrapService.new(account: self).perform!
   end
 
   trigger.after(:insert).for_each(:row) do

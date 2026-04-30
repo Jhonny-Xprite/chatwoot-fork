@@ -17,12 +17,17 @@ defineEmits(['select']);
 const store = useStore();
 const scrollContainer = ref(null);
 
-const conversations = computed(
-  () => store.getters['crmPipeline/getConversationsByStage'](props.stage.id)
+const conversations = computed(() =>
+  store.getters['crmPipeline/getConversationsByStage'](props.stage.id)
 );
-const isLoading = computed(() => store.getters['crmPipeline/uiFlags'].isFetchingConversations);
+const isLoading = computed(() =>
+  store.getters['crmPipeline/isStageLoading'](props.stage.id)
+);
 const totalCount = computed(
-  () => store.getters['crmPipeline/getMetaByStage'](props.stage.id)?.total_count || 0
+  () =>
+    store.getters['crmPipeline/getMetaByStage'](props.stage.id)?.total_count ??
+    props.stage.conversations_count ??
+    0
 );
 
 const onDragChange = evt => {
@@ -30,7 +35,7 @@ const onDragChange = evt => {
     const { element } = evt.added;
     store.dispatch('crmPipeline/moveConversation', {
       conversationId: element.id,
-      fromStageId: null, // Store handles finding the old stage
+      fromStageId: element.pipeline_stage_id,
       toStageId: props.stage.id,
     });
   }
@@ -41,14 +46,20 @@ const handleScroll = e => {
   if (scrollHeight - scrollTop <= clientHeight + 100) {
     const meta = store.getters['crmPipeline/getMetaByStage'](props.stage.id);
     if (meta && meta.current_page < meta.total_pages) {
-      store.dispatch('crmPipeline/fetchConversations', { stageId: props.stage.id, page: meta.current_page + 1 });
+      store.dispatch('crmPipeline/fetchConversations', {
+        stageId: props.stage.id,
+        page: meta.current_page + 1,
+      });
     }
   }
 };
 
 onMounted(() => {
   if (conversations.value.length === 0) {
-    store.dispatch('crmPipeline/fetchConversations', { stageId: props.stage.id, page: 1 });
+    store.dispatch('crmPipeline/fetchConversations', {
+      stageId: props.stage.id,
+      page: 1,
+    });
   }
 });
 </script>
@@ -96,6 +107,12 @@ onMounted(() => {
 
       <div v-if="isLoading" class="space-y-3">
         <DealCardSkeleton v-for="i in 3" :key="i" />
+      </div>
+      <div
+        v-else-if="!conversations.length"
+        class="flex items-center justify-center px-4 py-10 text-center text-sm text-n-slate-10"
+      >
+        {{ $t('CRM.EMPTY_STAGE') }}
       </div>
     </div>
   </div>

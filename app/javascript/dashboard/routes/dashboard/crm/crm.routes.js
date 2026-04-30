@@ -7,7 +7,7 @@ export default [
     name: 'crm_dashboard',
     component: CRMIndex,
     meta: {
-      permissions: ['administrator', 'agent'],
+      permissions: [],
     },
   },
 ];

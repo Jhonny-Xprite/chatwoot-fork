@@ -14,7 +14,8 @@ const state = {
   uiFlags: {
     isFetchingPipelines: false,
     isFetchingStages: false,
-    isFetchingConversations: false,
+    isMovingConversation: false,
+    loadingStages: {},
   },
 };
 
@@ -29,6 +30,7 @@ const getters = {
     _state.metaByStage[stageId] || { current_page: 1, total_pages: 1 },
   appliedFilters: _state => _state.filters,
   uiFlags: _state => _state.uiFlags,
+  isStageLoading: _state => stageId => !!_state.uiFlags.loadingStages[stageId],
 };
 
 const mutations = {
@@ -50,14 +52,28 @@ const mutations = {
   SET_UI_FLAG(_state, { flag, value }) {
     _state.uiFlags[flag] = value;
   },
+  SET_STAGE_LOADING(_state, { stageId, value }) {
+    const loadingStages = { ..._state.uiFlags.loadingStages };
+
+    if (value) {
+      loadingStages[stageId] = true;
+    } else {
+      delete loadingStages[stageId];
+    }
+
+    _state.uiFlags.loadingStages = loadingStages;
+  },
   SET_CONVERSATIONS(_state, { stageId, conversations, page }) {
     if (page === 1) {
       _state.conversationsByStage[stageId] = conversations;
     } else {
-      _state.conversationsByStage[stageId] = [
-        ...(_state.conversationsByStage[stageId] || []),
-        ...conversations,
-      ];
+      const existingConversations = _state.conversationsByStage[stageId] || [];
+      const mergedConversations = [...existingConversations, ...conversations];
+
+      _state.conversationsByStage[stageId] = mergedConversations.filter(
+        (conversation, index, list) =>
+          list.findIndex(item => item.id === conversation.id) === index
+      );
     }
   },
   SET_META(_state, { stageId, meta }) {
@@ -66,19 +82,33 @@ const mutations = {
   RESET_STAGE_DATA(_state) {
     _state.conversationsByStage = {};
     _state.metaByStage = {};
+    _state.uiFlags.loadingStages = {};
   },
-  REMOVE_CONVERSATION(_state, { stageId, conversationId }) {
-    if (_state.conversationsByStage[stageId]) {
-      _state.conversationsByStage[stageId] = _state.conversationsByStage[stageId].filter(
-        c => c.id !== conversationId
-      );
-    }
+  UPDATE_STAGE_COUNT(_state, { stageId, delta }) {
+    const meta = _state.metaByStage[stageId];
+    if (!meta) return;
+
+    _state.metaByStage[stageId] = {
+      ...meta,
+      total_count: Math.max((meta.total_count || 0) + delta, 0),
+    };
   },
-  ADD_CONVERSATION(_state, { stageId, conversation }) {
-    if (!_state.conversationsByStage[stageId]) {
-      _state.conversationsByStage[stageId] = [];
-    }
-    _state.conversationsByStage[stageId].push(conversation);
+  UPDATE_CONVERSATION_STAGE(_state, { conversationId, stageId, pipelineId }) {
+    Object.keys(_state.conversationsByStage).forEach(key => {
+      _state.conversationsByStage[key] = (
+        _state.conversationsByStage[key] || []
+      ).map(conversation => {
+        if (conversation.id !== conversationId) {
+          return conversation;
+        }
+
+        return {
+          ...conversation,
+          pipeline_stage_id: stageId,
+          pipeline_id: pipelineId,
+        };
+      });
+    });
   },
 };
 
@@ -103,15 +133,24 @@ const actions = {
     commit('SET_UI_FLAG', { flag: 'isFetchingPipelines', value: true });
     try {
       const response = await PipelineAPI.get();
-      commit('SET_PIPELINES', response.data);
-      if (response.data.length > 0 && !_state.activePipelineId) {
-        commit('SET_ACTIVE_PIPELINE', response.data[0].id);
+      const pipelines = response.data;
+      commit('SET_PIPELINES', pipelines);
+
+      const activePipeline =
+        pipelines.find(pipeline => pipeline.id === _state.activePipelineId) ||
+        pipelines[0];
+
+      if (activePipeline) {
+        commit('SET_ACTIVE_PIPELINE', activePipeline.id);
+        return activePipeline.id;
       }
     } catch (error) {
       // Handle error
     } finally {
       commit('SET_UI_FLAG', { flag: 'isFetchingPipelines', value: false });
     }
+
+    return null;
   },
 
   async fetchStages({ commit }, pipelineId) {
@@ -129,12 +168,11 @@ const actions = {
   },
 
   async fetchConversations({ commit, state: _state }, { stageId, page = 1 }) {
-    if (_state.uiFlags.isFetchingConversations) return;
-
     const meta = _state.metaByStage[stageId];
     if (page > 1 && meta && page > meta.total_pages) return;
+    if (_state.uiFlags.loadingStages[stageId]) return;
 
-    commit('SET_UI_FLAG', { flag: 'isFetchingConversations', value: true });
+    commit('SET_STAGE_LOADING', { stageId, value: true });
     try {
       const response = await PipelineAPI.getConversations(stageId, page, {
         q: _state.filters.q,
@@ -148,30 +186,32 @@ const actions = {
     } catch (error) {
       // Error handling
     } finally {
-      commit('SET_UI_FLAG', { flag: 'isFetchingConversations', value: false });
+      commit('SET_STAGE_LOADING', { stageId, value: false });
     }
   },
 
-  async moveConversation({ commit, state: _state, dispatch }, { conversationId, fromStageId, toStageId }) {
-    const conversation = _state.conversationsByStage[fromStageId]?.find(
-      c => c.id === conversationId
-    );
-    if (!conversation) return;
+  async moveConversation(
+    { commit, state: _state, dispatch },
+    { conversationId, fromStageId, toStageId }
+  ) {
+    if (!fromStageId || fromStageId === toStageId) return;
 
-    const updatedConversation = {
-      ...conversation,
-      pipeline_stage_id: toStageId,
-    };
-
-    commit('REMOVE_CONVERSATION', { stageId: fromStageId, conversationId });
-    commit('ADD_CONVERSATION', { stageId: toStageId, conversation: updatedConversation });
+    commit('SET_UI_FLAG', { flag: 'isMovingConversation', value: true });
+    commit('UPDATE_CONVERSATION_STAGE', {
+      conversationId,
+      stageId: toStageId,
+      pipelineId: _state.activePipelineId,
+    });
+    commit('UPDATE_STAGE_COUNT', { stageId: fromStageId, delta: -1 });
+    commit('UPDATE_STAGE_COUNT', { stageId: toStageId, delta: 1 });
 
     try {
       await PipelineAPI.updateConversation(conversationId, toStageId);
     } catch (error) {
-      // Rollback
       dispatch('fetchConversations', { stageId: fromStageId, page: 1 });
       dispatch('fetchConversations', { stageId: toStageId, page: 1 });
+    } finally {
+      commit('SET_UI_FLAG', { flag: 'isMovingConversation', value: false });
     }
   },
 };

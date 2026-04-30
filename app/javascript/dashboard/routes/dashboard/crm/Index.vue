@@ -7,19 +7,26 @@ import FilterBar from 'dashboard/components/crm/FilterBar.vue';
 const store = useStore();
 
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
-const currentPipelineStages = computed(() => store.getters['crmPipeline/getStages']);
+const currentPipelineStages = computed(
+  () => store.getters['crmPipeline/getStages']
+);
 const selectedPipelineId = computed({
   get: () => store.getters['crmPipeline/getActivePipeline']?.id || null,
   set: val => {
-    store.dispatch('crmPipeline/fetchStages', val);
+    if (!val) return;
+
+    store.dispatch('crmPipeline/fetchStages', Number(val));
   },
 });
-const isLoading = computed(() => store.getters['crmPipeline/uiFlags'].isFetchingPipelines);
+const uiFlags = computed(() => store.getters['crmPipeline/uiFlags']);
+const isLoading = computed(
+  () => uiFlags.value.isFetchingPipelines || uiFlags.value.isFetchingStages
+);
 
 onMounted(async () => {
-  await store.dispatch('crmPipeline/fetchPipelines');
-  if (pipelines.value.length > 0 && !selectedPipelineId.value) {
-    selectedPipelineId.value = pipelines.value[0].id;
+  const initialPipelineId = await store.dispatch('crmPipeline/fetchPipelines');
+  if (initialPipelineId) {
+    await store.dispatch('crmPipeline/fetchStages', initialPipelineId);
   }
 });
 
@@ -49,15 +56,6 @@ const onDealSelect = () => {
             </option>
           </select>
         </div>
-      </div>
-
-      <div class="flex items-center gap-2">
-        <button
-          class="px-4 py-1.5 bg-n-brand text-white rounded-lg text-sm font-semibold hover:bg-n-brand-emphasis transition-all flex items-center gap-2 shadow-sm"
-        >
-          <i class="i-lucide-plus w-4 h-4" />
-          {{ $t('CRM.ADD_DEAL') }}
-        </button>
       </div>
     </header>
     <FilterBar />

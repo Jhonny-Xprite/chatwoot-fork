@@ -2,6 +2,7 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   before_action :set_pipeline, only: [:show, :update, :destroy]
 
   def index
+    Crm::PipelineBootstrapService.new(account: current_account).perform! if current_account.feature_enabled?('crm')
     @pipelines = current_account.crm_pipelines
     authorize @pipelines
     render json: @pipelines

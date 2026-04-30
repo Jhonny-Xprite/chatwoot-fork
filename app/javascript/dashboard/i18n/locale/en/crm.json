@@ -5,12 +5,12 @@
     "ASSIGNEE": "Assignee",
     "ALL_ASSIGNEES": "All Agents",
     "LABELS": "Labels",
-    "LABELS_PLACEHOLDER": "Enter labels (comma separated)",
+    "LABELS_PLACEHOLDER": "Filter by labels",
     "CLEAR_FILTERS": "Clear all filters",
     "DEAL_ID": "ID #{id}",
-    "ADD_DEAL": "Add Deal",
     "LOADING": "Loading pipeline...",
     "NO_PIPELINES": "No pipelines found",
-    "NO_PIPELINES_SUBTITLE": "Create your first sales pipeline to start managing your leads."
+    "NO_PIPELINES_SUBTITLE": "The CRM pipeline has not been provisioned yet for this account.",
+    "EMPTY_STAGE": "No deals in this stage yet."
   }
 }
