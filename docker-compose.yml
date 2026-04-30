@@ -70,7 +70,7 @@ services:
     command: bundle exec sidekiq -C config/sidekiq.yml
 
 volumes:
-  postgres_data:
-  redis_data:
-  chatwoot_storage:
-  chatwoot_logs:
+  a2-postgres-data:
+  a2-redis-data:
+  a2-chatwoot-storage:
+  a2-chatwoot-logs:
