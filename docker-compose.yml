@@ -27,7 +27,7 @@ services:
       retries: 5
 
   a2-chatwoot:
-    image: chatwoot/chatwoot:nightly
+    image: ghcr.io/jhonny-xprite/chatwoot-crm:latest
     environment:
       DATABASE_URL: postgresql://postgres:postgres_secure_2024@a2-postgres:5432/chatwoot
       REDIS_URL: redis://a2-redis:6379
@@ -51,7 +51,7 @@ services:
              bundle exec rails s -p 3000 -b 0.0.0.0"
 
   a2-sidekiq:
-    image: chatwoot/chatwoot:nightly
+    image: ghcr.io/jhonny-xprite/chatwoot-crm:latest
     environment:
       DATABASE_URL: postgresql://postgres:postgres_secure_2024@a2-postgres:5432/chatwoot
       REDIS_URL: redis://a2-redis:6379
