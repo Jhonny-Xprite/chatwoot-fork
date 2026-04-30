@@ -65,7 +65,7 @@ const clearFilters = () => {
 
 <template>
   <div
-    class="flex items-center gap-4 py-2 px-4 bg-white dark:bg-n-slate-1 border-b border-n-weak overflow-x-auto"
+    class="flex items-center gap-4 py-2 px-4 bg-white dark:bg-n-slate-1 border-b border-n-weak"
   >
     <!-- Search -->
     <div class="relative min-w-[200px]">
@@ -101,7 +101,7 @@ const clearFilters = () => {
     <!-- Labels Filter -->
     <div class="flex items-center gap-2 min-w-fit">
       <span
-        class="text-xs font-medium text-n-slate-11 uppercase tracking-wider"
+        class="text-xs font-semibold text-n-slate-11 uppercase tracking-wider"
       >
         {{ $t('CRM.LABELS') }}
       </span>
@@ -110,7 +110,7 @@ const clearFilters = () => {
         :menu-items="labelMenuItems"
         :placeholder="$t('CRM.LABELS_PLACEHOLDER')"
         show-dropdown
-        class="w-64 rounded-lg border border-n-weak bg-n-slate-2 px-3 py-1.5"
+        class="w-64 rounded-lg border border-n-weak bg-n-slate-2 px-3 py-1.5 focus-within:border-n-brand focus-within:ring-1 focus-within:ring-n-brand/20 transition-all shadow-sm"
       />
     </div>
 

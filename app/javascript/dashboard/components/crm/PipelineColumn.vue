@@ -132,19 +132,21 @@ onMounted(() => {
         item-key="id"
         class="min-h-[150px] pb-20"
         ghost-class="opacity-40"
-        drag-class="rotate-[2deg] scale-105 shadow-xl"
+        drag-class="rotate-[2deg] scale-105 shadow-xl !z-[9999]"
         :animation="200"
-        :delay="10"
+        :delay="0"
         :disabled="false"
+        :force-fallback="true"
+        :fallback-on-body="true"
         @change="onDragChange"
       >
         <template #item="{ element }">
-          <transition name="list-complete">
+          <div class="mb-3 last:mb-0">
             <DealCard
               :conversation="element"
               @select="$emit('select', $event)"
             />
-          </transition>
+          </div>
         </template>
       </draggable>
 
@@ -174,10 +176,10 @@ onMounted(() => {
 }
 
 .sortable-ghost {
-  @apply bg-n-slate-3 border-dashed border-2 border-n-slate-4 shadow-none opacity-40;
+  @apply bg-n-slate-3 border-dashed border-2 border-n-slate-4 shadow-none opacity-40 rounded-xl;
 }
 
 .sortable-drag {
-  @apply shadow-2xl scale-[1.02] rotate-1 z-[1000] cursor-grabbing;
+  @apply shadow-2xl scale-[1.02] rotate-1 !z-[9999] cursor-grabbing !pointer-events-none;
 }
 </style>

@@ -112,20 +112,26 @@ const mutations = {
     };
   },
   UPDATE_CONVERSATION_STAGE(_state, { conversationId, stageId, pipelineId }) {
+    // We update the conversation object itself wherever it is
     Object.keys(_state.conversationsByStage).forEach(key => {
-      _state.conversationsByStage[key] = (
-        _state.conversationsByStage[key] || []
-      ).map(conversation => {
-        if (conversation.id !== conversationId) {
-          return conversation;
+      const conversations = _state.conversationsByStage[key] || [];
+      const index = conversations.findIndex(c => c.id === conversationId);
+      if (index > -1) {
+        const conversation = conversations[index];
+        // Only update if it actually changed to avoid unnecessary re-renders
+        if (
+          conversation.pipeline_stage_id !== stageId ||
+          conversation.pipeline_id !== pipelineId
+        ) {
+          const updatedConversations = [...conversations];
+          updatedConversations[index] = {
+            ...conversation,
+            pipeline_stage_id: stageId,
+            pipeline_id: pipelineId,
+          };
+          _state.conversationsByStage[key] = updatedConversations;
         }
-
-        return {
-          ...conversation,
-          pipeline_stage_id: stageId,
-          pipeline_id: pipelineId,
-        };
-      });
+      }
     });
   },
   UPDATE_CONVERSATION(_state, conversation) {
@@ -157,7 +163,10 @@ const mutations = {
     });
   },
   REORDER_CONVERSATIONS(_state, { stageId, conversations }) {
-    _state.conversationsByStage[stageId] = conversations;
+    _state.conversationsByStage = {
+      ..._state.conversationsByStage,
+      [stageId]: conversations,
+    };
   },
 };
 
@@ -226,7 +235,11 @@ const actions = {
     }
   },
 
-  async fetchStages({ commit }, pipelineId) {
+  async fetchStages({ commit, state: _state }, pipelineId) {
+    if (_state.activePipelineId === pipelineId && _state.stages.length > 0) {
+      return; // Already fetched
+    }
+
     commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: true });
     commit('SET_ACTIVE_PIPELINE', pipelineId);
     commit('RESET_STAGE_DATA');

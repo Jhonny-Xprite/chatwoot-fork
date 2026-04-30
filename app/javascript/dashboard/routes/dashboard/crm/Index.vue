@@ -26,7 +26,10 @@ const isLoading = computed(
 );
 
 onMounted(async () => {
+  const pipelinesCount = store.getters['crmPipeline/getAllPipelines'].length;
   const initialPipelineId = await store.dispatch('crmPipeline/fetchPipelines');
+
+  // Only fetch stages if we don't have them or it's a first load
   if (initialPipelineId) {
     await store.dispatch('crmPipeline/fetchStages', initialPipelineId);
   }
