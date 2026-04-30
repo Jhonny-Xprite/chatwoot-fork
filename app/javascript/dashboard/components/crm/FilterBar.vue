@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
-import debounce from 'lodash/debounce';
+import { debounce } from '@chatwoot/utils';
 
 const vuexStore = useStore();
 
