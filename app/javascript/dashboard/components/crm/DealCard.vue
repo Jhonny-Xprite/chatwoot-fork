@@ -7,7 +7,6 @@ import NextLabel from 'dashboard/components-next/label/Label.vue';
 import AddLabel from 'dashboard/components-next/label/AddLabel.vue';
 import Popover from 'dashboard/components-next/popover/Popover.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
-import Icon from 'dashboard/components-next/icon/Icon.vue';
 import { useAlert } from 'dashboard/composables';
 
 const props = defineProps({
@@ -17,7 +16,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['select']);
+defineEmits(['select']);
 
 const store = useStore();
 const { t } = useI18n();
@@ -26,6 +25,7 @@ const contact = computed(() => props.conversation.meta?.sender || {});
 const assignee = computed(() => props.conversation.meta?.assignee);
 const labels = computed(() => props.conversation.labels || []);
 const inboxId = computed(() => props.conversation.inbox_id);
+const unreadCount = computed(() => props.conversation.unread_count || 0);
 
 // Agents list for assignment
 const assignableAgents = computed(() => 
@@ -44,7 +44,6 @@ const agentMenuItems = computed(() => {
     isSelected: assignee.value?.id === agent.id,
   }));
 
-  // Add "None" option
   items.unshift({
     label: t('AGENT_MGMT.MULTI_SELECTOR.LIST.NONE'),
     value: 0,
@@ -66,11 +65,6 @@ const labelMenuItems = computed(() => {
   }));
 });
 
-const lastMessageContent = computed(() => {
-  const lastMessage = props.conversation.last_non_activity_message;
-  return lastMessage?.content || '';
-});
-
 const priorityBadgeClass = computed(() => {
   const priorities = {
     urgent: 'text-red-600 bg-red-50 dark:bg-red-900/20 border-red-100',
@@ -90,7 +84,6 @@ const onAssignAgent = ({ value }) => {
     agentId,
   }).then(() => {
     useAlert(t('CONVERSATION.CHANGE_AGENT'));
-    // Update local state for immediate feedback
     store.dispatch('crmPipeline/updateConversation', {
       ...props.conversation,
       meta: {
@@ -131,64 +124,70 @@ const removeLabel = labelTitle => {
 
 <template>
   <div
-    class="group/card p-4 bg-white dark:bg-n-slate-1 border border-n-weak rounded-xl shadow-sm hover:shadow-md hover:border-n-brand transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3"
+    class="group/card p-4 bg-white dark:bg-n-slate-1 border border-n-weak rounded-xl shadow-sm hover:shadow-md hover:border-n-brand transition-all cursor-grab active:cursor-grabbing flex flex-col gap-3 overflow-hidden"
     @click="$emit('select', conversation)"
   >
     <!-- Top Row: Avatar & Basic Info -->
-    <div class="flex items-start gap-3">
-      <Avatar
-        :src="contact.thumbnail"
-        :name="contact.name"
-        size="40px"
-        rounded-full
-        class="flex-shrink-0"
-      />
-      <div class="flex-1 min-w-0">
+    <div class="flex items-start gap-3 min-w-0">
+      <div class="relative flex-shrink-0 w-12 h-12">
+        <Avatar
+          :src="contact.thumbnail"
+          :name="contact.name"
+          size="48px"
+          rounded-full
+          class="border-2 border-n-weak !w-12 !h-12 flex-shrink-0 object-cover"
+        />
+        <!-- Unread Notification Badge -->
+        <div
+          v-if="unreadCount > 0"
+          class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-black h-5 min-w-[20px] px-1 rounded-full flex items-center justify-center border-2 border-white dark:border-n-slate-1 shadow-lg z-10 animate-bounce"
+        >
+          {{ unreadCount }}
+        </div>
+      </div>
+      <div class="flex-1 min-w-0 py-0.5">
         <div class="flex items-center justify-between gap-2">
-          <h3 class="text-sm font-semibold text-n-slate-12 truncate">
+          <h3 class="text-sm font-bold text-n-slate-12 truncate leading-tight uppercase tracking-tight">
             {{ contact.name }}
           </h3>
           <span v-if="conversation.priority" :class="priorityBadgeClass">
             {{ conversation.priority }}
           </span>
         </div>
-        <!-- Contact Subtext below name -->
-        <div class="flex flex-col gap-0.5 mt-1">
-          <div
-            v-if="contact.email"
-            class="flex items-center gap-1.5 text-[11px] text-n-slate-11 truncate"
-          >
-            <i class="i-lucide-mail w-3 h-3 flex-shrink-0" />
-            <span class="truncate">{{ contact.email }}</span>
-          </div>
+        <!-- Contact Subtext below name (FIXED INFO) -->
+        <div class="flex flex-col gap-1 mt-2">
           <div
             v-if="contact.phone_number"
-            class="flex items-center gap-1.5 text-[11px] text-n-slate-11"
+            class="flex items-center gap-1.5 text-[11px] font-bold text-n-slate-11"
           >
-            <i class="i-lucide-phone w-3 h-3 flex-shrink-0" />
-            <span>{{ contact.phone_number }}</span>
+            <i class="i-lucide-phone w-3.5 h-3.5 flex-shrink-0 text-n-slate-8" />
+            <span class="truncate">{{ contact.phone_number }}</span>
+          </div>
+          <div
+            v-if="contact.email"
+            class="flex items-center gap-1.5 text-[11px] text-n-slate-10 truncate"
+          >
+            <i class="i-lucide-mail w-3.5 h-3.5 flex-shrink-0 text-n-slate-7" />
+            <span class="truncate">{{ contact.email }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Message Snippet -->
-    <p
-      v-if="lastMessageContent"
-      class="text-xs text-n-slate-11 line-clamp-2 italic opacity-80"
-    >
-      "{{ lastMessageContent }}"
-    </p>
+    <!-- Fixed ID / Meta -->
+    <div v-if="contact.pub_id" class="flex items-center gap-2 px-2 py-1 bg-n-slate-2 rounded border border-n-weak/30">
+      <span class="text-[9px] text-n-slate-9 font-mono uppercase tracking-widest">ID: {{ contact.pub_id }}</span>
+    </div>
 
     <!-- Labels Row -->
-    <div class="flex flex-wrap gap-1 items-center min-h-[24px]">
+    <div class="flex flex-wrap gap-1 items-center min-h-[24px] overflow-hidden">
       <NextLabel
         v-for="label in labels"
         :key="label"
         :label="label"
         compact
         color="slate"
-        class="!py-0.5 !px-2"
+        class="!py-0.5 !px-2 max-w-[120px]"
       >
         <template #action>
           <button
@@ -209,30 +208,30 @@ const removeLabel = labelTitle => {
     </div>
 
     <!-- Divider -->
-    <div class="h-px bg-n-weak w-full" />
+    <div class="h-px bg-n-weak w-full opacity-50" />
 
-    <!-- Footer: Assignee & Date -->
-    <div class="flex items-center justify-between mt-1">
+    <!-- Footer: Assignee & Status -->
+    <div class="flex items-center justify-between mt-0.5">
       <Popover @click.stop>
         <template #trigger>
           <button
-            class="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-n-slate-2 dark:hover:bg-n-alpha-2 transition-all group/assignee"
+            class="flex items-center gap-2 px-1.5 py-0.5 rounded-lg hover:bg-n-slate-2 dark:hover:bg-n-alpha-2 transition-all group/assignee"
           >
             <Avatar
               v-if="assignee"
               :src="assignee.thumbnail"
               :name="assignee.name"
-              size="20px"
+              size="18px"
               rounded-full
             />
             <div
               v-else
-              class="w-5 h-5 rounded-full border border-dashed border-n-slate-6 flex items-center justify-center text-n-slate-8 group-hover/assignee:border-n-brand group-hover/assignee:text-n-brand transition-all"
+              class="w-4.5 h-4.5 rounded-full border border-dashed border-n-slate-5 flex items-center justify-center text-n-slate-7 group-hover/assignee:border-n-brand group-hover/assignee:text-n-brand transition-all"
             >
-              <i class="i-lucide-user-plus w-3 h-3" />
+              <i class="i-lucide-user-plus w-2.5 h-2.5" />
             </div>
-            <span class="text-[10px] font-medium text-n-slate-11 group-hover/assignee:text-n-slate-12">
-              {{ assignee ? assignee.name : t('CONVERSATION_SIDEBAR.SELF_ASSIGN') }}
+            <span class="text-[9px] font-bold text-n-slate-10 group-hover/assignee:text-n-brand uppercase tracking-tighter">
+              {{ assignee ? assignee.name : 'SEM ATRIBUIÇÃO' }}
             </span>
           </button>
         </template>
@@ -246,18 +245,21 @@ const removeLabel = labelTitle => {
         </template>
       </Popover>
 
-      <span class="text-[10px] text-n-slate-9 font-medium">
-        {{ new Date(conversation.created_at).toLocaleDateString() }}
-      </span>
+      <div class="flex items-center gap-1.5 opacity-60">
+        <div v-if="unreadCount > 0" class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+        <span class="text-[9px] text-n-slate-9 font-bold uppercase">
+          {{ new Date(conversation.created_at).toLocaleDateString() }}
+        </span>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.line-clamp-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.truncate {
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 </style>
+

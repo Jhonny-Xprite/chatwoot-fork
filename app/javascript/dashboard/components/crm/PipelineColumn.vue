@@ -137,7 +137,7 @@ onMounted(() => {
 
     <div
       ref="scrollContainer"
-      class="flex-1 overflow-y-auto px-1 custom-scrollbar"
+      class="flex-1 overflow-y-auto overflow-x-hidden px-1 custom-scrollbar"
       @scroll="handleScroll"
     >
       <draggable

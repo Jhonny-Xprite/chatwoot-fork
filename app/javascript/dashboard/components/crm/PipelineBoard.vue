@@ -23,13 +23,13 @@ const addStage = () => {
 </script>
 
 <template>
-  <div class="flex-1 overflow-x-auto bg-[#F8FAFC] dark:bg-n-slate-1 min-h-0 custom-scrollbar">
-    <div class="flex h-full gap-5 p-6 min-w-max items-start">
+  <div class="flex-1 overflow-x-auto overflow-y-hidden bg-[#F8FAFC] dark:bg-n-slate-1 min-h-0 custom-scrollbar">
+    <div class="flex h-full gap-5 p-6 min-w-max items-start overflow-y-hidden">
       <PipelineColumn
         v-for="stage in stages"
         :key="stage.id"
         :stage="stage"
-        class="shadow-sm border border-n-weak hover:shadow-md transition-shadow"
+        class="shadow-sm border border-n-weak hover:shadow-md transition-shadow max-h-full"
         @select="$emit('select', $event)"
       />
 
