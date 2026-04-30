@@ -1,3 +1,5 @@
+version: '3'
+
 services:
   a2-postgres:
     image: pgvector/pgvector:pg17
@@ -32,53 +34,6 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - .env
-      # 🔵 OPCIONAIS - Email/Mailer (SMTP)
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # Descomente se quiser enviar emails
-
-      # SMTP_ADDRESS: smtp.gmail.com
-      # SMTP_PORT: 587
-      # SMTP_USERNAME: seu_email@gmail.com
-      # SMTP_PASSWORD: sua_senha_de_app
-      # SMTP_AUTHENTICATION: plain
-      # SMTP_ENABLE_STARTTLS_AUTO: "true"
-      # SUPPORT_EMAIL: suporte@sua-empresa.com
-
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # 🟣 OPCIONAIS - Storage S3/Cloud (para uploads)
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # Descomente se quiser usar S3 ao invés de filesystem
-
-      # ACTIVE_STORAGE_SERVICE: amazon
-      # AWS_ACCESS_KEY_ID: sua_chave
-      # AWS_SECRET_ACCESS_KEY: sua_senha
-      # AWS_REGION: us-east-1
-      # AWS_BUCKET: seu_bucket
-
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # 🟣 OPCIONAIS - OAuth (Google, GitHub, etc)
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # Descomente se quiser login social
-
-      # GOOGLE_OAUTH_CLIENT_ID: seu_id
-      # GOOGLE_OAUTH_CLIENT_SECRET: seu_secret
-      # GITHUB_OAUTH_CLIENT_ID: seu_id
-      # GITHUB_OAUTH_CLIENT_SECRET: seu_secret
-
-      # ═══════════════════════════════════════════════════════════════════════════════
-      # 🟣 OPCIONAIS - Integrações (Slack, Twilio, etc)
-      # ═══════════════════════════════════════════════════════════════════════════════
-
-      # SLACK_CLIENT_ID: seu_id
-      # SLACK_CLIENT_SECRET: seu_secret
-      # TWILIO_ACCOUNT_SID: seu_id
-      # TWILIO_AUTH_TOKEN: seu_token
-
-      # 🟣 OPCIONAIS - Habilitar Signup
-      # ═══════════════════════════════════════════════════════════════════════════════
-
-      ENABLE_ACCOUNT_SIGNUP: "true"
-
     depends_on:
       a2-postgres:
         condition: service_healthy
@@ -98,7 +53,6 @@ services:
       dockerfile: ./Dockerfile
     env_file:
       - .env
-
     depends_on:
       - a2-postgres
       - a2-redis
