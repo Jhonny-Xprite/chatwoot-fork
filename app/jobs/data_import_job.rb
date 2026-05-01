@@ -7,7 +7,7 @@ class DataImportJob < ApplicationJob
 
   def perform(data_import)
     @data_import = data_import
-    @contact_manager = DataImport::ContactManager.new(@data_import.account, @data_import.mapping)
+    @contact_manager = ContactImportManager.new(@data_import.account, @data_import.mapping)
     begin
       process_import_file
       send_import_notification_to_admin
