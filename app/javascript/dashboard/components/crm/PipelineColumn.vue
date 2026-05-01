@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import DealCard from './DealCard.vue';
+import DealCardSkeleton from './DealCardSkeleton.vue';
 
 const props = defineProps({
   stage: {
@@ -12,6 +13,8 @@ const props = defineProps({
     required: true,
   },
 });
+
+defineEmits(['select']);
 
 const store = useStore();
 const { t } = useI18n();
@@ -66,24 +69,22 @@ const onDragChange = event => {
 
 <template>
   <div
-    class="flex flex-col w-[320px] h-full bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 flex-shrink-0"
+    class="flex flex-col w-[320px] h-full bg-n-alpha-1 dark:bg-n-slate-1/50 rounded-2xl border border-n-slate-3 dark:border-n-slate-2 flex-shrink-0"
   >
     <!-- Column Header -->
     <div
-      class="p-4 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-800/50 rounded-t-2xl"
+      class="p-4 flex items-center justify-between border-b border-n-slate-3 dark:border-n-slate-2 bg-n-alpha-2 rounded-t-2xl"
     >
       <div class="flex items-center gap-2 overflow-hidden">
         <div
           class="w-2 h-6 rounded-full"
-          :style="{ backgroundColor: stage.color || '#cbd5e1' }"
+          :style="{ backgroundColor: stage.color || 'var(--n-slate-4)' }"
         />
-        <h3
-          class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate"
-        >
+        <h3 class="text-sm font-bold text-n-slate-12 truncate">
           {{ stage.name }}
         </h3>
         <span
-          class="px-2 py-0.5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 text-[10px] font-bold text-slate-500 dark:text-slate-400"
+          class="px-2 py-0.5 rounded-full bg-n-slate-3 text-[10px] font-bold text-n-slate-11"
         >
           {{ stageCount }}
         </span>
@@ -101,7 +102,7 @@ const onDragChange = event => {
         @change="onDragChange"
       >
         <template #item="{ element }">
-          <DealCard :conversation="element" />
+          <DealCard :conversation="element" @select="$emit('select', $event)" />
         </template>
       </draggable>
 
@@ -111,22 +112,18 @@ const onDragChange = event => {
         class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none opacity-40"
       >
         <div
-          class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"
+          class="w-12 h-12 rounded-full bg-n-slate-2 dark:bg-n-slate-3 flex items-center justify-center mb-2"
         >
-          <span class="i-lucide-layout-list text-xl text-slate-400" />
+          <span class="i-lucide-layout-list text-xl text-n-slate-10" />
         </div>
-        <p class="text-[11px] font-medium text-slate-400">
+        <p class="text-[11px] font-medium text-n-slate-10">
           {{ t('CRM.NO_LEADS_HERE') }}
         </p>
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="p-4 flex flex-col gap-3">
-        <div
-          v-for="i in 3"
-          :key="i"
-          class="h-24 bg-white/50 dark:bg-slate-800/50 rounded-xl animate-pulse border border-slate-100 dark:border-slate-700"
-        />
+      <div v-if="isLoading" class="p-3 flex flex-col gap-2">
+        <DealCardSkeleton v-for="i in 3" :key="i" />
       </div>
     </div>
   </div>
@@ -140,32 +137,33 @@ const onDragChange = event => {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--n-slate-4);
   border-radius: 9999px;
 }
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: var(--n-slate-6);
 }
 
 .sortable-ghost {
-  background: rgba(59, 130, 246, 0.12);
-  border-color: rgba(59, 130, 246, 0.3);
-  opacity: 0.5;
+  background: var(--n-brand-primary-alpha-1);
+  border: 2px dashed var(--n-brand-primary-alpha-3) !important;
+  opacity: 0.6;
+  transform: scale(0.98);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .sortable-drag {
   z-index: 1000;
-  transform: rotate(2deg) scale(1.05);
-  box-shadow:
-    0 25px 50px -12px rgba(15, 23, 42, 0.35),
-    0 10px 20px -10px rgba(15, 23, 42, 0.25);
+  transform: rotate(1.5deg) scale(1.02);
+  box-shadow: var(--shadow-n-brand-primary-lg);
+  cursor: grabbing;
 }
 
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: var(--n-slate-3);
 }
 
 :global(.dark) .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: #64748b;
+  background: var(--n-slate-5);
 }
 </style>

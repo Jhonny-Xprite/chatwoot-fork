@@ -45,6 +45,6 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   end
 
   def pipeline_params
-    params.require(:pipeline).permit(:name, :position, :active)
+    params.require(:pipeline).permit(:name, :position, :active, :is_default)
   end
 end

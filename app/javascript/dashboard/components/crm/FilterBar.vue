@@ -65,7 +65,7 @@ const clearFilters = () => {
 
 <template>
   <div
-    class="flex items-center gap-4 py-2 px-4 bg-white dark:bg-n-slate-1 border-b border-n-weak"
+    class="flex items-center gap-4 py-2 px-4 bg-n-alpha-2 border-b border-n-weak"
   >
     <!-- Search -->
     <div class="relative min-w-[200px]">
@@ -76,7 +76,7 @@ const clearFilters = () => {
         v-model="searchQuery"
         type="text"
         :placeholder="$t('CRM.SEARCH_PLACEHOLDER')"
-        class="w-full pl-9 pr-3 py-1.5 bg-n-slate-2 border border-n-weak rounded-lg text-sm text-n-slate-12 outline-none focus:border-n-brand focus:ring-1 focus:ring-n-brand/20 transition-all"
+        class="w-full pl-9 pr-3 py-1.5 bg-n-slate-2 border border-n-weak rounded-lg text-sm text-n-slate-12 outline-none focus:border-n-brand-primary focus:ring-1 focus:ring-n-brand-primary/20 transition-all"
       />
     </div>
 
@@ -89,7 +89,7 @@ const clearFilters = () => {
       </span>
       <select
         v-model="selectedAssigneeId"
-        class="bg-n-slate-2 border border-n-weak rounded-lg px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand transition-all cursor-pointer"
+        class="bg-n-slate-2 border border-n-weak rounded-lg px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary transition-all cursor-pointer"
       >
         <option value="">{{ $t('CRM.ALL_ASSIGNEES') }}</option>
         <option v-for="agent in agents" :key="agent.id" :value="agent.id">
@@ -110,14 +110,14 @@ const clearFilters = () => {
         :menu-items="labelMenuItems"
         :placeholder="$t('CRM.LABELS_PLACEHOLDER')"
         show-dropdown
-        class="w-64 rounded-lg border border-n-weak bg-n-slate-2 px-3 py-1.5 focus-within:border-n-brand focus-within:ring-1 focus-within:ring-n-brand/20 transition-all shadow-sm"
+        class="w-64 rounded-lg border border-n-weak bg-n-slate-2 px-3 py-1.5 focus-within:border-n-brand-primary focus-within:ring-1 focus-within:ring-n-brand-primary/20 transition-all shadow-sm"
       />
     </div>
 
     <!-- Clear Filters -->
     <button
       v-if="searchQuery || selectedAssigneeId || selectedLabels.length"
-      class="text-xs text-n-brand font-medium hover:underline flex items-center gap-1 ml-auto whitespace-nowrap"
+      class="text-xs text-n-brand-primary font-medium hover:underline flex items-center gap-1 ml-auto whitespace-nowrap"
       @click="clearFilters"
     >
       <i class="i-lucide-x w-3 h-3" />

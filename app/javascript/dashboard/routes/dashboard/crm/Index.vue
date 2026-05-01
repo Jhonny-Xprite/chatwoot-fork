@@ -1,162 +1,55 @@
 <script setup>
-import { computed, onMounted, onUnmounted } from 'vue';
-import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
-import PipelineBoard from 'dashboard/components/crm/PipelineBoard.vue';
-import FilterBar from 'dashboard/components/crm/FilterBar.vue';
-import NextButton from 'dashboard/components-next/button/Button.vue';
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 
-const store = useStore();
+const route = useRoute();
+const { t } = useI18n();
 
-const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
-const currentPipelineStages = computed(
-  () => store.getters['crmPipeline/getStages']
-);
-const selectedPipelineId = computed({
-  get: () => store.getters['crmPipeline/getActivePipeline']?.id || null,
-  set: val => {
-    if (!val) return;
-
-    store.dispatch('crmPipeline/fetchStages', Number(val));
+const tabs = computed(() => [
+  {
+    name: t('CRM.TABS.DASHBOARD'),
+    routeName: 'crm_dashboard_root',
+    icon: 'i-lucide-layout-dashboard',
   },
-});
-const uiFlags = computed(() => store.getters['crmPipeline/uiFlags']);
-const isLoading = computed(
-  () => uiFlags.value.isFetchingPipelines || uiFlags.value.isFetchingStages
-);
-
-onMounted(async () => {
-  const initialPipelineId = await store.dispatch('crmPipeline/fetchPipelines');
-
-  // Only fetch stages if we don't have them or it's a first load
-  if (initialPipelineId) {
-    await store.dispatch('crmPipeline/fetchStages', initialPipelineId);
-  }
-});
-
-const unsubscribe = store.subscribeAction(action => {
-  if (action.type === 'addMessage') {
-    store.dispatch('crmPipeline/addMessage', action.payload);
-  }
-  if (action.type === 'updateConversation') {
-    store.dispatch('crmPipeline/updateConversation', action.payload);
-  }
-  if (action.type === 'addConversation') {
-    // Force a refresh or specific add for CRM
-    const activePipelineId = store.state.crmPipeline.activePipelineId;
-
-    // If the conversation belongs to the active pipeline, we should handle it
-    // For now, refreshing stages is the safest way to ensure correct column placement
-    if (activePipelineId) {
-      store.dispatch('crmPipeline/fetchStages', activePipelineId);
-    }
-  }
-});
-
-onUnmounted(() => {
-  unsubscribe();
-});
-
-const router = useRouter();
-
-const onDealSelect = deal => {
-  const { id } = deal;
-  const accountId = store.getters.getCurrentAccountId;
-  router.push({
-    name: 'inbox_conversation',
-    params: { accountId, conversation_id: id },
-  });
-};
-
-const createPipeline = async () => {
-  // eslint-disable-next-line no-alert
-  const name = prompt('Nome da nova pipeline:');
-  if (name) {
-    try {
-      await store.dispatch('crmPipeline/createPipeline', name);
-    } catch (error) {
-      // Error handling
-    }
-  }
-};
+  {
+    name: t('CRM.TABS.PIPELINES'),
+    routeName: 'crm_pipelines',
+    icon: 'i-lucide-layout-kanban',
+  },
+  {
+    name: t('CRM.TABS.SETTINGS'),
+    routeName: 'crm_settings',
+    icon: 'i-lucide-settings-2',
+  },
+]);
 </script>
 
 <template>
   <div class="flex flex-col flex-1 h-full min-h-0 bg-n-surface-1">
-    <header
-      class="flex items-center justify-between p-4 border-b border-n-weak bg-white dark:bg-n-slate-1"
+    <div
+      class="flex items-center px-4 pt-4 bg-n-alpha-2 border-b border-n-weak"
     >
-      <div class="flex items-center gap-4">
-        <h1 class="text-xl font-bold text-n-slate-12">
-          {{ $t('CRM.HEADER') }}
-        </h1>
-
-        <!-- Pipeline Selector -->
-        <div v-if="pipelines.length > 0" class="flex items-center gap-2">
-          <select
-            v-model="selectedPipelineId"
-            class="bg-n-slate-2 border border-n-weak rounded-md px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand transition-all"
-          >
-            <option v-for="p in pipelines" :key="p.id" :value="p.id">
-              {{ p.name }}
-            </option>
-          </select>
-        </div>
-
-        <NextButton
-          variant="faded"
-          color="slate"
-          size="sm"
-          icon="i-lucide-plus"
-          :label="$t('CRM.ADD_PIPELINE')"
-          @click="createPipeline"
-        />
-      </div>
-    </header>
-    <FilterBar />
-
-    <main class="flex-1 min-h-0 flex flex-col overflow-x-auto">
-      <PipelineBoard
-        v-if="currentPipelineStages.length"
-        :stages="currentPipelineStages"
-        @select="onDealSelect"
-      />
-      <div
-        v-else-if="isLoading"
-        class="flex-1 flex flex-col items-center justify-center space-y-4"
-      >
-        <div class="flex gap-4">
-          <div
-            v-for="i in 3"
-            :key="i"
-            class="w-80 h-96 bg-n-slate-2 rounded-xl animate-pulse"
-          />
-        </div>
-        <p class="text-n-slate-11">{{ $t('CRM.LOADING') }}</p>
-      </div>
-      <div
-        v-else
-        class="flex-1 flex flex-col items-center justify-center p-8 text-center"
-      >
-        <div
-          class="w-16 h-16 bg-n-slate-2 rounded-full flex items-center justify-center mb-4 text-n-slate-10 shadow-inner"
+      <div class="flex gap-1">
+        <router-link
+          v-for="tab in tabs"
+          :key="tab.routeName"
+          :to="{ name: tab.routeName }"
+          class="flex items-center gap-2 px-4 py-2 text-sm font-bold transition-all rounded-t-xl border-b-2"
+          :class="
+            route.name === tab.routeName
+              ? 'text-n-brand-primary border-n-brand-primary bg-n-alpha-3'
+              : 'text-n-slate-11 border-transparent hover:text-n-slate-12 hover:bg-n-alpha-1'
+          "
         >
-          <i class="i-lucide-layout-kanban w-8 h-8" />
-        </div>
-        <h3 class="text-lg font-semibold text-n-slate-12 mb-1">
-          {{ $t('CRM.NO_PIPELINES') }}
-        </h3>
-        <p class="text-sm text-n-slate-11 max-w-xs">
-          {{ $t('CRM.NO_PIPELINES_SUBTITLE') }}
-        </p>
+          <span :class="tab.icon" class="text-lg" />
+          {{ tab.name }}
+        </router-link>
       </div>
-    </main>
+    </div>
+
+    <div class="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <router-view />
+    </div>
   </div>
 </template>
-
-<style scoped>
-/* Ensure the board fills the screen correctly without double scrollbars */
-:deep(.draggable-container) {
-  height: 100%;
-}
-</style>

@@ -14,11 +14,41 @@
     "EMPTY_STAGE": "No deals in this stage yet.",
     "ADD_STAGE": "Add Stage",
     "ADD_PIPELINE": "New Pipeline",
+    "DEFAULT_PIPELINE": "Default Pipeline",
+    "DEFAULT_BADGE": "default",
+    "SET_AS_DEFAULT": "Set as default",
     "SAVE": "Save",
     "CANCEL": "Cancel",
+    "CREATE_PIPELINE_PROMPT": "Name of the new pipeline:",
     "PHONE": "Phone",
     "UNASSIGNED": "Unassigned",
     "UNKNOWN_CONTACT": "Unknown Contact",
-    "NO_LEADS_HERE": "No leads here"
+    "NO_LEADS_HERE": "No leads here",
+    "NO_MESSAGES_YET": "No messages yet.",
+    "REPLY_NEEDED": "Reply needed",
+    "TABS": {
+      "DASHBOARD": "Dashboard",
+      "PIPELINES": "Pipelines",
+      "SETTINGS": "Settings"
+    },
+    "SIDEBAR": {
+      "SETTINGS": "Settings"
+    },
+    "DASHBOARD": {
+      "TITLE": "CRM Dashboard",
+      "SUBTITLE": "Overview of your pipeline and sales metrics.",
+      "METRIC_LABEL": "Metric {index}",
+      "METRIC_VALUE": "--",
+      "EMPTY_TITLE": "Advanced reports coming soon",
+      "EMPTY_SUBTITLE": "Use the pipelines tab to work your leads while dashboard metrics are being expanded."
+    },
+    "SETTINGS": {
+      "TITLE": "CRM Settings",
+      "SUBTITLE": "Manage your pipelines, stages and preferences.",
+      "DEFAULT_PIPELINE_TITLE": "Default pipeline",
+      "DEFAULT_PIPELINE_DESCRIPTION": "Choose the default pipeline from the pipelines tab so new conversations land in the right board automatically.",
+      "MANAGEMENT_TITLE": "Pipeline management",
+      "MANAGEMENT_DESCRIPTION": "Create new pipelines and review stages from the pipelines tab while the dedicated settings screen is being expanded."
+    }
   }
 }

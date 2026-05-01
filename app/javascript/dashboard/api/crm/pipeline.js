@@ -10,6 +10,10 @@ class PipelineAPI extends ApiClient {
     return axios.post(this.url, data);
   }
 
+  update(pipelineId, data) {
+    return axios.patch(`${this.url}/${pipelineId}`, data);
+  }
+
   delete(pipelineId) {
     return axios.delete(`${this.url}/${pipelineId}`);
   }

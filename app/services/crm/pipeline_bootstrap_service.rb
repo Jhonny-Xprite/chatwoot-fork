@@ -23,7 +23,8 @@ class Crm::PipelineBootstrapService
       pipeline ||= @account.crm_pipelines.create!(
         name: DEFAULT_PIPELINE_NAME,
         position: next_pipeline_position,
-        active: true
+        active: true,
+        is_default: @account.crm_pipelines.none?
       )
 
       create_default_stages!(pipeline) unless @account.crm_pipeline_stages.exists?

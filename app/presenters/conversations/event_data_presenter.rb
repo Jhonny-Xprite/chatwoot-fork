@@ -51,9 +51,12 @@ class Conversations::EventDataPresenter < SimpleDelegator
       agent_last_seen_at: agent_last_seen_at.to_i,
       contact_last_seen_at: contact_last_seen_at.to_i,
       last_activity_at: last_activity_at.to_i,
+      last_non_activity_message: messages.where(account_id: account_id).non_activity_messages.first&.push_event_data,
       timestamp: last_activity_at.to_i,
       created_at: created_at.to_i,
-      updated_at: updated_at.to_f
+      updated_at: updated_at.to_f,
+      pipeline_id: pipeline_id,
+      pipeline_stage_id: pipeline_stage_id
     }
   end
 end

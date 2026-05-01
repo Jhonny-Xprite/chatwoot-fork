@@ -313,9 +313,9 @@ const menuItems = computed(() => {
     {
       name: 'CRM',
       label: t('SIDEBAR.CRM'),
-      icon: 'i-lucide-briefcase',
-      to: accountScopedRoute('crm_dashboard'),
-      activeOn: ['crm_dashboard'],
+      icon: 'i-lucide-layout-kanban',
+      to: accountScopedRoute('crm_pipelines'),
+      activeOn: ['crm_dashboard_root', 'crm_pipelines', 'crm_settings'],
     },
     {
       name: 'Captain',
