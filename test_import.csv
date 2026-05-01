@@ -1,6 +1,4 @@
-Name,Email,Phone
-João Silva,joao@example.com,11987654321
-Maria Santos,maria@example.com,(11) 98765-4322
-Pedro Costa,pedro@example.com,+5511987654323
-Ana Oliveira,ana@example.com,011987654324
-Carlos Mendes,carlos@example.com,5511987654325
+LeadFirstName,LeadLastName,LeadEmail,LeadPhone,leadscoring,etapa,Segmento_Disparo
+Adriano,Santos,adrianojs73@yahoo.com,5511977027935,18,F3 - Está no grupo,Está no grupo mas não respondeu pesquisa
+Adriel,Rattes,adrielrattes@gmail.com,5519971023040,18,F3 - Está no grupo,Está no grupo mas não respondeu pesquisa
+Aldo,de Oliveira Junior,juninoli137@gmail.com,5527997948220,8,F3 - Está no grupo,Está no grupo mas não respondeu pesquisa
