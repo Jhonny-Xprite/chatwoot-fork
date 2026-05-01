@@ -27,14 +27,18 @@ class DataImport < ApplicationRecord
 
       # Busca contato existente para evitar duplicidade
       contact = find_existing_contact(params) || @account.contacts.new
+      is_new = contact.new_record?
 
       # Define como 'lead' por padrão se for novo, seguindo a lógica de CRM
-      contact.contact_type = :lead if contact.new_record?
+      contact.contact_type = :lead if is_new
 
       # Lógica de Merge: Mantém dados antigos e adiciona os novos (CSV ganha em conflito)
       if contact.persisted?
+        Rails.logger.debug "[Import] Mesclando dados para contato existente ID #{contact.id} (Email: #{contact.email})"
         params[:custom_attributes] = (contact.custom_attributes || {}).merge(params[:custom_attributes] || {})
         params[:additional_attributes] = (contact.additional_attributes || {}).merge(params[:additional_attributes] || {})
+      else
+        Rails.logger.debug "[Import] Criando novo Lead para a conta #{@account.id}"
       end
 
       # Atribui os parâmetros
@@ -54,7 +58,7 @@ class DataImport < ApplicationRecord
           name: contact.name,
           contact_type: contact.contact_type
         }
-        Rails.logger.error "[Import] Validation Failed: #{error_details.inspect}"
+        Rails.logger.error "[Import] Validação falhou para a linha do CSV: #{error_details.inspect}"
       end
 
       contact

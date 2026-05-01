@@ -97,25 +97,36 @@ const availableAttributes = computed(() => {
 
 // Busca as regras existentes no backend
 const fetchRules = async () => {
+  // eslint-disable-next-line no-console
+  console.log('[CRM] Buscando regras de lead scoring...');
   try {
     const response = await window.axios.get(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules`
     );
     rules.value = response.data;
+    // eslint-disable-next-line no-console
+    console.log('[CRM] Regras carregadas:', rules.value.length);
   } catch (error) {
-    // Error handling
+    // eslint-disable-next-line no-console
+    console.error('[CRM] Erro ao buscar regras:', error);
   }
 };
 
 // Dispara o recálculo total de pontos para todos os contatos (Job em background)
 const recalculateAll = async () => {
+  // eslint-disable-next-line no-console
+  console.log('[CRM] Iniciando recálculo total de leads...');
   isRecalculating.value = true;
   try {
     await window.axios.post(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules/recalculate`
     );
+    // eslint-disable-next-line no-console
+    console.log('[CRM] Recálculo enfileirado com sucesso');
     useAlert(t('CRM.SCORING.RECALCULATE_SUCCESS'));
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[CRM] Erro ao disparar recálculo:', error);
     useAlert(t('CRM.SCORING.RECALCULATE_ERROR'));
   } finally {
     isRecalculating.value = false;
@@ -143,6 +154,8 @@ const openCreateModal = () => {
 
 // Salva a nova regra no banco
 const createRule = async () => {
+  // eslint-disable-next-line no-console
+  console.log('[CRM] Criando nova regra:', newRule.value);
   try {
     await window.axios.post(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules`,
@@ -150,10 +163,14 @@ const createRule = async () => {
         lead_scoring_rule: newRule.value,
       }
     );
+    // eslint-disable-next-line no-console
+    console.log('[CRM] Regra criada com sucesso');
     createRuleDialogRef.value?.close();
     fetchRules();
     useAlert(t('CRM.SCORING.CREATE_SUCCESS'));
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('[CRM] Erro ao criar regra:', error);
     useAlert(t('CRM.SCORING.CREATE_ERROR'));
   }
 };

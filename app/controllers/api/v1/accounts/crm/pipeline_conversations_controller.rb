@@ -21,6 +21,8 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
   def update
     authorize @stage, :show?
     @conversation = current_account.conversations.find_by!(display_id: params[:id])
+    old_stage_id = @conversation.pipeline_stage_id
+    Rails.logger.info "[CRM] Movendo conversa ##{@conversation.display_id} do estágio #{old_stage_id} para #{@stage.id} no pipeline ##{@stage.pipeline_id}"
     @conversation.update!(pipeline_stage_id: @stage.id, pipeline_id: @stage.pipeline_id)
     render :update
   end

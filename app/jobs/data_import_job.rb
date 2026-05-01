@@ -5,6 +5,9 @@ class DataImportJob < ApplicationJob
   queue_as :low
   retry_on ActiveStorage::FileNotFoundError, wait: 1.minute, attempts: 3
 
+  # Ponto de entrada do Job de importação.
+  # 1. Inicializa o ContactManager com o mapeamento fornecido pelo usuário.
+  # 2. Inicia o processamento do arquivo e notifica o admin ao concluir.
   def perform(data_import)
     @data_import = data_import
     @contact_manager = DataImport::ContactManager.new(@data_import.account, @data_import.mapping)
@@ -12,21 +15,30 @@ class DataImportJob < ApplicationJob
       process_import_file
       send_import_notification_to_admin
     rescue CSV::MalformedCSVError => e
+      Rails.logger.error "[CRM] Arquivo CSV malformado no DataImport ##{@data_import.id}: #{e.message}"
       handle_csv_error(e)
+    rescue StandardError => e
+      Rails.logger.error "[CRM] Erro inesperado no DataImport ##{@data_import.id}: #{e.message}"
+      @data_import.update!(status: :failed)
+      raise e
     end
   end
 
   private
 
   def process_import_file
+    Rails.logger.info "[CRM] Iniciando processamento do DataImport ##{@data_import.id}"
     @data_import.update!(status: :processing)
     contacts, rejected_contacts = parse_csv_and_build_contacts
 
     import_contacts(contacts)
     update_data_import_status(contacts.length, rejected_contacts.length)
     save_failed_records_csv(rejected_contacts)
+    Rails.logger.info "[CRM] Finalizado DataImport ##{@data_import.id}: #{contacts.length} sucessos, #{rejected_contacts.length} rejeições"
   end
 
+  # Lê o CSV e constrói objetos Contact sem salvar no DB ainda.
+  # Normalização: Remove espaços em branco das chaves para bater com o mapping do frontend.
   def parse_csv_and_build_contacts
     contacts = []
     rejected_contacts = []
@@ -57,6 +69,9 @@ class DataImportJob < ApplicationJob
     rejected_contacts << row
   end
 
+  # Executa a inserção/atualização massiva (Upsert).
+  # conflict_target: [:account_id, :email] garante que não duplicamos contatos na mesma conta.
+  # validate: false é usado aqui porque já validamos individualmente no parse_csv.
   def import_contacts(contacts)
     return if contacts.blank?
 

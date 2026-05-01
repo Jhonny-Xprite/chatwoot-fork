@@ -18,11 +18,14 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   end
 
   def create
+    Rails.logger.info "[CRM] Criando novo pipeline para conta #{current_account.id}: #{pipeline_params[:name]}"
     @pipeline = current_account.crm_pipelines.build(pipeline_params)
     authorize @pipeline
     if @pipeline.save
+      Rails.logger.info "[CRM] Pipeline ##{@pipeline.id} criado com sucesso."
       render json: @pipeline, status: :created
     else
+      Rails.logger.warn "[CRM] Falha ao criar pipeline: #{@pipeline.errors.full_messages}"
       render json: @pipeline.errors, status: :unprocessable_entity
     end
   end
@@ -37,8 +40,10 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   end
 
   def destroy
+    Rails.logger.info "[CRM] Excluindo pipeline ##{@pipeline.id} da conta #{current_account.id}"
     authorize @pipeline
     @pipeline.destroy
+    Rails.logger.info "[CRM] Pipeline ##{@pipeline.id} removido."
     head :no_content
   end
 

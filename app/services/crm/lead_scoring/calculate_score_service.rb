@@ -14,6 +14,7 @@ class Crm::LeadScoring::CalculateScoreService
       total_score += rule.score if rule_matches?(rule)
     end
 
+    Rails.logger.debug "[CRM] Calculando Lead Score para Contato ##{@contact.id}: #{total_score}"
     @contact.update!(lead_score: total_score)
   end
 

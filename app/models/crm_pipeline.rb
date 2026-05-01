@@ -20,28 +20,28 @@ class CrmPipeline < ApplicationRecord
   end
 
   def clear_other_default_pipelines
+    # Remove o estado de padrão dos outros funis desta conta
     account.crm_pipelines.where.not(id: id).where(is_default: true).update_all(is_default: false)
   end
 
   def migrate_conversations_and_ensure_default
-    # 1. Choose a target pipeline (new default or first available)
+    # 1. Escolhe um funil de destino (o novo padrão ou o primeiro disponível)
     target_pipeline = account.crm_pipelines.where.not(id: id).find_by(is_default: true)
     target_pipeline ||= account.crm_pipelines.where.not(id: id).first
 
-    if target_pipeline
-      # Ensure the target has a default if we are deleting the current default
-      target_pipeline.update(is_default: true) if is_default?
+    return unless target_pipeline
 
-      # Find a safe stage in the target pipeline
-      target_stage = target_pipeline.stages.first
+    # 2. Busca o primeiro estágio disponível no funil de destino
+    target_stage = target_pipeline.stages.first
+    return unless target_stage
 
-      if target_stage
-        conversations.update_all(pipeline_id: target_pipeline.id, pipeline_stage_id: target_stage.id)
-      else
-        # If target has no stages, just nullify (as per has_many :conversations, dependent: :nullify)
-      end
+    # 3. Migra todas as conversas/leads para o novo funil/estágio
+    # Usamos update_all por performance e para evitar disparar callbacks durante o destroy
+    conversations.update_all(pipeline_id: target_pipeline.id, pipeline_stage_id: target_stage.id)
+
+    # 4. Se este funil era o padrão, passa o bastão para o próximo
+    if is_default?
+      target_pipeline.update_column(:is_default, true)
     end
-
-    # If no other pipelines exist, conversations will be nullified by the relation definition
   end
 end

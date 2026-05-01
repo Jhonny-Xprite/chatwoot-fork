@@ -164,6 +164,8 @@ const extractFiltersFromView = view => {
 const isSyncing = ref(false);
 const syncBoardContext = async () => {
   if (isSyncing.value) return;
+  // eslint-disable-next-line no-console
+  console.log('[CRM] Sincronizando contexto do Kanban Board...');
   isSyncing.value = true;
   try {
     const promises = [store.dispatch('customViews/get', 'conversation')];
@@ -186,10 +188,13 @@ const syncBoardContext = async () => {
     await store.dispatch('crmPipeline/replaceFilters', filters);
 
     if (nextPipelineId) {
+      // eslint-disable-next-line no-console
+      console.log('[CRM] Carregando estágios para o pipeline:', nextPipelineId);
       await store.dispatch('crmPipeline/fetchStages', nextPipelineId);
     }
   } catch (error) {
-    // Error handling
+    // eslint-disable-next-line no-console
+    console.error('[CRM] Erro ao sincronizar contexto:', error);
   } finally {
     isSyncing.value = false;
   }
@@ -237,12 +242,19 @@ const createPipeline = async () => {
   const name = createPipelineName.value.trim();
   if (!name) return;
 
+  // eslint-disable-next-line no-console
+  console.log('[CRM] Criando novo pipeline via UI:', name);
   try {
     const nextPipelineId = await store.dispatch(
       'crmPipeline/createPipeline',
       name
     );
     if (nextPipelineId) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[CRM] Pipeline criado com sucesso, redirecionando para ID:',
+        nextPipelineId
+      );
       createPipelineName.value = '';
       isCreatePipelineOpen.value = false;
       router.push({
@@ -254,7 +266,8 @@ const createPipeline = async () => {
       });
     }
   } catch (error) {
-    // Ignore creation errors for now
+    // eslint-disable-next-line no-console
+    console.error('[CRM] Erro ao criar pipeline via UI:', error);
   }
 };
 
@@ -290,13 +303,23 @@ const createStage = async () => {
       : 'New stage name:'
   );
   if (name) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[CRM] Criando novo estágio no pipeline ##' +
+        selectedPipeline.value.id +
+        ':',
+      name
+    );
     try {
       await store.dispatch('crmPipeline/createStage', {
         pipelineId: selectedPipeline.value.id,
         stage: { name },
       });
+      // eslint-disable-next-line no-console
+      console.log('[CRM] Estágio criado com sucesso');
     } catch (error) {
-      // Error handling
+      // eslint-disable-next-line no-console
+      console.error('[CRM] Erro ao criar estágio:', error);
     }
   }
 };
