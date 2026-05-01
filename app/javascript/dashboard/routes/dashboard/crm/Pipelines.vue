@@ -5,6 +5,7 @@ import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import PipelineBoard from 'dashboard/components/crm/PipelineBoard.vue';
 import FilterBar from 'dashboard/components/crm/FilterBar.vue';
+import FilterSelect from 'dashboard/components-next/filter/inputs/FilterSelect.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import ViewCustomizer from 'dashboard/components/crm/ViewCustomizer.vue';
 import Popover from 'dashboard/components-next/popover/Popover.vue';
@@ -33,15 +34,30 @@ const DEFAULT_FILTERS = {
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
-useI18n();
+const { t } = useI18n();
 
 const accountId = computed(
   () => store.getters.getCurrentAccountId || route.params.accountId
 );
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
+const pipelineOptions = computed(() =>
+  pipelines.value.map(p => ({
+    label: `${p.name}${p.is_default ? ` - ${t('CRM.DEFAULT_BADGE')}` : ''}`,
+    value: p.id,
+  }))
+);
+
 const savedViews = computed(
   () => store.getters['customViews/getConversationCustomViews']
 );
+const viewOptions = computed(() => [
+  { label: t('CRM.ALL_VIEWS'), value: '' },
+  ...savedViews.value.map(v => ({
+    label: v.name,
+    value: v.id,
+  })),
+]);
+
 const selectedPipeline = computed(
   () => store.getters['crmPipeline/getActivePipeline'] || null
 );
@@ -282,31 +298,21 @@ const createStage = async () => {
         </h1>
 
         <div v-if="pipelines.length > 0" class="flex items-center gap-2">
-          <select
+          <FilterSelect
             v-model="selectedPipelineId"
-            class="bg-n-slate-2 border border-n-weak rounded-md px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary transition-all"
-          >
-            <option
-              v-for="pipeline in pipelines"
-              :key="pipeline.id"
-              :value="pipeline.id"
-            >
-              {{ pipeline.name
-              }}{{ pipeline.is_default ? ` - ${$t('CRM.DEFAULT_BADGE')}` : '' }}
-            </option>
-          </select>
+            :options="pipelineOptions"
+            variant="faded"
+            class="min-w-[160px]"
+          />
         </div>
 
         <div v-if="savedViews.length > 0" class="flex items-center gap-2">
-          <select
+          <FilterSelect
             v-model="selectedViewId"
-            class="bg-n-slate-2 border border-n-weak rounded-md px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary transition-all"
-          >
-            <option value="">{{ $t('CRM.ALL_VIEWS') }}</option>
-            <option v-for="view in savedViews" :key="view.id" :value="view.id">
-              {{ view.name }}
-            </option>
-          </select>
+            :options="viewOptions"
+            variant="faded"
+            class="min-w-[160px]"
+          />
         </div>
 
         <span

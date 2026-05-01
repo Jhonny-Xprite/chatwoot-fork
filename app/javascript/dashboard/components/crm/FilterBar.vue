@@ -1,10 +1,14 @@
 <script setup>
 import { ref, watch, computed, onMounted } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from 'vue-i18n';
 import { debounce } from '@chatwoot/utils';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 
+import FilterSelect from 'dashboard/components-next/filter/inputs/FilterSelect.vue';
+
 const vuexStore = useStore();
+const { t } = useI18n();
 
 const searchQuery = ref(vuexStore.getters['crmPipeline/appliedFilters'].q);
 const selectedAssigneeId = ref(
@@ -15,6 +19,14 @@ const selectedLabels = ref([
 ]);
 
 const agents = computed(() => vuexStore.getters['agents/getAgents']);
+const assigneeOptions = computed(() => [
+  { label: t('CRM.ALL_ASSIGNEES'), value: '' },
+  ...agents.value.map(agent => ({
+    label: agent.name,
+    value: agent.id,
+  })),
+]);
+
 const labels = computed(() => vuexStore.getters['labels/getLabels']);
 const labelMenuItems = computed(() =>
   labels.value.map(label => ({
@@ -87,15 +99,12 @@ const clearFilters = () => {
       >
         {{ $t('CRM.ASSIGNEE') }}
       </span>
-      <select
+      <FilterSelect
         v-model="selectedAssigneeId"
-        class="bg-n-slate-2 border border-n-weak rounded-lg px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary transition-all cursor-pointer"
-      >
-        <option value="">{{ $t('CRM.ALL_ASSIGNEES') }}</option>
-        <option v-for="agent in agents" :key="agent.id" :value="agent.id">
-          {{ agent.name }}
-        </option>
-      </select>
+        :options="assigneeOptions"
+        variant="faded"
+        class="min-w-[140px]"
+      />
     </div>
 
     <!-- Labels Filter -->

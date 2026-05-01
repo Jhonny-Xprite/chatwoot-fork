@@ -3,9 +3,9 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
-import CardLabels from 'dashboard/components/widgets/conversation/conversationCardComponents/CardLabels.vue';
+import CardLabels from 'dashboard/components-next/Conversation/ConversationCard/CardLabelsV5.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
-import SLACardLabel from 'dashboard/components/widgets/conversation/components/SLACardLabel.vue';
+import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
 const props = defineProps({
   conversation: {
@@ -151,7 +151,7 @@ const lastMessagePreview = computed(() => {
         "
         class="mt-1"
       >
-        <CardLabels :conversation-labels="conversationLabels">
+        <CardLabels :labels="conversationLabels">
           <template v-if="hasSlaPolicyId && viewPrefs.showSla" #before>
             <SLACardLabel :chat="conversation" class="ltr:mr-1 rtl:ml-1" />
           </template>
