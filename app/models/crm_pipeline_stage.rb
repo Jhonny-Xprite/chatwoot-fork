@@ -7,10 +7,14 @@ class CrmPipelineStage < ApplicationRecord
   validates :position, presence: true
 
   default_scope { order(:position) }
-
+  before_validation :set_position, on: :create
   before_destroy :move_conversations_to_default_stage
 
   private
+
+  def set_position
+    self.position ||= (pipeline.stages.maximum(:position) || -1) + 1
+  end
 
   def move_conversations_to_default_stage
     default_stage = pipeline.stages.where.not(id: id).first

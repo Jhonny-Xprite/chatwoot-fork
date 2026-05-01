@@ -89,7 +89,13 @@ const onDragChange = event => {
           {{ stageCount }}
         </span>
       </div>
-      <NextButton ghost xs slate icon="i-lucide-grip-vertical" disabled />
+      <NextButton
+        ghost
+        xs
+        slate
+        icon="i-lucide-grip-vertical"
+        class="column-drag-handle cursor-grab active:cursor-grabbing"
+      />
     </div>
 
     <!-- Draggable Area -->

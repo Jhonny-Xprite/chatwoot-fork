@@ -56,7 +56,10 @@ const getters = {
   getAllPipelines: _state => _state.pipelines,
   getActivePipeline: _state =>
     _state.pipelines.find(p => p.id === _state.activePipelineId),
-  getStages: _state => _state.stages,
+  getStages: _state =>
+    [..._state.stages].sort(
+      (a, b) => (a.position || 0) - (b.position || 0) || a.id - b.id
+    ),
   getConversationsByStage: _state => stageId =>
     _state.conversationsByStage[stageId] || [],
   getMetaByStage: _state => stageId =>
@@ -470,11 +473,11 @@ const actions = {
   },
   async reorderStages({ dispatch, state: _state }, { pipelineId, stages }) {
     const targetPipelineId = pipelineId || _state.activePipelineId;
-    const positions = {};
-    stages.forEach((stage, index) => {
-      positions[stage.id] = index + 1;
-    });
-    await PipelineAPI.reorderStages(targetPipelineId, positions);
+    const stagesPayload = stages.map((stage, index) => ({
+      id: stage.id,
+      position: index,
+    }));
+    await PipelineAPI.reorderStages(targetPipelineId, stagesPayload);
     await dispatch('fetchStages', targetPipelineId);
   },
   async deletePipeline({ dispatch }, pipelineId) {

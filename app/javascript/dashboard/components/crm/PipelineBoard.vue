@@ -1,9 +1,10 @@
 <script setup>
 import { computed } from 'vue';
 import { useStore } from 'vuex';
+import draggable from 'vuedraggable';
 import PipelineColumn from './PipelineColumn.vue';
 
-defineProps({
+const props = defineProps({
   stages: {
     type: Array,
     default: () => [],
@@ -16,6 +17,15 @@ const store = useStore();
 const isFetchingStages = computed(
   () => store.state.crmPipeline.uiFlags.isFetchingStages
 );
+
+const stagesList = computed({
+  get: () => props.stages,
+  set: value => {
+    store.dispatch('crmPipeline/reorderStages', {
+      stages: value,
+    });
+  },
+});
 </script>
 
 <template>
@@ -25,13 +35,22 @@ const isFetchingStages = computed(
       class="flex-1 overflow-x-auto overflow-y-hidden custom-horizontal-scrollbar"
     >
       <div v-if="!isFetchingStages" class="flex h-full p-6 gap-6 min-w-max">
-        <PipelineColumn
-          v-for="stage in stages"
-          :key="stage.id"
-          :stage="stage"
-          @select="$emit('select', $event)"
-          @select-contact="$emit('selectContact', $event)"
-        />
+        <draggable
+          v-model="stagesList"
+          item-key="id"
+          class="flex h-full gap-6"
+          handle=".column-drag-handle"
+          ghost-class="opacity-50"
+          :animation="200"
+        >
+          <template #item="{ element: stage }">
+            <PipelineColumn
+              :stage="stage"
+              @select="$emit('select', $event)"
+              @select-contact="$emit('selectContact', $event)"
+            />
+          </template>
+        </draggable>
 
         <!-- Add Stage Placeholder -->
         <div
