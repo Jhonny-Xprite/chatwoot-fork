@@ -65,6 +65,7 @@ class Account < ApplicationRecord
   has_many :campaigns, dependent: :destroy_async
   has_many :crm_pipelines, dependent: :destroy_async
   has_many :crm_pipeline_stages, dependent: :destroy_async
+  has_many :crm_lead_scoring_rules, dependent: :destroy_async
   has_many :canned_responses, dependent: :destroy_async
   has_many :categories, dependent: :destroy_async, class_name: '::Category'
   has_many :contacts, dependent: :destroy_async
