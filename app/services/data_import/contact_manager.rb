@@ -57,10 +57,13 @@ class DataImport < ApplicationRecord
         contact.name = contact.email.presence || contact.phone_number.presence || "Contact #{Time.now.to_i}"
       end
 
-      # Validação de Identificador: Garante que tem email OU telefone OU identifier
-      if contact.email.blank? && contact.phone_number.blank? && contact.identifier.blank?
-        contact.errors.add(:base, 'Contact must have at least email, phone number, or identifier')
+      # FOCO NO TELEFONE: Telefone é obrigatório para integração com WhatsApp
+      if contact.phone_number.blank?
+        contact.errors.add(:phone_number, 'Phone number is required for WhatsApp integration')
       end
+
+      # Email é opcional, mas se fornecido deve ser válido
+      # Identifier é opcional como fallback
 
       # Debug logging
       unless contact.valid?
@@ -173,11 +176,10 @@ class DataImport < ApplicationRecord
 
       # Se já tem +, valida formato e retorna
       if cleaned.start_with?('+')
-        # Remove o + temporariamente para análise
         digits = cleaned[1..-1]
-        # Valida: deve ter 1-15 dígitos com primeiro diferente de 0
         if digits.match?(/^[1-9]\d{0,14}$/)
-          return "+#{digits}"
+          normalized = "+#{digits}"
+          return normalize_for_whatsapp(normalized)
         else
           return nil
         end
@@ -196,18 +198,43 @@ class DataImport < ApplicationRecord
       # Se tem mais de 15 dígitos, é inválido
       return nil if digits.length > 15
 
-      # Se já tem código de país (primeiro dígito 1-9, seguido de até 14 dígitos)
+      # Assume Brasil (55) para números nacionais
+      # Padrão brasileiro: 10-11 dígitos (DDD + número ou DDD + 9 + número)
+      if digits.length.between?(10, 11)
+        phone_with_country = "+55#{digits}"
+        return normalize_for_whatsapp(phone_with_country)
+      end
+
+      # Outros países com código válido
       if digits.match?(/^[1-9]\d{0,14}$/)
         return "+#{digits}"
       end
 
-      # Padrão brasileiro: números de 10-11 dígitos
-      # Adiciona +55 para compatibilidade
-      if digits.length.between?(10, 11)
-        return "+55#{digits}"
+      nil
+    end
+
+    # Normaliza telefone para compatibilidade com WhatsApp (usando lógica do Chatwoot)
+    def normalize_for_whatsapp(phone_with_country)
+      return phone_with_country unless phone_with_country.start_with?('+55')
+
+      # Remove o + e código de país para processar
+      waid = phone_with_country.delete('+')
+
+      # Aplica lógica do Brazil normalizer do Chatwoot
+      # Se tem 12 dígitos (55 + DDD + 8 dígitos), adiciona 9
+      if waid.length == 12 && waid.start_with?('55')
+        ddd = waid[2, 2]
+        number = waid[4..-1]
+        return "+55#{ddd}9#{number}" # Adiciona 9 para mobile moderno
       end
 
-      nil
+      # Se já tem 13 dígitos, está correto
+      if waid.length == 13
+        return "+#{waid}"
+      end
+
+      # Se tem outros tamanhos, retorna como está
+      "+#{waid}"
     end
   end
 end

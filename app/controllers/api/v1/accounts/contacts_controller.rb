@@ -56,15 +56,14 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
       render json: { error: 'Please map at least one column' }, status: :unprocessable_entity and return
     end
 
-    # Valida se pelo menos um campo identificador foi mapeado (email, phone_number, ou identifier)
-    identifier_fields = %w[email phone_number identifier]
+    # FOCO NO TELEFONE: Valida que telefone foi mapeado (obrigatório para WhatsApp)
     mapped_attributes = mapping.values.compact.map(&:to_s)
-    has_identifier = identifier_fields.any? { |field| mapped_attributes.include?(field) }
+    has_phone = mapped_attributes.include?('phone_number')
 
-    unless has_identifier
-      Rails.logger.warn "[CRM] Importação falhou: nenhum campo identificador mapeado"
+    unless has_phone
+      Rails.logger.warn "[CRM] Importação falhou: campo de telefone não foi mapeado"
       render json: {
-        error: 'Please map at least one identifier field (email, phone number, or external ID)'
+        error: 'Phone number mapping is required for WhatsApp integration. Please map a column to "phone_number".'
       }, status: :unprocessable_entity and return
     end
 

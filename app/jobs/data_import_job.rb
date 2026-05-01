@@ -68,14 +68,15 @@ class DataImportJob < ApplicationJob
     line_number = rejected_contacts.length + 2 # +2 porque 1 é header, +1 para display
     error_messages = contact.errors.full_messages
 
-    # Enriquece mensagens de erro com contexto
+    # FOCO NO TELEFONE: Enriquece mensagens com detalhes específicos
     detailed_errors = error_messages.map do |msg|
-      case msg
-      when /email/i
+      if msg.include?('Phone number')
+        # Mostra qual era o telefone que foi rejeitado
+        provided = row['phone_number'] || row['telefone'] || 'vazio'
+        "TELEFONE INVÁLIDO: '#{provided}' - #{msg} (necessário para WhatsApp)"
+      elsif msg.include?('email')
         "Email: '#{contact.email}' - #{msg}"
-      when /phone/i
-        "Phone: '#{contact.phone_number}' - #{msg}"
-      when /identifier/i
+      elsif msg.include?('identifier')
         "Identifier: '#{contact.identifier}' - #{msg}"
       else
         msg
@@ -83,10 +84,16 @@ class DataImportJob < ApplicationJob
     end
 
     row['csv_line_number'] = line_number
+    row['original_phone'] = row['phone_number'] || row['telefone'] || ''
     row['errors'] = detailed_errors.join(' | ')
     rejected_contacts << row
 
-    Rails.logger.warn "[DataImport] Line #{line_number} rejected: #{row['errors']}"
+    # Log detalhado para debug de telefone
+    if error_messages.any? { |m| m.include?('Phone number') }
+      Rails.logger.warn "[DataImport] Line #{line_number} REJECTED - INVALID PHONE: '#{row['original_phone']}'"
+    else
+      Rails.logger.warn "[DataImport] Line #{line_number} rejected: #{row['errors']}"
+    end
   end
 
   # Executa a inserção/atualização massiva (Upsert).
