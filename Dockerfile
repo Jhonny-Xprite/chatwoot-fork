@@ -1,6 +1,6 @@
 # pre-build stage
-FROM node:24-alpine as node
-FROM ruby:3.4.4-alpine3.21 AS pre-builder
+FROM node:24-bookworm-slim as node
+FROM ruby:3.4.4-slim-bookworm AS pre-builder
 
 ARG NODE_VERSION="24.13.0"
 ARG PNPM_VERSION="10.2.0"
@@ -24,18 +24,23 @@ ENV NODE_OPTIONS ${NODE_OPTIONS}
 
 ENV BUNDLE_PATH="/gems"
 
-RUN apk update && apk add --no-cache \
-  openssl \
-  tar \
-  build-base \
-  tzdata \
-  postgresql-dev \
-  postgresql-client \
-  git \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
+  ca-certificates \
   curl \
-  xz \
+  git \
+  libpq-dev \
+  libvips \
+  libvips-dev \
+  openssl \
+  pkg-config \
+  postgresql-client \
+  tar \
+  tzdata \
+  xz-utils \
   && mkdir -p /var/app \
-  && gem install bundler -v "$BUNDLER_VERSION"
+  && gem install bundler -v "$BUNDLER_VERSION" \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
@@ -58,21 +63,20 @@ WORKDIR /app
 
 COPY Gemfile Gemfile.lock ./
 
-# natively compile grpc and protobuf to support alpine musl (dialogflow-docker workflow)
-# https://github.com/googleapis/google-cloud-ruby/issues/13306
-# adding xz as nokogiri was failing to build libxml
-# https://github.com/chatwoot/chatwoot/issues/4045
-RUN apk update && apk add --no-cache build-base musl ruby-full ruby-dev gcc make musl-dev openssl openssl-dev g++ linux-headers xz vips
-RUN bundle config set --local force_ruby_platform true
+RUN bundle config set --local path "$BUNDLE_PATH" \
+  && bundle config set --local jobs 4 \
+  && bundle config set --local retry 3
 
 # Do not install development or test gems in production
-RUN if [ "$RAILS_ENV" = "production" ]; then \
-  bundle config set without 'development test'; bundle install -j 4 -r 3; \
-  else bundle install -j 4 -r 3; \
+RUN --mount=type=cache,target=/gems \
+  if [ "$RAILS_ENV" = "production" ]; then \
+  bundle config set without 'development test'; bundle install; \
+  else bundle install; \
   fi
 
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm i
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
+  pnpm install --frozen-lockfile
 
 COPY . /app
 
@@ -97,7 +101,7 @@ RUN rm -rf /gems/ruby/3.4.0/cache/*.gem \
   && rm .gitignore
 
 # final build stage
-FROM ruby:3.4.4-alpine3.21
+FROM ruby:3.4.4-slim-bookworm
 
 ARG NODE_VERSION="24.13.0"
 ARG PNPM_VERSION="10.2.0"
@@ -114,32 +118,32 @@ ENV EXECJS_RUNTIME ${EXECJS_RUNTIME}
 ARG RAILS_SERVE_STATIC_FILES=true
 ENV RAILS_SERVE_STATIC_FILES ${RAILS_SERVE_STATIC_FILES}
 
-ARG BUNDLE_FORCE_RUBY_PLATFORM=1
-ENV BUNDLE_FORCE_RUBY_PLATFORM ${BUNDLE_FORCE_RUBY_PLATFORM}
-
 ARG RAILS_ENV=production
 ENV RAILS_ENV ${RAILS_ENV}
 ENV BUNDLE_PATH="/gems"
 
-RUN apk update && apk add --no-cache \
-  build-base \
-  openssl \
-  tzdata \
-  postgresql-client \
-  imagemagick \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  ca-certificates \
   git \
-  vips \
-  && gem install bundler -v "$BUNDLER_VERSION"
+  imagemagick \
+  libpq5 \
+  libvips \
+  openssl \
+  postgresql-client \
+  tzdata \
+  && gem install bundler -v "$BUNDLER_VERSION" \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=node /usr/local/bin/node /usr/local/bin/
 COPY --from=node /usr/local/lib/node_modules /usr/local/lib/node_modules
 
 RUN if [ "$RAILS_ENV" != "production" ]; then \
-  apk add --no-cache curl \
+  apt-get update && apt-get install -y --no-install-recommends curl \
   && ln -s /usr/local/lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
   && ln -s /usr/local/lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx \
   && npm install -g pnpm@${PNPM_VERSION} \
-  && pnpm --version; \
+  && pnpm --version \
+  && rm -rf /var/lib/apt/lists/*; \
   fi
 
 COPY --from=pre-builder /gems/ /gems/
