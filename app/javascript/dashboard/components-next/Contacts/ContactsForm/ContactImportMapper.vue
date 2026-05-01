@@ -28,7 +28,9 @@ const newAttribute = ref({
 const contactAttributes = useMapGetter('attributes/getContactAttributes');
 
 const standardFields = [
-  { key: 'name', label: 'Name' },
+  { key: 'name', label: 'Full Name' },
+  { key: 'first_name', label: 'First Name' },
+  { key: 'last_name', label: 'Last Name' },
   { key: 'email', label: 'Email' },
   { key: 'phone_number', label: 'Phone Number' },
   { key: 'identifier', label: 'External ID' },
