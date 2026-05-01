@@ -38,6 +38,8 @@ class PipelineAPI extends ApiClient {
     return axios.delete(`${this.url}/${pipelineId}/stages/${stageId}`);
   }
 
+  // ATENÇÃO: MANTER COMO 'stages'. NÃO MUDAR PARA 'positions'.
+  // O backend espera o array completo de objetos para atualização em massa.
   reorderStages(pipelineId, stages) {
     return axios.patch(`${this.url}/${pipelineId}/stages/reorder`, {
       stages,

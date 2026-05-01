@@ -433,6 +433,8 @@ const actions = {
     await PipelineAPI.deleteStage(targetPipelineId, stageId);
     await dispatch('fetchStages', targetPipelineId);
   },
+  // ATENÇÃO: MANTER COMO 'stages'. NÃO MUDAR PARA 'positions'.
+  // O backend espera o array completo de objetos para atualização em massa.
   async reorderStages({ dispatch, state: _state }, { pipelineId, stages }) {
     const targetPipelineId = pipelineId || _state.activePipelineId;
     await PipelineAPI.reorderStages(targetPipelineId, stages);

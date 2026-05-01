@@ -29,6 +29,9 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
 
   def reorder
     authorize @pipeline, :update?
+    
+    # ATENÇÃO: MANTER COMO 'stages'. NÃO MUDAR PARA 'positions'.
+    # O frontend envia o array completo de estágios para permitir renomear e reordenar simultaneamente.
     stages_params = params[:stages]
 
     if stages_params.blank? || !stages_params.is_a?(Array)
