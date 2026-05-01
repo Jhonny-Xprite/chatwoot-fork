@@ -130,7 +130,9 @@ Rails.application.routes.draw do
               end
             end
             resources :pipeline_conversations, only: [:index, :update], param: :id
-            resources :lead_scoring_rules
+            resources :lead_scoring_rules do
+              post :recalculate, on: :collection
+            end
           end
 
           resources :dashboard_apps, only: [:index, :show, :create, :update, :destroy]

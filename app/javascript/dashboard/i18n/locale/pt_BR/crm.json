@@ -37,6 +37,7 @@
     "TABS": {
       "DASHBOARD": "Dashboard",
       "PIPELINES": "Pipelines",
+      "SCORING": "Lead Scoring",
       "SETTINGS": "Configurações"
     },
     "SIDEBAR": {
@@ -65,6 +66,7 @@
       "FIELD_COMPANY": "Empresa",
       "FIELD_ASSIGNEE": "Responsável",
       "FIELD_CHANNEL": "Canal (Inbox)",
+      "FIELD_SCORE": "Pontuação (Lead Score)",
       "CUSTOM_ATTRIBUTES": "Atributos Customizados",
       "CUSTOM_ATTRIBUTES_HELP": "Os campos selecionados aparecerão no card se houver dados preenchidos.",
       "PIPELINES_TITLE": "Gestão de Pipelines",
@@ -88,6 +90,44 @@
       "DEFAULT_PIPELINE_DESCRIPTION": "Escolha a pipeline padrão na aba de pipelines para que as novas conversas caiam no painel correto automaticamente.",
       "MANAGEMENT_TITLE": "Gestão de Pipeline",
       "MANAGEMENT_DESCRIPTION": "Crie novas pipelines e revise os estágios na aba de pipelines enquanto a tela de configurações dedicada está sendo expandida."
+    },
+    "SCORING": {
+      "TITLE": "Lead Scoring",
+      "SUBTITLE": "Defina regras para pontuar seus leads automaticamente.",
+      "ADD_RULE": "Nova Regra",
+      "RECALCULATE_ALL": "Recalcular Tudo",
+      "RECALCULATE_HELP": "Aplica as regras atuais a todos os contatos existentes.",
+      "RECALCULATE_SUCCESS": "Recálculo de pontuação iniciado em segundo plano.",
+      "RECALCULATE_ERROR": "Erro ao iniciar o recálculo.",
+      "CREATE_SUCCESS": "Regra criada com sucesso.",
+      "CREATE_ERROR": "Erro ao criar regra.",
+      "DELETE_SUCCESS": "Regra excluída com sucesso.",
+      "DELETE_ERROR": "Erro ao excluir regra.",
+      "TABLE": {
+        "SOURCE": "Origem",
+        "FIELD": "Campo",
+        "CONDITION": "Condição",
+        "VALUE": "Valor",
+        "POINTS": "Pontos",
+        "EMPTY": "Nenhuma regra definida ainda. Comece criando sua primeira regra de pontuação."
+      },
+      "MODAL": {
+        "TITLE": "Adicionar Regra de Scoring",
+        "CONFIRM": "Criar Regra",
+        "SOURCE_LABEL": "Origem do Dado",
+        "FIELD_LABEL": "Campo / Atributo",
+        "FIELD_PLACEHOLDER": "Selecione um campo...",
+        "CONDITION_LABEL": "Condição",
+        "POINTS_LABEL": "Pontuação",
+        "VALUES_LABEL": "Valores Esperados",
+        "VALUES_PLACEHOLDER": "Digite os valores separados por vírgula",
+        "LABELS_PLACEHOLDER": "Selecione as etiquetas..."
+      },
+      "MODELS": {
+        "CONTACT": "Atributo de Contato",
+        "CONVERSATION": "Atributo de Conversa",
+        "LABEL": "Etiqueta"
+      }
     }
   }
 }

@@ -32,6 +32,13 @@ class Api::V1::Accounts::Crm::LeadScoringRulesController < Api::V1::Accounts::Ba
     head :no_content
   end
 
+  def recalculate
+    current_account.contacts.find_each do |contact|
+      Crm::LeadScoringCalculationJob.perform_later(contact.id)
+    end
+    render json: { message: 'Recalculation started' }, status: :ok
+  end
+
   private
 
   def set_rule

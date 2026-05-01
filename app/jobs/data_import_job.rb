@@ -33,7 +33,14 @@ class DataImportJob < ApplicationJob
 
     with_import_file do |file|
       csv_reader(file).each do |row|
-        current_contact = @contact_manager.build_contact(row.to_h.with_indifferent_access)
+        # Normaliza os dados do row: limpa espaços nas chaves para sincronizar com o mapping
+        normalized_row = row.to_h.each_with_object({}) do |(key, value), normalized|
+          normalized_key = key&.strip.to_s
+          normalized[normalized_key] = value
+        end
+        normalized_row.default_proc = proc { |h, k| h[k.to_s] if k.is_a?(Symbol) }
+
+        current_contact = @contact_manager.build_contact(normalized_row.with_indifferent_access)
         if current_contact.valid?
           contacts << current_contact
         else
@@ -51,8 +58,18 @@ class DataImportJob < ApplicationJob
   end
 
   def import_contacts(contacts)
-    # <struct ActiveRecord::Import::Result failed_instances=[], num_inserts=1, ids=[444, 445], results=[]>
-    Contact.import(contacts, synchronize: contacts, on_duplicate_key_ignore: true, track_validation_failures: true, validate: true, batch_size: 1000)
+    result = Contact.import(
+      contacts,
+      synchronize: contacts,
+      on_duplicate_key_update: {
+        conflict_target: [:account_id, :email],
+        columns: [:phone_number, :name, :additional_attributes, :custom_attributes, :contact_type, :updated_at]
+      },
+      track_validation_failures: true,
+      validate: false,
+      batch_size: 1000
+    )
+    Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Updated: #{result.num_updates || 0}, Failed: #{result.failed_instances.size}"
   end
 
   def update_data_import_status(processed_records, rejected_records)

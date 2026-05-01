@@ -33,9 +33,16 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
 
   def import
     render json: { error: I18n.t('errors.contacts.import.failed') }, status: :unprocessable_entity and return if params[:import_file].blank?
-    
+
     mapping = params[:mapping]
+    # Garante que o mapping é um hash
     mapping = JSON.parse(mapping) if mapping.is_a?(String)
+    mapping = {} if mapping.blank?
+
+    # Valida se o mapping tem pelo menos um campo mapeado
+    if mapping.is_a?(Hash) && mapping.empty?
+      render json: { error: 'Please map at least one column' }, status: :unprocessable_entity and return
+    end
 
     ActiveRecord::Base.transaction do
       import = Current.account.data_imports.create!(data_type: 'contacts', mapping: mapping)

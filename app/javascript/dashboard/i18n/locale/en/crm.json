@@ -50,6 +50,7 @@
     "TABS": {
       "DASHBOARD": "Dashboard",
       "PIPELINES": "Pipelines",
+      "SCORING": "Lead Scoring",
       "SETTINGS": "Settings"
     },
     "SIDEBAR": {
@@ -108,6 +109,44 @@
       "DEFAULT_PIPELINE_DESCRIPTION": "Choose the default pipeline from the pipelines tab so new conversations land in the right board automatically.",
       "MANAGEMENT_TITLE": "Pipeline management",
       "MANAGEMENT_DESCRIPTION": "Create new pipelines and review stages from the pipelines tab while the dedicated settings screen is being expanded."
+    },
+    "SCORING": {
+      "TITLE": "Lead Scoring",
+      "SUBTITLE": "Define rules to score your leads automatically.",
+      "ADD_RULE": "New Rule",
+      "RECALCULATE_ALL": "Recalculate All",
+      "RECALCULATE_HELP": "Applies current rules to all existing contacts.",
+      "RECALCULATE_SUCCESS": "Lead score recalculation started in the background.",
+      "RECALCULATE_ERROR": "Error starting recalculation.",
+      "CREATE_SUCCESS": "Rule created successfully.",
+      "CREATE_ERROR": "Error creating rule.",
+      "DELETE_SUCCESS": "Rule deleted successfully.",
+      "DELETE_ERROR": "Error deleting rule.",
+      "TABLE": {
+        "SOURCE": "Source",
+        "FIELD": "Field",
+        "CONDITION": "Condition",
+        "VALUE": "Value",
+        "POINTS": "Points",
+        "EMPTY": "No rules defined yet. Start by creating your first scoring rule."
+      },
+      "MODAL": {
+        "TITLE": "Add Scoring Rule",
+        "CONFIRM": "Create Rule",
+        "SOURCE_LABEL": "Data Source",
+        "FIELD_LABEL": "Field / Attribute",
+        "FIELD_PLACEHOLDER": "Select a field...",
+        "CONDITION_LABEL": "Condition",
+        "POINTS_LABEL": "Points",
+        "VALUES_LABEL": "Expected Values",
+        "VALUES_PLACEHOLDER": "Enter values separated by commas",
+        "LABELS_PLACEHOLDER": "Select labels..."
+      },
+      "MODELS": {
+        "CONTACT": "Contact Attribute",
+        "CONVERSATION": "Conversation Attribute",
+        "LABEL": "Label"
+      }
     }
   }
 }

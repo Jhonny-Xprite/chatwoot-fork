@@ -24,6 +24,7 @@ const state = {
   activePipelineId: null,
   stages: [],
   conversationsByStage: {},
+  conversationLookupMap: {}, // O(1) lookup for conversations by ID
   metaByStage: {},
   filters: {
     q: '',
@@ -48,6 +49,7 @@ const state = {
     showLastMessage: true,
     showCompanyName: true,
     showChannel: true,
+    showScore: true,
     density: 'comfortable', // 'compact' | 'comfortable'
     customAttributes: [], // Array of { key: string, model: 'contact_attribute' | 'conversation_attribute' }
   },
@@ -69,11 +71,7 @@ const getters = {
   uiFlags: _state => _state.uiFlags,
   isStageLoading: _state => stageId => !!_state.uiFlags.loadingStages[stageId],
   findConversationById: _state => conversationId => {
-    return (
-      Object.values(_state.conversationsByStage)
-        .find(conversations => conversations.find(c => c.id === conversationId))
-        ?.find(c => c.id === conversationId) || null
-    );
+    return _state.conversationLookupMap[conversationId] || null;
   },
   viewPreferences: _state => _state.viewPreferences,
 };
@@ -140,19 +138,20 @@ const mutations = {
     if (page === 1) {
       _state.conversationsByStage[stageId] =
         sortConversationsByActivity(conversations);
-      return;
+    } else {
+      const existingConversations = _state.conversationsByStage[stageId] || [];
+      const mergedConversations = [...existingConversations, ...conversations];
+      const conversationMap = new Map();
+      mergedConversations.forEach(c => conversationMap.set(c.id, c));
+      _state.conversationsByStage[stageId] = sortConversationsByActivity(
+        Array.from(conversationMap.values())
+      );
     }
 
-    const existingConversations = _state.conversationsByStage[stageId] || [];
-    const mergedConversations = [...existingConversations, ...conversations];
-
-    // Efficiently remove duplicates using a Map (O(n))
-    const conversationMap = new Map();
-    mergedConversations.forEach(c => conversationMap.set(c.id, c));
-
-    _state.conversationsByStage[stageId] = sortConversationsByActivity(
-      Array.from(conversationMap.values())
-    );
+    // Update lookup map for O(1) performance
+    conversations.forEach(conversation => {
+      _state.conversationLookupMap[conversation.id] = conversation;
+    });
   },
   SET_META(_state, { stageId, meta }) {
     _state.metaByStage[stageId] = meta;
@@ -160,6 +159,7 @@ const mutations = {
   RESET_STAGE_DATA(_state) {
     _state.conversationsByStage = {};
     _state.metaByStage = {};
+    _state.conversationLookupMap = {};
     _state.uiFlags.loadingStages = {};
   },
   UPDATE_STAGE_COUNT(_state, { stageId, delta }) {
@@ -173,27 +173,17 @@ const mutations = {
   },
   UPSERT_CONVERSATION(_state, conversation) {
     const targetStageId = conversation.pipeline_stage_id;
-    const stageIds = Object.keys(_state.conversationsByStage);
-    let previousStageId = null;
-    let previousConversation = null;
+    const previousConversation = _state.conversationLookupMap[conversation.id];
+    const previousStageId = previousConversation?.pipeline_stage_id;
 
-    stageIds.forEach(stageId => {
-      const stageConversations = _state.conversationsByStage[stageId] || [];
-      const existingConversation = stageConversations.find(
-        item => item.id === conversation.id
-      );
-
-      if (existingConversation) {
-        previousStageId = Number(stageId);
-        previousConversation = existingConversation;
-      }
-
-      _state.conversationsByStage[stageId] = stageConversations.filter(
-        item => item.id !== conversation.id
-      );
-    });
+    if (previousStageId) {
+      _state.conversationsByStage[previousStageId] = (
+        _state.conversationsByStage[previousStageId] || []
+      ).filter(item => item.id !== conversation.id);
+    }
 
     if (!targetStageId || !_state.conversationsByStage[targetStageId]) {
+      delete _state.conversationLookupMap[conversation.id];
       return;
     }
 
@@ -202,9 +192,10 @@ const mutations = {
       ...conversation,
     };
 
+    _state.conversationLookupMap[conversation.id] = mergedConversation;
     _state.conversationsByStage[targetStageId] = sortConversationsByActivity([
       mergedConversation,
-      ..._state.conversationsByStage[targetStageId],
+      ...(_state.conversationsByStage[targetStageId] || []),
     ]);
 
     if (previousStageId && previousStageId !== targetStageId) {
@@ -228,49 +219,24 @@ const mutations = {
     }
   },
   UPDATE_CONVERSATION_STAGE(_state, { conversationId, stageId, pipelineId }) {
-    Object.keys(_state.conversationsByStage).forEach(key => {
-      const stageConversations = _state.conversationsByStage[key] || [];
-      const index = stageConversations.findIndex(c => c.id === conversationId);
-      if (index === -1) return;
+    const conversation = _state.conversationLookupMap[conversationId];
+    if (!conversation) return;
 
-      const updatedConversations = [...stageConversations];
-      updatedConversations[index] = {
-        ...updatedConversations[index],
-        pipeline_stage_id: stageId,
-        pipeline_id: pipelineId,
-      };
-      _state.conversationsByStage[key] =
-        sortConversationsByActivity(updatedConversations);
-    });
-  },
-  REORDER_CONVERSATIONS(_state, { stageId, conversations }) {
-    _state.conversationsByStage = {
-      ..._state.conversationsByStage,
-      [stageId]: conversations,
-    };
+    conversation.pipeline_stage_id = stageId;
+    conversation.pipeline_id = pipelineId;
   },
   ADD_MESSAGE(_state, message) {
     const { conversation_id: conversationId } = message;
-    Object.keys(_state.conversationsByStage).forEach(stageId => {
-      const stageConversations = _state.conversationsByStage[stageId] || [];
-      const index = stageConversations.findIndex(c => c.id === conversationId);
-      if (index === -1) return;
+    const conversation = _state.conversationLookupMap[conversationId];
+    if (!conversation) return;
 
-      const updatedConversations = [...stageConversations];
-      const updatedConversation = { ...updatedConversations[index] };
-      updatedConversation.last_non_activity_message = message;
-      updatedConversation.updated_at = message.created_at;
-      updatedConversation.last_activity_at = message.created_at;
+    conversation.last_non_activity_message = message;
+    conversation.updated_at = message.created_at;
+    conversation.last_activity_at = message.created_at;
 
-      if (message.message_type === 0) {
-        updatedConversation.unread_count =
-          (updatedConversation.unread_count || 0) + 1;
-      }
-
-      updatedConversations[index] = updatedConversation;
-      _state.conversationsByStage[stageId] =
-        sortConversationsByActivity(updatedConversations);
-    });
+    if (message.message_type === 0) {
+      conversation.unread_count = (conversation.unread_count || 0) + 1;
+    }
   },
 };
 
@@ -383,7 +349,7 @@ const actions = {
     }
   },
   async moveConversation(
-    { commit, state: _state, getters: crmGetters, dispatch },
+    { commit, getters: crmGetters, dispatch, state: _state },
     { conversationId, fromStageId, toStageId }
   ) {
     const conversation = crmGetters.findConversationById(conversationId);
@@ -482,14 +448,11 @@ const actions = {
   },
   async reorderStages({ dispatch, state: _state }, { pipelineId, stages }) {
     const targetPipelineId = pipelineId || _state.activePipelineId;
-    const stagesPayload = stages.map((stage, index) => ({
-      id: stage.id,
-      position: index,
-      name: stage.name,
-      color: stage.color,
-      active: stage.active,
-    }));
-    await PipelineAPI.reorderStages(targetPipelineId, stagesPayload);
+    const positions = {};
+    stages.forEach((stage, index) => {
+      positions[stage.id] = index + 1;
+    });
+    await PipelineAPI.reorderStages(targetPipelineId, positions);
     await dispatch('fetchStages', targetPipelineId);
   },
   async deletePipeline({ dispatch }, pipelineId) {
