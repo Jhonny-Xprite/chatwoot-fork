@@ -6,25 +6,6 @@ class DataImport < ApplicationRecord
       @mapping = normalize_mapping(mapping || {})
     end
 
-    private
-
-    def normalize_mapping(mapping)
-      return {} if mapping.blank?
-
-      # Se for hash, converte para hash com chaves strings
-      # Mantém o valor mesmo que seja vazio (o import vai validar depois)
-      mapping.to_h.each_with_object({}) do |(key, value), normalized|
-        next if key.blank?
-
-        normalized_key = key.to_s.strip
-        normalized_value = value.to_s.strip
-
-        # Aceita o mapping mesmo que valor seja vazio (validação ocorre na importação)
-        # Isso permite debugging melhor de qual campo não foi mapeado
-        normalized[normalized_key] = normalized_value if normalized_key.present?
-      end
-    end
-
     def build_contact(row)
       params = transform_row(row)
 
@@ -79,6 +60,25 @@ class DataImport < ApplicationRecord
       end
 
       contact
+    end
+
+    private
+
+    def normalize_mapping(mapping)
+      return {} if mapping.blank?
+
+      # Se for hash, converte para hash com chaves strings
+      # Mantém o valor mesmo que seja vazio (o import vai validar depois)
+      mapping.to_h.each_with_object({}) do |(key, value), normalized|
+        next if key.blank?
+
+        normalized_key = key.to_s.strip
+        normalized_value = value.to_s.strip
+
+        # Aceita o mapping mesmo que valor seja vazio (validação ocorre na importação)
+        # Isso permite debugging melhor de qual campo não foi mapeado
+        normalized[normalized_key] = normalized_value if normalized_key.present?
+      end
     end
 
     def transform_row(row)
