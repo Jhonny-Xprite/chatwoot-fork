@@ -1,97 +1,78 @@
-class DataImport::ContactManager
-  def initialize(account, mapping = nil)
-    @account = account
-    @mapping = mapping.with_indifferent_access if mapping.present?
-  end
+module DataImport
+  class ContactManager
+    def initialize(account, mapping)
+      @account = account
+      @mapping = mapping || {}
+    end
 
-  def build_contact(params)
-    params = transform_params_with_mapping(params) if @mapping.present?
-    contact = find_or_initialize_contact(params)
-    update_contact_attributes(params, contact)
-    contact
-  end
+    def build_contact(row)
+      params = transform_row(row)
+      
+      # Procura contato existente por email ou telefone se disponível
+      contact = find_existing_contact(params) || @account.contacts.new
+      
+      # Aplica os atributos usando a lógica padrão do Rails/Chatwoot
+      # mesclando os atributos customizados se o contato já existir
+      if contact.persisted?
+        params[:custom_attributes] = (contact.custom_attributes || {}).merge(params[:custom_attributes] || {})
+        params[:additional_attributes] = (contact.additional_attributes || {}).merge(params[:additional_attributes] || {})
+      end
 
-  def transform_params_with_mapping(params)
-    transformed_params = { custom_attributes: {} }
-    @mapping.each do |csv_header, target_field|
-      next if target_field.blank? || params[csv_header].blank?
+      contact.assign_attributes(params.merge(account_id: @account.id))
+      contact
+    end
 
-      if target_field.start_with?('custom_attribute:')
-        key = target_field.split(':', 2).last
-        transformed_params[:custom_attributes][key] = params[csv_header]
-      else
-        transformed_params[target_field.to_sym] = params[csv_header]
+    private
+
+    def transform_row(row)
+      params = { additional_attributes: {}, custom_attributes: {} }
+
+      @mapping.each do |header, attribute|
+        next if attribute.blank? || row[header].blank?
+
+        value = row[header]
+
+        if Contact.column_names.include?(attribute)
+          params[attribute.to_sym] = value
+        elsif attribute.start_with?('custom_attribute_')
+          key = attribute.sub('custom_attribute_', '')
+          params[:custom_attributes][key] = value
+        else
+          params[:additional_attributes][attribute.to_sym] = value
+        end
+      end
+
+      # Trata First Name e Last Name se mapeados separadamente
+      handle_name_fields(params)
+      
+      # Limpa hashes vazios para não sobrescrever o que já existe no banco desnecessariamente
+      params.delete(:custom_attributes) if params[:custom_attributes].blank?
+      params.delete(:additional_attributes) if params[:additional_attributes].blank?
+      
+      params
+    end
+
+    def find_existing_contact(params)
+      contact = nil
+      contact = @account.contacts.from_email(params[:email]) if params[:email].present?
+      contact ||= @account.contacts.find_by(phone_number: format_phone_number(params[:phone_number])) if params[:phone_number].present?
+      contact
+    end
+
+    def handle_name_fields(params)
+      return if params[:name].present?
+
+      first_name = params.delete(:first_name)
+      last_name = params.delete(:last_name)
+
+      if first_name.present? || last_name.present?
+        params[:name] = "#{first_name} #{last_name}".strip
       end
     end
-    transformed_params.with_indifferent_access
-  end
 
-  def find_or_initialize_contact(params)
-    contact = find_existing_contact(params)
-    contact_params = params.slice(:email, :identifier, :phone_number)
-    contact_params[:phone_number] = format_phone_number(contact_params[:phone_number]) if contact_params[:phone_number].present?
-    contact ||= @account.contacts.new(contact_params)
-    contact
-  end
-
-  def find_existing_contact(params)
-    contact = find_contact_by_identifier(params)
-    contact ||= find_contact_by_email(params)
-    contact ||= find_contact_by_phone_number(params)
-
-    update_contact_with_merged_attributes(params, contact) if contact.present? && contact.valid?
-    contact
-  end
-
-  def find_contact_by_identifier(params)
-    return unless params[:identifier]
-
-    @account.contacts.find_by(identifier: params[:identifier])
-  end
-
-  def find_contact_by_email(params)
-    return unless params[:email]
-
-    @account.contacts.from_email(params[:email])
-  end
-
-  def find_contact_by_phone_number(params)
-    return unless params[:phone_number]
-
-    @account.contacts.find_by(phone_number: format_phone_number(params[:phone_number]))
-  end
-
-  def format_phone_number(phone_number)
-    return nil if phone_number.blank?
-    phone_number.start_with?('+') ? phone_number : "+#{phone_number}"
-  end
-
-  def update_contact_with_merged_attributes(params, contact)
-    contact.identifier = params[:identifier] if params[:identifier].present?
-    contact.email = params[:email] if params[:email].present?
-    contact.phone_number = format_phone_number(params[:phone_number]) if params[:phone_number].present?
-    update_contact_attributes(params, contact)
-    contact.save
-  end
-
-  private
-
-  def update_contact_attributes(params, contact)
-    if params[:name].present?
-      contact.name = params[:name]
-    elsif params[:first_name].present? || params[:last_name].present?
-      contact.name = "#{params[:first_name]} #{params[:last_name]}".strip
+    def format_phone_number(phone)
+      return nil if phone.blank?
+      phone.start_with?('+') ? phone : "+#{phone}"
     end
-
-    contact.additional_attributes ||= {}
-    contact.additional_attributes[:company_name] = params[:company_name] if params[:company_name].present?
-    contact.additional_attributes[:city] = params[:city] if params[:city].present?
-
-    custom_attrs = params[:custom_attributes] || {}
-    other_attrs = params.except(:identifier, :email, :name, :first_name, :last_name, :phone_number, :custom_attributes, :company_name, :city)
-    
-    current_custom_attributes = contact.custom_attributes || {}
-    merged_custom_attributes = current_custom_attributes.merge(custom_attrs).merge(other_attrs)
-    contact.assign_attributes(custom_attributes: merged_custom_attributes)
   end
 end
