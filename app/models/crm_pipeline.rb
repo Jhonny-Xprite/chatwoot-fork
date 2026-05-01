@@ -1,13 +1,14 @@
 class CrmPipeline < ApplicationRecord
   belongs_to :account
   has_many :stages, class_name: 'CrmPipelineStage', foreign_key: 'pipeline_id', dependent: :delete_all, inverse_of: :pipeline
-  has_many :conversations, dependent: :nullify
+  has_many :conversations, foreign_key: 'pipeline_id', dependent: :nullify
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates :position, presence: true
 
   before_validation :ensure_default_pipeline
   after_save_commit :clear_other_default_pipelines, if: :is_default?
+  before_destroy :migrate_conversations_and_ensure_default
 
   default_scope { order(:position) }
 
