@@ -56,10 +56,22 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
       render json: { error: 'Please map at least one column' }, status: :unprocessable_entity and return
     end
 
+    # Valida se pelo menos um campo identificador foi mapeado (email, phone_number, ou identifier)
+    identifier_fields = %w[email phone_number identifier]
+    mapped_attributes = mapping.values.compact.map(&:to_s)
+    has_identifier = identifier_fields.any? { |field| mapped_attributes.include?(field) }
+
+    unless has_identifier
+      Rails.logger.warn "[CRM] Importação falhou: nenhum campo identificador mapeado"
+      render json: {
+        error: 'Please map at least one identifier field (email, phone number, or external ID)'
+      }, status: :unprocessable_entity and return
+    end
+
     ActiveRecord::Base.transaction do
       import = Current.account.data_imports.create!(data_type: 'contacts', mapping: mapping)
       import.import_file.attach(params[:import_file])
-      Rails.logger.info "[CRM] DataImport ##{import.id} criado e aguardando processamento"
+      Rails.logger.info "[CRM] DataImport ##{import.id} criado e aguardando processamento com mapeamento: #{mapping.inspect}"
     end
 
     head :ok

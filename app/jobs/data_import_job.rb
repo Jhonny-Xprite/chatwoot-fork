@@ -65,8 +65,28 @@ class DataImportJob < ApplicationJob
   end
 
   def append_rejected_contact(row, contact, rejected_contacts)
-    row['errors'] = contact.errors.full_messages.join(', ')
+    line_number = rejected_contacts.length + 2 # +2 porque 1 é header, +1 para display
+    error_messages = contact.errors.full_messages
+
+    # Enriquece mensagens de erro com contexto
+    detailed_errors = error_messages.map do |msg|
+      case msg
+      when /email/i
+        "Email: '#{contact.email}' - #{msg}"
+      when /phone/i
+        "Phone: '#{contact.phone_number}' - #{msg}"
+      when /identifier/i
+        "Identifier: '#{contact.identifier}' - #{msg}"
+      else
+        msg
+      end
+    end
+
+    row['csv_line_number'] = line_number
+    row['errors'] = detailed_errors.join(' | ')
     rejected_contacts << row
+
+    Rails.logger.warn "[DataImport] Line #{line_number} rejected: #{row['errors']}"
   end
 
   # Executa a inserção/atualização massiva (Upsert).

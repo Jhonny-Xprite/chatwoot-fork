@@ -12,8 +12,16 @@ class DataImport < ApplicationRecord
       return {} if mapping.blank?
 
       # Se for hash, converte para hash com chaves strings
+      # Mantém o valor mesmo que seja vazio (o import vai validar depois)
       mapping.to_h.each_with_object({}) do |(key, value), normalized|
-        normalized[key.to_s.strip] = value.to_s.strip if key.present? && value.present?
+        next if key.blank?
+
+        normalized_key = key.to_s.strip
+        normalized_value = value.to_s.strip
+
+        # Aceita o mapping mesmo que valor seja vazio (validação ocorre na importação)
+        # Isso permite debugging melhor de qual campo não foi mapeado
+        normalized[normalized_key] = normalized_value if normalized_key.present?
       end
     end
 
@@ -49,6 +57,11 @@ class DataImport < ApplicationRecord
         contact.name = contact.email.presence || contact.phone_number.presence || "Contact #{Time.now.to_i}"
       end
 
+      # Validação de Identificador: Garante que tem email OU telefone OU identifier
+      if contact.email.blank? && contact.phone_number.blank? && contact.identifier.blank?
+        contact.errors.add(:base, 'Contact must have at least email, phone number, or identifier')
+      end
+
       # Debug logging
       unless contact.valid?
         error_details = {
@@ -56,6 +69,7 @@ class DataImport < ApplicationRecord
           email: contact.email,
           phone_number: contact.phone_number,
           name: contact.name,
+          identifier: contact.identifier,
           contact_type: contact.contact_type
         }
         Rails.logger.error "[Import] Validação falhou para a linha do CSV: #{error_details.inspect}"
@@ -78,8 +92,15 @@ class DataImport < ApplicationRecord
         if Contact.column_names.include?(attribute) || ['first_name', 'last_name'].include?(attribute)
           # Tratamento especial para telefone
           if attribute == 'phone_number'
-            value = format_phone_number(value)
-            next if value.blank? # Não inclui telefone inválido
+            formatted = format_phone_number(value)
+            # Se não conseguir formatar, mantém o valor original (será validado pelo Contact)
+            # Isso permite que contatos com email válido sejam importados mesmo com telefone inválido
+            transformed[attribute.to_sym] = formatted || value
+            next
+          end
+          # Tratamento especial para email: trim e downcase
+          if attribute == 'email'
+            value = value.strip.downcase
           end
           transformed[attribute.to_sym] = value
         elsif attribute.start_with?('custom_attribute:')
