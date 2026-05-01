@@ -175,7 +175,7 @@ const mutations = {
     const targetStageId = conversation.pipeline_stage_id;
     if (!targetStageId) return;
 
-    // 1. Remove from all other stages to prevent duplication
+    // 1. Remove from ALL stages to prevent duplication
     Object.keys(_state.conversationsByStage).forEach(stageId => {
       _state.conversationsByStage[stageId] = (
         _state.conversationsByStage[stageId] || []
@@ -190,11 +190,14 @@ const mutations = {
     };
     _state.conversationLookupMap[conversation.id] = mergedConversation;
 
-    // 3. Add to target stage
+    // 3. Add to target stage (only if the stage exists in state)
     if (_state.conversationsByStage[targetStageId]) {
+      const stageConversations = _state.conversationsByStage[targetStageId];
+      // Final safety check: ensure no duplicates in the array we're about to update
+      const filtered = stageConversations.filter(c => c.id !== conversation.id);
       _state.conversationsByStage[targetStageId] = sortConversationsByActivity([
         mergedConversation,
-        ..._state.conversationsByStage[targetStageId],
+        ...filtered,
       ]);
     }
   },

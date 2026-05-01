@@ -210,12 +210,12 @@ watch(
 );
 
 const onDealSelect = deal => {
+  // Chatwoot uses display_id for conversation routes
   router.push({
     name: 'inbox_conversation',
     params: {
       accountId: accountId.value,
-      inboxId: deal.inbox_id,
-      conversation_id: deal.id,
+      conversation_id: deal.display_id || deal.id,
     },
   });
 };
@@ -228,7 +228,7 @@ const onContactSelect = deal => {
     name: 'contacts_edit',
     params: {
       accountId: accountId.value,
-      contactId,
+      contactId: contactId,
     },
   });
 };
