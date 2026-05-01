@@ -10,7 +10,7 @@ defineProps({
   },
 });
 
-defineEmits(['select', 'selectContact']);
+defineEmits(['select', 'selectContact', 'addStage']);
 
 const store = useStore();
 const isFetchingStages = computed(
@@ -32,6 +32,22 @@ const isFetchingStages = computed(
           @select="$emit('select', $event)"
           @select-contact="$emit('selectContact', $event)"
         />
+
+        <!-- Add Stage Placeholder -->
+        <div
+          v-if="!isFetchingStages && stages.length > 0"
+          class="w-[320px] flex-shrink-0 flex items-start pt-6 pr-6"
+        >
+          <button
+            class="w-full py-4 border-2 border-dashed border-n-slate-3 dark:border-n-slate-2 rounded-2xl flex items-center justify-center gap-2 text-n-slate-10 hover:text-n-brand-primary hover:border-n-brand-primary/50 hover:bg-n-brand-primary-alpha-1 transition-all group"
+            @click="$emit('addStage')"
+          >
+            <span class="i-lucide-plus-circle text-lg" />
+            <span class="text-sm font-semibold italic">{{
+              $t('CRM.ADD_STAGE')
+            }}</span>
+          </button>
+        </div>
       </div>
 
       <!-- Loading State -->

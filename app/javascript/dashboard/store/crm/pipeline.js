@@ -40,6 +40,15 @@ const state = {
     isMovingConversation: false,
     loadingStages: {},
   },
+  viewPreferences: {
+    showLabels: true,
+    showSla: true,
+    showPriority: true,
+    showAssignee: true,
+    showLastMessage: true,
+    showCompanyName: true,
+    density: 'comfortable', // 'compact' | 'comfortable'
+  },
 };
 
 const getters = {
@@ -59,9 +68,20 @@ const getters = {
       .flat()
       .find(conversation => conversation.id === conversationId);
   },
+  viewPreferences: _state => _state.viewPreferences,
 };
 
 const mutations = {
+  UPDATE_VIEW_PREFERENCES(_state, preferences) {
+    _state.viewPreferences = {
+      ..._state.viewPreferences,
+      ...preferences,
+    };
+    localStorage.setItem(
+      'chatwoot_crm_view_prefs',
+      JSON.stringify(_state.viewPreferences)
+    );
+  },
   SET_PIPELINES(_state, pipelines) {
     _state.pipelines = pipelines;
   },
@@ -246,6 +266,16 @@ const mutations = {
 };
 
 const actions = {
+  initializeViewPreferences({ commit }) {
+    const savedPrefs = localStorage.getItem('chatwoot_crm_view_prefs');
+    if (savedPrefs) {
+      try {
+        commit('UPDATE_VIEW_PREFERENCES', JSON.parse(savedPrefs));
+      } catch (e) {
+        // Ignore malformed JSON
+      }
+    }
+  },
   setFilter({ commit, dispatch }, { key, value }) {
     commit('SET_FILTER', { key, value });
     return dispatch('refreshAllStages');

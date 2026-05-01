@@ -1,7 +1,11 @@
 <script setup>
 import { computed } from 'vue';
+import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
+import CardLabels from 'dashboard/components/widgets/conversation/conversationCardComponents/CardLabels.vue';
+import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
+import SLACardLabel from 'dashboard/components/widgets/conversation/components/SLACardLabel.vue';
 
 const props = defineProps({
   conversation: {
@@ -12,12 +16,16 @@ const props = defineProps({
 
 const emit = defineEmits(['select', 'selectContact']);
 
+const store = useStore();
 const { t } = useI18n();
+
+const viewPrefs = computed(() => store.getters['crmPipeline/viewPreferences']);
 
 const contact = computed(() => props.conversation.meta?.sender || {});
 const assignee = computed(() => props.conversation.meta?.assignee || {});
 const unreadCount = computed(() => props.conversation.unread_count || 0);
-const labels = computed(() => props.conversation.labels || []);
+const conversationLabels = computed(() => props.conversation.labels || []);
+const hasSlaPolicyId = computed(() => props.conversation?.sla_policy_id);
 const companyName = computed(
   () => contact.value.additional_attributes?.company_name || ''
 );
@@ -58,7 +66,8 @@ const lastMessagePreview = computed(() => {
   <div
     role="button"
     tabindex="0"
-    class="group relative bg-n-alpha-3 dark:bg-n-slate-1 rounded-xl p-3 border border-n-slate-3 dark:border-n-slate-2 hover:border-n-brand-primary/50 dark:hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 hover:-translate-y-0.5 transition-all duration-300 spring-motion cursor-grab active:cursor-grabbing select-none"
+    class="group relative bg-n-alpha-3 dark:bg-n-slate-1 rounded-xl border border-n-slate-3 dark:border-n-slate-2 hover:border-n-brand-primary/50 dark:hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 hover:-translate-y-0.5 transition-all duration-300 spring-motion cursor-grab active:cursor-grabbing select-none"
+    :class="viewPrefs.density === 'compact' ? 'p-2 gap-2' : 'p-3 gap-3'"
     @click="emit('select', conversation)"
     @keydown.enter.prevent="emit('select', conversation)"
     @keydown.space.prevent="emit('select', conversation)"
@@ -77,18 +86,27 @@ const lastMessagePreview = computed(() => {
       </span>
     </div>
 
-    <div class="flex flex-col gap-3">
-      <div class="flex items-start gap-3">
+    <div
+      class="flex flex-col"
+      :class="viewPrefs.density === 'compact' ? 'gap-2' : 'gap-3'"
+    >
+      <div
+        class="flex items-start"
+        :class="viewPrefs.density === 'compact' ? 'gap-2' : 'gap-3'"
+      >
         <Avatar
           :src="contact.thumbnail"
           :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
-          :size="40"
+          :size="viewPrefs.density === 'compact' ? 32 : 40"
           class="shadow-sm"
         />
         <div class="flex-1 min-w-0">
           <div class="flex items-center justify-between gap-1">
             <h4
-              class="text-[13px] font-bold text-n-slate-12 truncate group-hover:text-n-brand-primary transition-colors"
+              class="font-bold text-n-slate-12 truncate group-hover:text-n-brand-primary transition-colors"
+              :class="
+                viewPrefs.density === 'compact' ? 'text-xs' : 'text-[13px]'
+              "
             >
               {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
             </h4>
@@ -98,29 +116,50 @@ const lastMessagePreview = computed(() => {
               {{ lastMessageTime }}
             </span>
           </div>
-          <p class="text-[11px] text-n-slate-11 truncate mt-0.5 font-medium">
+          <p
+            class="text-n-slate-11 truncate font-medium"
+            :class="
+              viewPrefs.density === 'compact'
+                ? 'text-[10px]'
+                : 'text-[11px] mt-0.5'
+            "
+          >
             {{ contact.email || contact.phone_number || t('CRM.PHONE') }}
           </p>
-          <p
-            v-if="companyName"
-            class="text-[10px] font-semibold text-n-slate-10 truncate mt-1"
+          <div
+            v-if="viewPrefs.showCompanyName || viewPrefs.showPriority"
+            class="flex items-center gap-2 mt-1"
           >
-            {{ companyName }}
-          </p>
+            <p
+              v-if="companyName && viewPrefs.showCompanyName"
+              class="text-[10px] font-semibold text-n-slate-10 truncate"
+            >
+              {{ companyName }}
+            </p>
+            <CardPriorityIcon
+              v-if="conversation.priority && viewPrefs.showPriority"
+              :priority="conversation.priority"
+            />
+          </div>
         </div>
       </div>
 
-      <div v-if="labels.length" class="flex flex-wrap gap-1 mt-1">
-        <span
-          v-for="label in labels"
-          :key="label"
-          class="inline-flex max-w-full truncate rounded-full bg-n-slate-2 px-2 py-0.5 text-[10px] font-semibold text-n-slate-11"
-        >
-          {{ label }}
-        </span>
+      <div
+        v-if="
+          (conversationLabels.length && viewPrefs.showLabels) ||
+          (hasSlaPolicyId && viewPrefs.showSla)
+        "
+        class="mt-1"
+      >
+        <CardLabels :conversation-labels="conversationLabels">
+          <template v-if="hasSlaPolicyId && viewPrefs.showSla" #before>
+            <SLACardLabel :chat="conversation" class="ltr:mr-1 rtl:ml-1" />
+          </template>
+        </CardLabels>
       </div>
 
       <div
+        v-if="viewPrefs.showLastMessage"
         class="rounded-xl border px-2.5 py-2 text-[11px] leading-4"
         :class="
           showReplyNeeded
@@ -142,7 +181,10 @@ const lastMessagePreview = computed(() => {
       <div
         class="flex items-center justify-between pt-2 mt-1 border-t border-n-slate-2 dark:border-n-slate-2"
       >
-        <div class="flex items-center gap-1.5 overflow-hidden">
+        <div
+          v-if="viewPrefs.showAssignee"
+          class="flex items-center gap-1.5 overflow-hidden"
+        >
           <Avatar
             v-if="assignee.id"
             :src="assignee.thumbnail"
@@ -155,7 +197,10 @@ const lastMessagePreview = computed(() => {
           </span>
         </div>
 
-        <div class="flex items-center gap-1">
+        <div
+          class="flex items-center gap-1"
+          :class="{ 'ml-auto': !viewPrefs.showAssignee }"
+        >
           <button
             v-if="contact.id"
             type="button"

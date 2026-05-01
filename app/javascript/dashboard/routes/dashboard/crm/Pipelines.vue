@@ -6,6 +6,8 @@ import { useI18n } from 'vue-i18n';
 import PipelineBoard from 'dashboard/components/crm/PipelineBoard.vue';
 import FilterBar from 'dashboard/components/crm/FilterBar.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import ViewCustomizer from 'dashboard/components/crm/ViewCustomizer.vue';
+import Popover from 'dashboard/components-next/popover/Popover.vue';
 
 const props = defineProps({
   pipelineId: {
@@ -165,6 +167,9 @@ const syncBoardContext = async () => {
 
 onMounted(() => {
   syncBoardContext();
+  store.dispatch('crmPipeline/initializeViewPreferences');
+  store.dispatch('labels/get');
+  store.dispatch('agents/get');
 });
 
 watch(
@@ -241,6 +246,27 @@ const togglePipelineCreate = () => {
   isCreatePipelineOpen.value = !isCreatePipelineOpen.value;
   if (!isCreatePipelineOpen.value) {
     createPipelineName.value = '';
+  }
+};
+
+const createStage = async () => {
+  if (!selectedPipeline.value) return;
+
+  // eslint-disable-next-line no-alert
+  const name = prompt(
+    store.getters['crmPipeline/getStages'].length === 0
+      ? 'First stage name:'
+      : 'New stage name:'
+  );
+  if (name) {
+    try {
+      await store.dispatch('crmPipeline/createStage', {
+        pipelineId: selectedPipeline.value.id,
+        name,
+      });
+    } catch (error) {
+      // Error handling
+    }
   }
 };
 </script>
@@ -329,6 +355,21 @@ const togglePipelineCreate = () => {
           "
           @click="togglePipelineCreate"
         />
+
+        <div class="h-6 w-px bg-n-slate-3 mx-1" />
+
+        <Popover align="end">
+          <NextButton
+            variant="ghost"
+            color="slate"
+            size="sm"
+            icon="i-lucide-layout-template"
+            label="Visualização"
+          />
+          <template #content>
+            <ViewCustomizer />
+          </template>
+        </Popover>
       </div>
 
       <div
@@ -360,6 +401,7 @@ const togglePipelineCreate = () => {
         :stages="currentPipelineStages"
         @select="onDealSelect"
         @select-contact="onContactSelect"
+        @add-stage="createStage"
       />
       <div
         v-else-if="isLoading"
@@ -386,9 +428,18 @@ const togglePipelineCreate = () => {
         <h3 class="text-lg font-semibold text-n-slate-12 mb-1">
           {{ $t('CRM.NO_PIPELINES') }}
         </h3>
-        <p class="text-sm text-n-slate-11 max-w-xs">
+        <p class="text-sm text-n-slate-11 max-w-xs mb-4">
           {{ $t('CRM.NO_PIPELINES_SUBTITLE') }}
         </p>
+        <NextButton
+          v-if="selectedPipeline"
+          variant="faded"
+          color="blue"
+          size="sm"
+          icon="i-lucide-plus"
+          label="Add first stage"
+          @click="createStage"
+        />
       </div>
     </main>
   </div>

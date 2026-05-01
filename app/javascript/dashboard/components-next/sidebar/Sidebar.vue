@@ -324,7 +324,13 @@ const menuItems = computed(() => {
         'crm_conversation',
         'crm_settings',
       ],
+      children: conversationCustomViews.value.map(view => ({
+        name: `crm-view-${view.id}`,
+        label: view.name,
+        to: accountScopedRoute('crm_view', { viewId: view.id }),
+      })),
     },
+
     {
       name: 'Captain',
       icon: 'i-woot-captain',
