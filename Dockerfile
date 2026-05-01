@@ -7,6 +7,7 @@ ENV RAILS_ENV=production
 ENV RAILS_SERVE_STATIC_FILES=true
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
+  build-essential \
   ca-certificates \
   curl \
   git \
@@ -16,7 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   openssl \
   pkg-config \
   postgresql-client \
+  tar \
   tzdata \
+  xz-utils \
   && gem install bundler -v "$BUNDLER_VERSION" \
   && rm -rf /var/lib/apt/lists/*
 
