@@ -8,7 +8,6 @@ class CrmPipeline < ApplicationRecord
 
   before_validation :ensure_default_pipeline
   after_save_commit :clear_other_default_pipelines, if: :is_default?
-  before_destroy :migrate_conversations_and_ensure_default
 
   default_scope { order(:position) }
 
@@ -27,7 +26,8 @@ class CrmPipeline < ApplicationRecord
   end
 
   def migrate_conversations_and_ensure_default
-    # 1. Escolhe um funil de destino (o novo padrão ou o primeiro disponível, excluindo a si mesmo)
+    # MODO DE SEGURANÇA MÁXIMA
+    # 1. Busca um funil de destino que não seja este mesmo
     remaining_pipelines = account.crm_pipelines.where.not(id: id)
     target_pipeline = remaining_pipelines.find_by(is_default: true) || remaining_pipelines.first
 
@@ -36,22 +36,22 @@ class CrmPipeline < ApplicationRecord
       target_stage = target_pipeline.stages.first
       
       if target_stage
-        # 3. Migra todas as conversas/leads para o novo funil/estágio
-        # Usamos update_all por performance e para evitar disparar callbacks durante o destroy
-        conversations.update_all(pipeline_id: target_pipeline.id, pipeline_stage_id: target_stage.id)
+        # 3. Migra todas as conversas/leads para o novo funil/estágio via SQL direto (ultra seguro)
+        Conversation.where(pipeline_id: id).update_all(
+          pipeline_id: target_pipeline.id, 
+          pipeline_stage_id: target_stage.id
+        )
       end
 
-      # 4. Se este funil era o padrão, passa o bastão para o próximo de forma atômica
+      # 4. Se este funil era o padrão, passa o bastão para o próximo
       if is_default?
         target_pipeline.update_column(:is_default, true)
       end
     else
-      # Se não houver mais nenhum funil, as conversas ficarão com pipeline_id e stage_id como NULL
-      # Devido ao has_many :conversations, dependent: :nullify
-      conversations.update_all(pipeline_id: nil, pipeline_stage_id: nil)
+      # Se não houver mais nenhum funil, apenas limpa as referências para evitar erro de FK
+      Conversation.where(pipeline_id: id).update_all(pipeline_id: nil, pipeline_stage_id: nil)
     end
   rescue StandardError => e
-    Rails.logger.error "[CRM] Erro crítico ao deletar pipeline ##{id}: #{e.message}"
-    # Não levantamos o erro novamente para não travar a exclusão, a menos que seja vital
+    Rails.logger.error "[CRM] Erro durante a migração preventiva da pipeline ##{id}: #{e.message}"
   end
 end

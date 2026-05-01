@@ -2,14 +2,18 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   before_action :set_pipeline, only: [:show, :update, :destroy]
 
   def index
-    @pipelines = Rails.cache.fetch("account_#{current_account.id}_crm_pipelines", expires_in: 1.hour) do
-      bootstrap_service = Crm::PipelineBootstrapService.new(account: current_account)
+    # MODO DE SEGURANÇA: O bootstrap e o healer não podem derrubar a listagem principal
+    begin
       if current_account.feature_enabled?('crm')
+        bootstrap_service = Crm::PipelineBootstrapService.new(account: current_account)
         bootstrap_service.perform!
         bootstrap_service.heal_orphaned_conversations!
       end
-      current_account.crm_pipelines.to_a
+    rescue StandardError => e
+      Rails.logger.error "[CRM] Falha crítica no bootstrap/healer: #{e.message}"
     end
+
+    @pipelines = current_account.crm_pipelines
     authorize @pipelines
     render json: @pipelines
   end
@@ -23,7 +27,6 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
     @pipeline = current_account.crm_pipelines.build(pipeline_params)
     authorize @pipeline
     if @pipeline.save
-      Rails.cache.delete("account_#{current_account.id}_crm_pipelines")
       render json: @pipeline, status: :created
     else
       render json: @pipeline.errors, status: :unprocessable_entity
@@ -33,7 +36,6 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   def update
     authorize @pipeline
     if @pipeline.update(pipeline_params)
-      Rails.cache.delete("account_#{current_account.id}_crm_pipelines")
       render json: @pipeline
     else
       render json: @pipeline.errors, status: :unprocessable_entity
@@ -42,13 +44,16 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
 
   def destroy
     authorize @pipeline
-    @pipeline.destroy!
-    Rails.cache.delete("account_#{current_account.id}_crm_pipelines")
-    head :no_content
-  rescue ActiveRecord::InvalidForeignKey => e
-    render json: { error: "Não é possível excluir esta pipeline porque existem registros associados que não puderam ser migrados. Detalhes: #{e.message}" }, status: :unprocessable_entity
+    # Executa a migração de dados manualmente antes do destroy para garantir segurança
+    @pipeline.send(:migrate_conversations_and_ensure_default)
+    
+    if @pipeline.destroy
+      head :no_content
+    else
+      render json: { error: @pipeline.errors.full_messages.join(', ') }, status: :unprocessable_entity
+    end
   rescue StandardError => e
-    render json: { error: e.message }, status: :internal_server_error
+    render json: { error: "Erro interno ao excluir pipeline: #{e.message}" }, status: :internal_server_error
   end
 
   private
