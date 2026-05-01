@@ -19,10 +19,12 @@ ENV RAILS_SERVE_STATIC_FILES ${RAILS_SERVE_STATIC_FILES}
 ARG RAILS_ENV=production
 ENV RAILS_ENV ${RAILS_ENV}
 
-ARG NODE_OPTIONS="--max-old-space-size=4096 --openssl-legacy-provider"
+ARG NODE_OPTIONS="--max-old-space-size=2048 --openssl-legacy-provider"
 ENV NODE_OPTIONS ${NODE_OPTIONS}
 
 ENV BUNDLE_PATH="/gems"
+ARG BUNDLE_JOBS=2
+ARG BUNDLE_RETRY=3
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   build-essential \
@@ -64,8 +66,8 @@ WORKDIR /app
 COPY Gemfile Gemfile.lock ./
 
 RUN bundle config set --local path "$BUNDLE_PATH" \
-  && bundle config set --local jobs 4 \
-  && bundle config set --local retry 3
+  && bundle config set --local jobs "$BUNDLE_JOBS" \
+  && bundle config set --local retry "$BUNDLE_RETRY"
 
 # Do not install development or test gems in production
 RUN --mount=type=cache,target=/gems \
@@ -76,7 +78,7 @@ RUN --mount=type=cache,target=/gems \
 
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-  pnpm install --frozen-lockfile
+  pnpm install --frozen-lockfile --child-concurrency=2
 
 COPY . /app
 
