@@ -223,7 +223,7 @@ const confirmDeleteStage = async () => {
           <NextButton
             color="blue"
             size="sm"
-            icon="i-woot-plus"
+            icon="i-lucide-plus"
             :label="t('CRM.SETTINGS.CREATE_PIPELINE')"
             @click="createPipeline"
           />
@@ -261,7 +261,7 @@ const confirmDeleteStage = async () => {
                 </div>
                 <span
                   class="h-2.5 w-2.5 rounded-full"
-                  :class="pipeline.active ? 'bg-n-teal-9' : 'bg-n-slate-6'"
+                  :class="pipeline.active ? 'bg-n-teal-11' : 'bg-n-slate-6'"
                 />
               </div>
             </button>
@@ -300,7 +300,7 @@ const confirmDeleteStage = async () => {
               <NextButton
                 color="blue"
                 size="sm"
-                icon="i-woot-save"
+                icon="i-lucide-save"
                 :label="t('CRM.SAVE')"
                 @click="savePipeline"
               />
@@ -308,7 +308,7 @@ const confirmDeleteStage = async () => {
                 variant="outline"
                 color="ruby"
                 size="sm"
-                icon="i-woot-bin"
+                icon="i-lucide-trash-2"
                 :label="t('CRM.SETTINGS.DELETE_PIPELINE')"
                 @click="openDeletePipelineDialog(activePipeline.id)"
               />
@@ -345,7 +345,7 @@ const confirmDeleteStage = async () => {
                 <NextButton
                   color="blue"
                   size="sm"
-                  icon="i-woot-plus"
+                  icon="i-lucide-plus"
                   :label="t('CRM.SETTINGS.CREATE_STAGE')"
                   @click="createStage"
                 />
@@ -366,7 +366,7 @@ const confirmDeleteStage = async () => {
                     <div
                       class="drag-handle flex cursor-grab items-center justify-center text-n-slate-8 active:cursor-grabbing hover:text-n-slate-11"
                     >
-                      <i class="i-woot-drag" />
+                      <i class="i-lucide-grip-vertical" />
                     </div>
                     <input
                       v-model="stage.name"
@@ -389,7 +389,7 @@ const confirmDeleteStage = async () => {
                         ghost
                         color="ruby"
                         size="sm"
-                        icon="i-woot-bin"
+                        icon="i-lucide-trash-2"
                         @click="openDeleteStageDialog(stage.id)"
                       />
                     </div>
@@ -401,7 +401,7 @@ const confirmDeleteStage = async () => {
                 <NextButton
                   color="blue"
                   size="sm"
-                  icon="i-woot-save"
+                  icon="i-lucide-save"
                   :label="t('CRM.SETTINGS.SAVE_STAGES')"
                   @click="saveStages"
                 />
@@ -451,5 +451,13 @@ const confirmDeleteStage = async () => {
   box-shadow: var(--shadow-n-brand-primary-lg);
   transform: scale(1.02);
   z-index: 100;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--n-slate-3);
+  border-radius: 4px;
 }
 </style>

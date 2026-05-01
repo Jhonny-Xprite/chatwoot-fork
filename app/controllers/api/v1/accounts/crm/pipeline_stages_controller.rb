@@ -29,21 +29,21 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
 
   def reorder
     authorize @pipeline, :update?
-    stages_params = params[:stages]
+    positions = params[:positions]
 
-    unless stages_params.is_a?(Array)
-      render json: { error: 'Stages must be an array' }, status: :bad_request
+    if positions.blank?
+      render json: { error: 'Positions must be provided' }, status: :bad_request
       return
     end
 
     ActiveRecord::Base.transaction do
-      stages_params.each do |stage_param|
-        stage = @pipeline.stages.find(stage_param[:id])
-        stage.update!(stage_param.permit(:position, :name, :color, :active))
+      positions.each do |id, position|
+        stage = @pipeline.stages.find(id)
+        stage.update!(position: position)
       end
     end
 
-    head :no_content
+    render json: @pipeline.stages
   rescue ActiveRecord::RecordNotFound => e
     render json: { error: e.message }, status: :not_found
   rescue ActiveRecord::RecordInvalid => e
