@@ -1,3 +1,4 @@
+class DataImport::ContactManager
   def initialize(account, mapping = nil)
     @account = account
     @mapping = mapping.with_indifferent_access if mapping.present?
