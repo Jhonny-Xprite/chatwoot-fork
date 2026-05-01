@@ -38,9 +38,9 @@ class PipelineAPI extends ApiClient {
     return axios.delete(`${this.url}/${pipelineId}/stages/${stageId}`);
   }
 
-  reorderStages(pipelineId, positions) {
+  reorderStages(pipelineId, stages) {
     return axios.patch(`${this.url}/${pipelineId}/stages/reorder`, {
-      positions,
+      stages,
     });
   }
 
