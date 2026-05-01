@@ -16,6 +16,7 @@ class CrmPipeline < ApplicationRecord
 
   def ensure_default_pipeline
     self.is_default = true if account.present? && account.crm_pipelines.where.not(id: id).none?
+    self.position ||= (account.crm_pipelines.maximum(:position) || -1) + 1 if account.present?
   end
 
   def clear_other_default_pipelines

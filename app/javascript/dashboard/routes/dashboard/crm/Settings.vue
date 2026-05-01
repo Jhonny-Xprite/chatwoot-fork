@@ -36,6 +36,7 @@ const pipelineForm = reactive({
   name: '',
   active: true,
   is_default: false,
+  position: 0,
 });
 
 const dragOptions = computed(() => ({
@@ -50,6 +51,7 @@ const syncPipelineForm = pipeline => {
   pipelineForm.name = pipeline?.name || '';
   pipelineForm.active = pipeline?.active ?? true;
   pipelineForm.is_default = pipeline?.is_default ?? false;
+  pipelineForm.position = pipeline?.position ?? 0;
 };
 
 const syncStageDrafts = () => {

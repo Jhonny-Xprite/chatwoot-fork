@@ -29,12 +29,25 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
 
   def reorder
     authorize @pipeline, :update?
-    params[:stages].each do |stage_param|
-      @pipeline.stages
-               .find(stage_param[:id])
-               .update!(stage_param.permit(:position, :name, :color, :active))
+    stages_params = params[:stages]
+
+    unless stages_params.is_a?(Array)
+      render json: { error: 'Stages must be an array' }, status: :bad_request
+      return
     end
+
+    ActiveRecord::Base.transaction do
+      stages_params.each do |stage_param|
+        stage = @pipeline.stages.find(stage_param[:id])
+        stage.update!(stage_param.permit(:position, :name, :color, :active))
+      end
+    end
+
     head :no_content
+  rescue ActiveRecord::RecordNotFound => e
+    render json: { error: e.message }, status: :not_found
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_entity
   end
 
   def destroy

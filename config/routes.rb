@@ -126,7 +126,7 @@ Rails.application.routes.draw do
           namespace :crm do
             resources :pipelines do
               resources :pipeline_stages, path: :stages do
-                post :reorder, on: :collection
+                patch :reorder, on: :collection
               end
             end
             resources :pipeline_conversations, only: [:index, :update], param: :id
