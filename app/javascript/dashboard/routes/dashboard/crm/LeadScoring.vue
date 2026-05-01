@@ -12,7 +12,7 @@ const store = useStore();
 const { t } = useI18n();
 
 const rules = ref([]);
-const isCreateModalOpen = ref(false);
+const createRuleDialogRef = ref(null);
 const isRecalculating = ref(false);
 
 const contactAttributes = useMapGetter('attributes/getContactAttributes');
@@ -117,6 +117,17 @@ onMounted(() => {
   store.dispatch('labels/get');
 });
 
+const openCreateModal = () => {
+  newRule.value = {
+    attribute_model: 'contact_attribute',
+    attribute_key: '',
+    filter_operator: 'equal_to',
+    values: [],
+    score: 10,
+  };
+  createRuleDialogRef.value?.open();
+};
+
 const createRule = async () => {
   try {
     await window.axios.post(
@@ -125,15 +136,8 @@ const createRule = async () => {
         lead_scoring_rule: newRule.value,
       }
     );
-    isCreateModalOpen.value = false;
+    createRuleDialogRef.value?.close();
     fetchRules();
-    newRule.value = {
-      attribute_model: 'contact_attribute',
-      attribute_key: '',
-      filter_operator: 'equal_to',
-      values: [],
-      score: 10,
-    };
     useAlert(t('CRM.SCORING.CREATE_SUCCESS'));
   } catch (error) {
     useAlert(t('CRM.SCORING.CREATE_ERROR'));
@@ -163,7 +167,7 @@ const labelMenuItems = computed(() => {
 </script>
 
 <template>
-  <div class="flex-1 p-6 bg-n-surface-1 overflow-auto">
+  <div class="flex-1 p-6 overflow-auto bg-n-surface-1">
     <div class="max-w-6xl mx-auto">
       <div class="flex items-center justify-between mb-8">
         <div>
@@ -187,16 +191,16 @@ const labelMenuItems = computed(() => {
             :label="t('CRM.SCORING.ADD_RULE')"
             icon="i-lucide-plus"
             color="blue"
-            @click="isCreateModalOpen = true"
+            @click="openCreateModal"
           />
         </div>
       </div>
 
       <div
-        class="bg-white dark:bg-n-slate-1 border border-n-weak rounded-2xl shadow-sm overflow-hidden"
+        class="overflow-hidden bg-white border dark:bg-n-slate-1 border-n-weak rounded-2xl shadow-sm"
       >
         <table class="w-full text-left">
-          <thead class="bg-n-alpha-1 border-b border-n-weak">
+          <thead class="border-b bg-n-alpha-1 border-n-weak">
             <tr>
               <th
                 class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11"
@@ -232,7 +236,7 @@ const labelMenuItems = computed(() => {
             <tr
               v-for="rule in rules"
               :key="rule.id"
-              class="hover:bg-n-alpha-1 transition-colors"
+              class="transition-colors hover:bg-n-alpha-1"
             >
               <td class="px-6 py-4 text-sm text-n-slate-12">
                 {{ getModelLabel(rule.attribute_model) }}
@@ -284,22 +288,21 @@ const labelMenuItems = computed(() => {
 
     <!-- Create Rule Dialog -->
     <Dialog
-      v-if="isCreateModalOpen"
+      ref="createRuleDialogRef"
       :title="t('CRM.SCORING.MODAL.TITLE')"
       :confirm-button-label="t('CRM.SCORING.MODAL.CONFIRM')"
-      size="medium"
+      width="md"
       @confirm="createRule"
-      @close="isCreateModalOpen = false"
     >
       <div class="flex flex-col gap-5 py-4">
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-n-slate-11 uppercase">
+            <label class="text-xs font-bold uppercase text-n-slate-11">
               {{ t('CRM.SCORING.MODAL.SOURCE_LABEL') }}
             </label>
             <select
               v-model="newRule.attribute_model"
-              class="w-full h-10 px-3 bg-n-alpha-1 border border-n-weak rounded-xl text-sm outline-none focus:border-n-brand-primary"
+              class="w-full h-10 px-3 border outline-none bg-n-alpha-1 border-n-weak rounded-xl text-sm focus:border-n-brand-primary"
             >
               <option
                 v-for="m in attributeModels"
@@ -311,12 +314,12 @@ const labelMenuItems = computed(() => {
             </select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-n-slate-11 uppercase">
+            <label class="text-xs font-bold uppercase text-n-slate-11">
               {{ t('CRM.SCORING.MODAL.FIELD_LABEL') }}
             </label>
             <select
               v-model="newRule.attribute_key"
-              class="w-full h-10 px-3 bg-n-alpha-1 border border-n-weak rounded-xl text-sm outline-none focus:border-n-brand-primary"
+              class="w-full h-10 px-3 border outline-none bg-n-alpha-1 border-n-weak rounded-xl text-sm focus:border-n-brand-primary"
             >
               <option value="" disabled>
                 {{ t('CRM.SCORING.MODAL.FIELD_PLACEHOLDER') }}
@@ -334,12 +337,12 @@ const labelMenuItems = computed(() => {
 
         <div class="grid grid-cols-2 gap-4">
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-n-slate-11 uppercase">
+            <label class="text-xs font-bold uppercase text-n-slate-11">
               {{ t('CRM.SCORING.MODAL.CONDITION_LABEL') }}
             </label>
             <select
               v-model="newRule.filter_operator"
-              class="w-full h-10 px-3 bg-n-alpha-1 border border-n-weak rounded-xl text-sm outline-none focus:border-n-brand-primary"
+              class="w-full h-10 px-3 border outline-none bg-n-alpha-1 border-n-weak rounded-xl text-sm focus:border-n-brand-primary"
             >
               <option v-for="o in operators" :key="o.value" :value="o.value">
                 {{ o.label }}
@@ -347,7 +350,7 @@ const labelMenuItems = computed(() => {
             </select>
           </div>
           <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold text-n-slate-11 uppercase">
+            <label class="text-xs font-bold uppercase text-n-slate-11">
               {{ t('CRM.SCORING.MODAL.POINTS_LABEL') }}
             </label>
             <Input v-model="newRule.score" type="number" placeholder="Ex: 10" />
@@ -360,7 +363,7 @@ const labelMenuItems = computed(() => {
           "
           class="flex flex-col gap-1.5"
         >
-          <label class="text-xs font-bold text-n-slate-11 uppercase">
+          <label class="text-xs font-bold uppercase text-n-slate-11">
             {{ t('CRM.SCORING.MODAL.VALUES_LABEL') }}
           </label>
           <div v-if="newRule.attribute_model === 'label'">
