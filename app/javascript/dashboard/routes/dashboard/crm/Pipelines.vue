@@ -262,7 +262,7 @@ const createStage = async () => {
     try {
       await store.dispatch('crmPipeline/createStage', {
         pipelineId: selectedPipeline.value.id,
-        name,
+        stage: { name },
       });
     } catch (error) {
       // Error handling

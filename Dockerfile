@@ -36,34 +36,35 @@ RUN bundle config set --local path "$BUNDLE_PATH" \
   && find "$BUNDLE_PATH"/ruby/*/gems/ \( -name "*.c" -o -name "*.o" \) -delete
 
 # --- ASSETS BUILDER ---
-FROM node:24-bookworm-slim AS assets-builder
+FROM ruby-base AS assets-builder
 
 ARG PNPM_VERSION="10.2.0"
 ARG NODE_OPTIONS="--max-old-space-size=4096 --openssl-legacy-provider"
 ENV NODE_OPTIONS ${NODE_OPTIONS}
 ENV RAILS_ENV=production
 
+# Install Node.js and pnpm
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+  && apt-get install -y nodejs \
+  && npm install -g pnpm@${PNPM_VERSION}
+
 WORKDIR /app
 
-# Install pnpm and dependencies
-RUN npm install -g pnpm@${PNPM_VERSION}
+# Copy gems for 'rake assets:precompile' as it loads the Rails env
+COPY --from=gems-builder /gems /gems
+COPY --from=gems-builder /usr/local/bundle /usr/local/bundle
+
+# Configure bundle to find gems
+ENV BUNDLE_PATH="/gems"
+ENV BUNDLE_WITHOUT="development:test"
+
+# Install node dependencies
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
   HUSKY=0 CI=true pnpm install --frozen-lockfile
 
 # Copy app for asset compilation
 COPY . .
-# We also need the gems for 'rake assets:precompile' as it loads the Rails env
-COPY --from=gems-builder /gems /gems
-COPY --from=gems-builder /usr/local/bundle /usr/local/bundle
-# Configure bundle to find gems
-ENV BUNDLE_PATH="/gems"
-ENV BUNDLE_WITHOUT="development:test"
-
-# Install Ruby in the assets builder to run rake
-RUN apt-get update && apt-get install -y --no-install-recommends \
-  ruby-full build-essential libpq-dev \
-  && rm -rf /var/lib/apt/lists/*
 
 # Precompile assets
 RUN SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled \

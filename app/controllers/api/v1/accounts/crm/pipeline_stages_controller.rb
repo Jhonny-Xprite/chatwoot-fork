@@ -27,6 +27,14 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
     end
   end
 
+  def reorder
+    authorize @pipeline, :update?
+    params[:stages].each do |stage_param|
+      @pipeline.stages.find(stage_param[:id]).update!(position: stage_param[:position])
+    end
+    head :no_content
+  end
+
   def destroy
     authorize @stage
     @stage.destroy

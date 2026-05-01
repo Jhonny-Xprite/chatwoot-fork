@@ -2,6 +2,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
+import draggable from 'vuedraggable';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 
@@ -22,6 +23,8 @@ const deletePipelineDialogRef = ref(null);
 const deleteStageDialogRef = ref(null);
 const pendingDeletePipelineId = ref(null);
 const pendingDeleteStageId = ref(null);
+const isReordering = ref(false);
+
 const newStage = reactive({
   name: '',
   color: '#14B8A6',
@@ -32,6 +35,14 @@ const pipelineForm = reactive({
   active: true,
   is_default: false,
 });
+
+const dragOptions = computed(() => ({
+  animation: 200,
+  group: 'stages',
+  disabled: false,
+  ghostClass: 'sortable-ghost',
+  dragClass: 'sortable-drag',
+}));
 
 const syncPipelineForm = pipeline => {
   pipelineForm.name = pipeline?.name || '';
@@ -52,7 +63,9 @@ watch(activePipeline, pipeline => {
 });
 
 watch(currentStages, stages => {
-  stageDrafts.value = stages.map(stage => ({ ...stage }));
+  if (!isReordering.value) {
+    stageDrafts.value = stages.map(stage => ({ ...stage }));
+  }
 });
 
 watch(selectedPipelineId, async pipelineId => {
@@ -124,6 +137,23 @@ const saveStage = async stage => {
   });
 };
 
+const onDragChange = async () => {
+  isReordering.value = true;
+  try {
+    const updatedStages = stageDrafts.value.map((stage, index) => ({
+      ...stage,
+      position: index + 1,
+    }));
+
+    await store.dispatch('crmPipeline/reorderStages', {
+      pipelineId: Number(selectedPipelineId.value),
+      stages: updatedStages,
+    });
+  } finally {
+    isReordering.value = false;
+  }
+};
+
 const openDeleteStageDialog = stageId => {
   pendingDeleteStageId.value = stageId;
   deleteStageDialogRef.value?.open();
@@ -152,7 +182,7 @@ const confirmDeleteStage = async () => {
       </div>
 
       <section
-        class="p-6 bg-white dark:bg-n-slate-1 border border-n-weak rounded-2xl shadow-sm space-y-4"
+        class="p-6 bg-n-alpha-3 dark:bg-n-slate-1 border border-n-slate-3 rounded-2xl shadow-sm space-y-4"
       >
         <div class="flex items-center justify-between gap-4">
           <div>
@@ -170,7 +200,7 @@ const confirmDeleteStage = async () => {
             v-model="createPipelineName"
             type="text"
             :placeholder="t('CRM.SETTINGS.NEW_PIPELINE_PLACEHOLDER')"
-            class="flex-1 rounded-lg border border-n-weak bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
+            class="flex-1 rounded-lg border border-n-slate-3 bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
           />
           <NextButton
             color="blue"
@@ -194,7 +224,7 @@ const confirmDeleteStage = async () => {
               :class="
                 selectedPipelineId === pipeline.id
                   ? 'border-n-brand-primary bg-n-brand-primary-alpha-1'
-                  : 'border-n-weak bg-n-alpha-2 hover:border-n-brand-primary/40'
+                  : 'border-n-slate-3 bg-n-alpha-2 hover:border-n-brand-primary/40'
               "
               @click="selectedPipelineId = pipeline.id"
             >
@@ -221,7 +251,7 @@ const confirmDeleteStage = async () => {
 
           <div
             v-if="activePipeline"
-            class="rounded-2xl border border-n-weak bg-n-alpha-2 p-5 space-y-5"
+            class="rounded-2xl border border-n-slate-3 bg-n-alpha-2 p-5 space-y-5"
           >
             <div class="grid gap-4 md:grid-cols-2">
               <label class="space-y-2">
@@ -233,7 +263,7 @@ const confirmDeleteStage = async () => {
                 <input
                   v-model="pipelineForm.name"
                   type="text"
-                  class="w-full rounded-lg border border-n-weak bg-white px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
+                  class="w-full rounded-lg border border-n-slate-3 bg-n-alpha-3 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
                 />
               </label>
               <div class="flex flex-col justify-end gap-2">
@@ -281,15 +311,15 @@ const confirmDeleteStage = async () => {
                   v-model="newStage.name"
                   type="text"
                   :placeholder="t('CRM.SETTINGS.NEW_STAGE_PLACEHOLDER')"
-                  class="rounded-lg border border-n-weak bg-white px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
+                  class="rounded-lg border border-n-slate-3 bg-n-alpha-3 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
                 />
                 <input
                   v-model="newStage.color"
                   type="color"
-                  class="h-10 w-full rounded-lg border border-n-weak bg-white px-2"
+                  class="h-10 w-full rounded-lg border border-n-slate-3 bg-n-alpha-3 px-2"
                 />
                 <label
-                  class="flex items-center gap-2 rounded-lg border border-n-weak bg-white px-3 py-2 text-sm text-n-slate-12"
+                  class="flex items-center gap-2 rounded-lg border border-n-slate-3 bg-n-alpha-3 px-3 py-2 text-sm text-n-slate-12"
                 >
                   <input v-model="newStage.active" type="checkbox" />
                   {{ t('CRM.SETTINGS.ACTIVE') }}
@@ -303,47 +333,60 @@ const confirmDeleteStage = async () => {
                 />
               </div>
 
-              <div v-if="stageDrafts.length" class="space-y-3">
-                <div
-                  v-for="stage in stageDrafts"
-                  :key="stage.id"
-                  class="grid gap-3 rounded-xl border border-n-weak bg-white p-4 md:grid-cols-[1.3fr_120px_100px_1fr]"
-                >
-                  <input
-                    v-model="stage.name"
-                    type="text"
-                    class="rounded-lg border border-n-weak bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
-                  />
-                  <input
-                    v-model="stage.color"
-                    type="color"
-                    class="h-10 w-full rounded-lg border border-n-weak bg-white px-2"
-                  />
-                  <label
-                    class="flex items-center gap-2 rounded-lg border border-n-weak bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12"
+              <draggable
+                v-if="stageDrafts.length"
+                v-model="stageDrafts"
+                v-bind="dragOptions"
+                class="space-y-3"
+                item-key="id"
+                handle=".drag-handle"
+                @change="onDragChange"
+              >
+                <template #item="{ element: stage }">
+                  <div
+                    class="grid gap-3 rounded-xl border border-n-slate-3 bg-n-alpha-3 p-4 md:grid-cols-[24px_1.3fr_120px_100px_1fr]"
                   >
-                    <input v-model="stage.active" type="checkbox" />
-                    {{ t('CRM.SETTINGS.ACTIVE') }}
-                  </label>
-                  <div class="flex gap-2">
-                    <NextButton
-                      color="blue"
-                      size="sm"
-                      icon="i-lucide-save"
-                      :label="t('CRM.SAVE')"
-                      @click="saveStage(stage)"
+                    <div
+                      class="drag-handle flex cursor-grab items-center justify-center text-n-slate-8 active:cursor-grabbing hover:text-n-slate-11"
+                    >
+                      <i class="i-lucide-grip-vertical" />
+                    </div>
+                    <input
+                      v-model="stage.name"
+                      type="text"
+                      class="rounded-lg border border-n-slate-3 bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
                     />
-                    <NextButton
-                      variant="outline"
-                      color="ruby"
-                      size="sm"
-                      icon="i-lucide-trash-2"
-                      :label="t('CRM.SETTINGS.DELETE_STAGE')"
-                      @click="openDeleteStageDialog(stage.id)"
+                    <input
+                      v-model="stage.color"
+                      type="color"
+                      class="h-10 w-full rounded-lg border border-n-slate-3 bg-n-alpha-3 px-2"
                     />
+                    <label
+                      class="flex items-center gap-2 rounded-lg border border-n-slate-3 bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12"
+                    >
+                      <input v-model="stage.active" type="checkbox" />
+                      {{ t('CRM.SETTINGS.ACTIVE') }}
+                    </label>
+                    <div class="flex gap-2">
+                      <NextButton
+                        color="blue"
+                        size="sm"
+                        icon="i-lucide-save"
+                        :label="t('CRM.SAVE')"
+                        @click="saveStage(stage)"
+                      />
+                      <NextButton
+                        variant="outline"
+                        color="ruby"
+                        size="sm"
+                        icon="i-lucide-trash-2"
+                        :label="t('CRM.SETTINGS.DELETE_STAGE')"
+                        @click="openDeleteStageDialog(stage.id)"
+                      />
+                    </div>
                   </div>
-                </div>
-              </div>
+                </template>
+              </draggable>
             </div>
           </div>
         </div>
@@ -376,3 +419,18 @@ const confirmDeleteStage = async () => {
     />
   </div>
 </template>
+
+<style scoped>
+.sortable-ghost {
+  opacity: 0.4;
+  background: var(--n-brand-primary-alpha-1) !important;
+  border: 2px dashed var(--n-brand-primary) !important;
+}
+
+.sortable-drag {
+  cursor: grabbing;
+  box-shadow: var(--shadow-n-brand-primary-lg);
+  transform: scale(1.02);
+  z-index: 100;
+}
+</style>

@@ -38,6 +38,18 @@ class PipelineAPI extends ApiClient {
     return axios.delete(`${this.url}/${pipelineId}/stages/${stageId}`);
   }
 
+  reorderStages(pipelineId, positions) {
+    return axios.post(`${this.url}/${pipelineId}/stages/reorder`, {
+      positions,
+    });
+  }
+
+  reorderStages(pipelineId, stages) {
+    return axios.post(`${this.url}/${pipelineId}/stages/reorder`, {
+      stages,
+    });
+  }
+
   getConversations(stageId, page = 1, filters = {}) {
     return axios.get(`${this.baseUrl()}/crm/pipeline_conversations`, {
       params: { stage_id: stageId, page, ...filters },
