@@ -214,6 +214,28 @@ const densityOptions = [
           />
         </div>
       </button>
+      <button
+        class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-n-alpha-1 transition-colors group"
+        @click="togglePref('showChannel')"
+      >
+        <div class="flex items-center gap-2">
+          <span
+            class="i-lucide-globe text-n-slate-10 group-hover:text-n-brand-primary"
+          />
+          <span class="text-xs font-medium text-n-slate-12">
+            {{ t('CRM.SETTINGS.FIELD_CHANNEL') }}
+          </span>
+        </div>
+        <div
+          class="w-8 h-4 rounded-full relative transition-colors"
+          :class="viewPrefs.showChannel ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
+        >
+          <div
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
+            :class="{ 'translate-x-4': viewPrefs.showChannel }"
+          />
+        </div>
+      </button>
     </div>
   </div>
 </template>

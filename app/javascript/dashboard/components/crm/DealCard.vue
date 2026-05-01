@@ -7,6 +7,8 @@ import CardLabels from 'dashboard/components-next/Conversation/ConversationCard/
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
 import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
+import { getInboxIconByType } from 'dashboard/helper/inbox';
+
 const props = defineProps({
   conversation: {
     type: Object,
@@ -29,6 +31,15 @@ const hasSlaPolicyId = computed(() => props.conversation?.sla_policy_id);
 const companyName = computed(
   () => contact.value.additional_attributes?.company_name || ''
 );
+
+const inbox = computed(
+  () => store.getters['inboxes/getInbox'](props.conversation.inbox_id) || {}
+);
+const inboxIcon = computed(() =>
+  getInboxIconByType(inbox.value.channel_type, inbox.value.medium, 'line')
+);
+const inboxName = computed(() => inbox.value.name || '');
+
 const hasUnread = computed(() => unreadCount.value > 0);
 const lastMessage = computed(() => {
   return (
@@ -127,7 +138,11 @@ const lastMessagePreview = computed(() => {
             {{ contact.email || contact.phone_number || t('CRM.PHONE') }}
           </p>
           <div
-            v-if="viewPrefs.showCompanyName || viewPrefs.showPriority"
+            v-if="
+              viewPrefs.showCompanyName ||
+              viewPrefs.showPriority ||
+              viewPrefs.showChannel
+            "
             class="flex items-center gap-2 mt-1"
           >
             <p
@@ -136,6 +151,13 @@ const lastMessagePreview = computed(() => {
             >
               {{ companyName }}
             </p>
+            <div
+              v-if="inboxName && viewPrefs.showChannel"
+              class="flex items-center gap-1 text-[10px] font-semibold text-n-slate-10"
+            >
+              <span :class="inboxIcon" class="text-xs" />
+              <span class="truncate max-w-[80px]">{{ inboxName }}</span>
+            </div>
             <CardPriorityIcon
               v-if="conversation.priority && viewPrefs.showPriority"
               :priority="conversation.priority"

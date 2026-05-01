@@ -47,6 +47,7 @@ const state = {
     showAssignee: true,
     showLastMessage: true,
     showCompanyName: true,
+    showChannel: true,
     density: 'comfortable', // 'compact' | 'comfortable'
   },
 };
