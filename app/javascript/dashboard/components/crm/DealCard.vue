@@ -10,28 +10,18 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['select']);
+const emit = defineEmits(['select', 'selectContact']);
 
 const { t } = useI18n();
 
 const contact = computed(() => props.conversation.meta?.sender || {});
 const assignee = computed(() => props.conversation.meta?.assignee || {});
 const unreadCount = computed(() => props.conversation.unread_count || 0);
-
-const hasUnread = computed(() => unreadCount.value > 0);
-
-const lastMessageTime = computed(() => {
-  const time =
-    props.conversation.last_non_activity_message?.created_at ||
-    props.conversation.updated_at;
-  if (!time) return '';
-  return new Date(time * 1000).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-});
-
 const labels = computed(() => props.conversation.labels || []);
+const companyName = computed(
+  () => contact.value.additional_attributes?.company_name || ''
+);
+const hasUnread = computed(() => unreadCount.value > 0);
 const lastMessage = computed(() => {
   return (
     props.conversation.last_non_activity_message ||
@@ -39,15 +29,28 @@ const lastMessage = computed(() => {
     null
   );
 });
+const showReplyNeeded = computed(
+  () => hasUnread.value || lastMessage.value?.message_type === 0
+);
+
+const lastMessageTime = computed(() => {
+  const time =
+    props.conversation.last_non_activity_message?.created_at ||
+    props.conversation.updated_at;
+  if (!time) return '';
+
+  return new Date(time * 1000).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+});
+
 const lastMessagePreview = computed(() => {
   if (lastMessage.value?.content) {
     return lastMessage.value.content;
   }
 
   return t('CRM.NO_MESSAGES_YET');
-});
-const showReplyNeeded = computed(() => {
-  return hasUnread.value || lastMessage.value?.message_type === 0;
 });
 </script>
 
@@ -60,7 +63,6 @@ const showReplyNeeded = computed(() => {
     @keydown.enter.prevent="emit('select', conversation)"
     @keydown.space.prevent="emit('select', conversation)"
   >
-    <!-- Unread Pulse Badge -->
     <div
       v-if="hasUnread"
       class="absolute -top-1 -right-1 flex h-4 w-4 spring-pop"
@@ -76,7 +78,6 @@ const showReplyNeeded = computed(() => {
     </div>
 
     <div class="flex flex-col gap-3">
-      <!-- Header: Avatar + Main Info -->
       <div class="flex items-start gap-3">
         <Avatar
           :src="contact.thumbnail"
@@ -100,10 +101,15 @@ const showReplyNeeded = computed(() => {
           <p class="text-[11px] text-n-slate-11 truncate mt-0.5 font-medium">
             {{ contact.email || contact.phone_number || t('CRM.PHONE') }}
           </p>
+          <p
+            v-if="companyName"
+            class="text-[10px] font-semibold text-n-slate-10 truncate mt-1"
+          >
+            {{ companyName }}
+          </p>
         </div>
       </div>
 
-      <!-- Mid: Labels -->
       <div v-if="labels.length" class="flex flex-wrap gap-1 mt-1">
         <span
           v-for="label in labels"
@@ -133,7 +139,6 @@ const showReplyNeeded = computed(() => {
         </p>
       </div>
 
-      <!-- Footer: Meta Info -->
       <div
         class="flex items-center justify-between pt-2 mt-1 border-t border-n-slate-2 dark:border-n-slate-2"
       >
@@ -151,24 +156,40 @@ const showReplyNeeded = computed(() => {
         </div>
 
         <div class="flex items-center gap-1">
-          <span
-            class="text-[10px] font-black text-n-slate-8 dark:text-n-slate-9 uppercase tracking-tight"
+          <button
+            v-if="contact.id"
+            type="button"
+            class="rounded-md px-2 py-1 text-[10px] font-semibold text-n-slate-11 hover:bg-n-slate-2"
+            @click.stop="emit('selectContact', conversation)"
           >
-            {{ t('CRM.DEAL_ID', { id: conversation.id }) }}
-          </span>
-          <span
-            class="i-lucide-grip-vertical text-n-slate-8 dark:text-n-slate-9 opacity-0 group-hover:opacity-100 transition-opacity"
-          />
+            {{ t('CRM.OPEN_CONTACT') }}
+          </button>
+          <button
+            type="button"
+            class="rounded-md px-2 py-1 text-[10px] font-semibold text-n-brand-primary hover:bg-n-brand-primary-alpha-1"
+            @click.stop="emit('select', conversation)"
+          >
+            {{ t('CRM.OPEN_CONVERSATION') }}
+          </button>
         </div>
+      </div>
+
+      <div class="flex items-center justify-between">
+        <span
+          class="text-[10px] font-black text-n-slate-8 dark:text-n-slate-9 uppercase tracking-tight"
+        >
+          {{ t('CRM.DEAL_ID', { id: conversation.id }) }}
+        </span>
+        <span
+          class="i-lucide-grip-vertical text-n-slate-8 dark:text-n-slate-9 opacity-0 group-hover:opacity-100 transition-opacity"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-/* Spring Physics simulation using cubic-bezier and keyframes */
 .spring-motion {
-  /* Using a spring-like cubic-bezier: stiffness 120, damping 14 approximation */
   transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -199,7 +220,6 @@ const showReplyNeeded = computed(() => {
   animation: ping-subtle 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* Smooth entrance for the card */
 @keyframes fadeIn {
   from {
     opacity: 0;

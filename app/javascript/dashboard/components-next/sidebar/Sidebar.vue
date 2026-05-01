@@ -315,7 +315,15 @@ const menuItems = computed(() => {
       label: t('SIDEBAR.CRM'),
       icon: 'i-lucide-layout-kanban',
       to: accountScopedRoute('crm_pipelines'),
-      activeOn: ['crm_dashboard_root', 'crm_pipelines', 'crm_settings'],
+      activeOn: [
+        'crm_dashboard_root',
+        'crm_pipelines',
+        'crm_pipeline_details',
+        'crm_view',
+        'crm_contact',
+        'crm_conversation',
+        'crm_settings',
+      ],
     },
     {
       name: 'Captain',

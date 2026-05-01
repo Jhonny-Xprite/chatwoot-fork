@@ -29,6 +29,10 @@ const state = {
     q: '',
     assigneeId: null,
     labels: [],
+    status: '',
+    inboxId: null,
+    teamId: null,
+    priority: '',
   },
   uiFlags: {
     isFetchingPipelines: false,
@@ -71,7 +75,27 @@ const mutations = {
     _state.filters[key] = value;
   },
   CLEAR_FILTERS(_state) {
-    _state.filters = { q: '', assigneeId: null, labels: [] };
+    _state.filters = {
+      q: '',
+      assigneeId: null,
+      labels: [],
+      status: '',
+      inboxId: null,
+      teamId: null,
+      priority: '',
+    };
+  },
+  REPLACE_FILTERS(_state, filters) {
+    _state.filters = {
+      q: '',
+      assigneeId: null,
+      labels: [],
+      status: '',
+      inboxId: null,
+      teamId: null,
+      priority: '',
+      ...filters,
+    };
   },
   SET_UI_FLAG(_state, { flag, value }) {
     _state.uiFlags[flag] = value;
@@ -230,6 +254,13 @@ const actions = {
     commit('CLEAR_FILTERS');
     return dispatch('refreshAllStages');
   },
+  replaceFilters({ commit, dispatch, state: _state }, filters) {
+    commit('REPLACE_FILTERS', filters);
+    if (_state.stages.length) {
+      return dispatch('refreshAllStages');
+    }
+    return Promise.resolve();
+  },
   refreshAllStages({ state: _state, dispatch }) {
     return Promise.all(
       _state.stages.map(stage =>
@@ -237,7 +268,7 @@ const actions = {
       )
     );
   },
-  async fetchPipelines({ commit, state: _state }) {
+  async fetchPipelines({ commit, state: _state }, preferredPipelineId = null) {
     commit('SET_UI_FLAG', { flag: 'isFetchingPipelines', value: true });
     try {
       const response = await PipelineAPI.get();
@@ -245,6 +276,7 @@ const actions = {
       commit('SET_PIPELINES', pipelines);
 
       const activePipeline =
+        pipelines.find(pipeline => pipeline.id === preferredPipelineId) ||
         pipelines.find(pipeline => pipeline.id === _state.activePipelineId) ||
         pipelines.find(pipeline => pipeline.is_default) ||
         pipelines[0];
@@ -293,6 +325,10 @@ const actions = {
         q: _state.filters.q,
         assignee_id: _state.filters.assigneeId,
         labels: _state.filters.labels,
+        status: _state.filters.status,
+        inbox_id: _state.filters.inboxId,
+        team_id: _state.filters.teamId,
+        priority: _state.filters.priority,
       });
       const { payload, meta: responseMeta } = response.data.data;
       commit('SET_CONVERSATIONS', { stageId, conversations: payload, page });
@@ -356,13 +392,12 @@ const actions = {
     commit('ADD_MESSAGE', message);
   },
   async createPipeline({ dispatch }, name) {
-    await PipelineAPI.create({
+    const response = await PipelineAPI.create({
       pipeline: {
         name,
       },
     });
-
-    const nextPipelineId = await dispatch('fetchPipelines');
+    const nextPipelineId = await dispatch('fetchPipelines', response.data.id);
 
     if (nextPipelineId) {
       await dispatch('fetchStages', nextPipelineId);
@@ -383,6 +418,34 @@ const actions = {
       pipelineId,
       pipeline: { is_default: true },
     });
+  },
+  async createStage({ dispatch, state: _state }, { pipelineId, stage }) {
+    const targetPipelineId = pipelineId || _state.activePipelineId;
+    await PipelineAPI.createStage(targetPipelineId, stage);
+    await dispatch('fetchStages', targetPipelineId);
+  },
+  async updateStage(
+    { dispatch, state: _state },
+    { pipelineId, stageId, stage }
+  ) {
+    const targetPipelineId = pipelineId || _state.activePipelineId;
+    await PipelineAPI.updateStage(targetPipelineId, stageId, stage);
+    await dispatch('fetchStages', targetPipelineId);
+  },
+  async deleteStage({ dispatch, state: _state }, { pipelineId, stageId }) {
+    const targetPipelineId = pipelineId || _state.activePipelineId;
+    await PipelineAPI.deleteStage(targetPipelineId, stageId);
+    await dispatch('fetchStages', targetPipelineId);
+  },
+  async deletePipeline({ dispatch }, pipelineId) {
+    await PipelineAPI.delete(pipelineId);
+    const nextPipelineId = await dispatch('fetchPipelines');
+
+    if (nextPipelineId) {
+      await dispatch('fetchStages', nextPipelineId);
+    }
+
+    return nextPipelineId;
   },
 };
 

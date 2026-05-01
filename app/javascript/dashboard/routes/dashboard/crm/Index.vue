@@ -11,18 +11,29 @@ const tabs = computed(() => [
     name: t('CRM.TABS.DASHBOARD'),
     routeName: 'crm_dashboard_root',
     icon: 'i-lucide-layout-dashboard',
+    activeOn: ['crm_dashboard_root'],
   },
   {
     name: t('CRM.TABS.PIPELINES'),
     routeName: 'crm_pipelines',
     icon: 'i-lucide-layout-kanban',
+    activeOn: [
+      'crm_pipelines',
+      'crm_pipeline_details',
+      'crm_view',
+      'crm_contact',
+      'crm_conversation',
+    ],
   },
   {
     name: t('CRM.TABS.SETTINGS'),
     routeName: 'crm_settings',
     icon: 'i-lucide-settings-2',
+    activeOn: ['crm_settings'],
   },
 ]);
+
+const isTabActive = tab => tab.activeOn.includes(route.name);
 </script>
 
 <template>
@@ -37,7 +48,7 @@ const tabs = computed(() => [
           :to="{ name: tab.routeName }"
           class="flex items-center gap-2 px-4 py-2 text-sm font-bold transition-all rounded-t-xl border-b-2"
           :class="
-            route.name === tab.routeName
+            isTabActive(tab)
               ? 'text-n-brand-primary border-n-brand-primary bg-n-alpha-3'
               : 'text-n-slate-11 border-transparent hover:text-n-slate-12 hover:bg-n-alpha-1'
           "

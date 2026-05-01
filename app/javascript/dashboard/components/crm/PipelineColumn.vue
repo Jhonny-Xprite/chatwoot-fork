@@ -14,7 +14,7 @@ const props = defineProps({
   },
 });
 
-defineEmits(['select']);
+defineEmits(['select', 'selectContact']);
 
 const store = useStore();
 const { t } = useI18n();
@@ -102,7 +102,11 @@ const onDragChange = event => {
         @change="onDragChange"
       >
         <template #item="{ element }">
-          <DealCard :conversation="element" @select="$emit('select', $event)" />
+          <DealCard
+            :conversation="element"
+            @select="$emit('select', $event)"
+            @select-contact="$emit('selectContact', $event)"
+          />
         </template>
       </draggable>
 

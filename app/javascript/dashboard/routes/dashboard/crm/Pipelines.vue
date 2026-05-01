@@ -1,61 +1,222 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useStore } from 'vuex';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import PipelineBoard from 'dashboard/components/crm/PipelineBoard.vue';
 import FilterBar from 'dashboard/components/crm/FilterBar.vue';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 
+const props = defineProps({
+  pipelineId: {
+    type: [String, Number],
+    default: null,
+  },
+  viewId: {
+    type: [String, Number],
+    default: null,
+  },
+});
+
+const DEFAULT_FILTERS = {
+  q: '',
+  assigneeId: null,
+  labels: [],
+  status: '',
+  inboxId: null,
+  teamId: null,
+  priority: '',
+};
+
 const store = useStore();
 const router = useRouter();
-const { t } = useI18n();
+const route = useRoute();
+useI18n();
 
+const accountId = computed(
+  () => store.getters.getCurrentAccountId || route.params.accountId
+);
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
+const savedViews = computed(
+  () => store.getters['customViews/getConversationCustomViews']
+);
 const selectedPipeline = computed(
   () => store.getters['crmPipeline/getActivePipeline'] || null
 );
 const currentPipelineStages = computed(
   () => store.getters['crmPipeline/getStages']
 );
-const selectedPipelineId = computed({
-  get: () => store.getters['crmPipeline/getActivePipeline']?.id || null,
-  set: value => {
-    if (!value) return;
-
-    store.dispatch('crmPipeline/fetchStages', Number(value));
-  },
-});
+const activeView = computed(() =>
+  savedViews.value.find(view => view.id === Number(props.viewId))
+);
 const uiFlags = computed(() => store.getters['crmPipeline/uiFlags']);
 const isLoading = computed(
   () => uiFlags.value.isFetchingPipelines || uiFlags.value.isFetchingStages
 );
+const isCreatePipelineOpen = ref(false);
+const createPipelineName = ref('');
 
-onMounted(async () => {
-  const initialPipelineId = await store.dispatch('crmPipeline/fetchPipelines');
+const selectedPipelineId = computed({
+  get: () => selectedPipeline.value?.id || '',
+  set: value => {
+    const nextPipelineId = Number(value);
+    if (!nextPipelineId) return;
 
-  if (initialPipelineId) {
-    await store.dispatch('crmPipeline/fetchStages', initialPipelineId);
-  }
+    router.push({
+      name: 'crm_pipeline_details',
+      params: {
+        accountId: accountId.value,
+        pipelineId: nextPipelineId,
+      },
+    });
+  },
 });
 
+const selectedViewId = computed({
+  get: () => activeView.value?.id || '',
+  set: value => {
+    if (!value) {
+      router.push({
+        name: selectedPipeline.value ? 'crm_pipeline_details' : 'crm_pipelines',
+        params: selectedPipeline.value
+          ? {
+              accountId: accountId.value,
+              pipelineId: selectedPipeline.value.id,
+            }
+          : { accountId: accountId.value },
+      });
+      return;
+    }
+
+    router.push({
+      name: 'crm_view',
+      params: {
+        accountId: accountId.value,
+        viewId: value,
+      },
+    });
+  },
+});
+
+const getPipelineIdFromView = view => {
+  const pipelineFilter = view?.query?.payload?.find(
+    filter => filter.attribute_key === 'pipeline_id'
+  );
+
+  return Number(pipelineFilter?.values?.[0]) || null;
+};
+
+const extractFiltersFromView = view => {
+  const payload = view?.query?.payload || [];
+
+  return payload.reduce(
+    (accumulator, filter) => {
+      const values = Array.isArray(filter.values) ? filter.values : [];
+      const firstValue = values[0];
+
+      switch (filter.attribute_key) {
+        case 'assignee_id':
+          accumulator.assigneeId = Number(firstValue) || null;
+          break;
+        case 'labels':
+          accumulator.labels = values;
+          break;
+        case 'status':
+          accumulator.status = firstValue || '';
+          break;
+        case 'inbox_id':
+          accumulator.inboxId = Number(firstValue) || null;
+          break;
+        case 'team_id':
+          accumulator.teamId = Number(firstValue) || null;
+          break;
+        case 'priority':
+          accumulator.priority = firstValue || '';
+          break;
+        default:
+          break;
+      }
+
+      return accumulator;
+    },
+    { ...DEFAULT_FILTERS }
+  );
+};
+
+const syncBoardContext = async () => {
+  await Promise.all([
+    store.dispatch('customViews/get', 'conversation'),
+    store.dispatch('crmPipeline/fetchPipelines'),
+  ]);
+
+  const view = savedViews.value.find(item => item.id === Number(props.viewId));
+  const filters = view ? extractFiltersFromView(view) : { ...DEFAULT_FILTERS };
+  let nextPipelineId =
+    Number(props.pipelineId) ||
+    getPipelineIdFromView(view) ||
+    store.getters['crmPipeline/getActivePipeline']?.id;
+
+  await store.dispatch('crmPipeline/replaceFilters', filters);
+
+  if (nextPipelineId) {
+    await store.dispatch('crmPipeline/fetchStages', nextPipelineId);
+  }
+};
+
+onMounted(() => {
+  syncBoardContext();
+});
+
+watch(
+  () => [props.pipelineId, props.viewId],
+  () => {
+    syncBoardContext();
+  }
+);
+
 const onDealSelect = deal => {
-  const { id } = deal;
-  const accountId = store.getters.getCurrentAccountId;
+  router.push({
+    name: 'crm_conversation',
+    params: {
+      accountId: accountId.value,
+      conversationId: deal.id,
+    },
+  });
+};
+
+const onContactSelect = deal => {
+  const contactId = deal.meta?.sender?.id;
+  if (!contactId) return;
 
   router.push({
-    name: 'inbox_conversation',
-    params: { accountId, conversation_id: id },
+    name: 'crm_contact',
+    params: {
+      accountId: accountId.value,
+      contactId,
+    },
   });
 };
 
 const createPipeline = async () => {
-  // eslint-disable-next-line no-alert
-  const name = prompt(t('CRM.CREATE_PIPELINE_PROMPT'));
+  const name = createPipelineName.value.trim();
   if (!name) return;
 
   try {
-    await store.dispatch('crmPipeline/createPipeline', name);
+    const nextPipelineId = await store.dispatch(
+      'crmPipeline/createPipeline',
+      name
+    );
+    if (nextPipelineId) {
+      createPipelineName.value = '';
+      isCreatePipelineOpen.value = false;
+      router.push({
+        name: 'crm_pipeline_details',
+        params: {
+          accountId: accountId.value,
+          pipelineId: nextPipelineId,
+        },
+      });
+    }
   } catch (error) {
     // Ignore creation errors for now
   }
@@ -75,14 +236,21 @@ const setDefaultPipeline = async () => {
     // Ignore update errors for now
   }
 };
+
+const togglePipelineCreate = () => {
+  isCreatePipelineOpen.value = !isCreatePipelineOpen.value;
+  if (!isCreatePipelineOpen.value) {
+    createPipelineName.value = '';
+  }
+};
 </script>
 
 <template>
   <div class="flex flex-col flex-1 h-full min-h-0 bg-n-surface-1">
     <header
-      class="flex items-center justify-between p-4 border-b border-n-weak bg-n-alpha-2"
+      class="flex flex-wrap items-center justify-between gap-3 p-4 border-b border-n-weak bg-n-alpha-2"
     >
-      <div class="flex items-center gap-4">
+      <div class="flex flex-wrap items-center gap-3">
         <h1 class="text-xl font-bold text-n-slate-12">
           {{ $t('CRM.HEADER') }}
         </h1>
@@ -103,12 +271,41 @@ const setDefaultPipeline = async () => {
           </select>
         </div>
 
+        <div v-if="savedViews.length > 0" class="flex items-center gap-2">
+          <select
+            v-model="selectedViewId"
+            class="bg-n-slate-2 border border-n-weak rounded-md px-3 py-1.5 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary transition-all"
+          >
+            <option value="">{{ $t('CRM.ALL_VIEWS') }}</option>
+            <option v-for="view in savedViews" :key="view.id" :value="view.id">
+              {{ view.name }}
+            </option>
+          </select>
+        </div>
+
         <span
           v-if="selectedPipeline?.is_default"
           class="rounded-full bg-n-brand-primary-alpha-1 px-2.5 py-1 text-xs font-semibold text-n-brand-primary"
         >
           {{ $t('CRM.DEFAULT_PIPELINE') }}
         </span>
+
+        <span
+          v-if="activeView"
+          class="rounded-full bg-n-slate-2 px-2.5 py-1 text-xs font-semibold text-n-slate-11"
+        >
+          {{ $t('CRM.ACTIVE_VIEW', { name: activeView.name }) }}
+        </span>
+
+        <NextButton
+          v-if="activeView"
+          variant="ghost"
+          color="slate"
+          size="xs"
+          icon="i-lucide-x"
+          :label="$t('CRM.CLEAR_VIEW')"
+          @click="selectedViewId = ''"
+        />
 
         <NextButton
           v-else-if="selectedPipeline"
@@ -124,8 +321,32 @@ const setDefaultPipeline = async () => {
           variant="faded"
           color="slate"
           size="sm"
-          icon="i-lucide-plus"
-          :label="$t('CRM.ADD_PIPELINE')"
+          :icon="isCreatePipelineOpen ? 'i-lucide-x' : 'i-lucide-plus'"
+          :label="
+            isCreatePipelineOpen
+              ? $t('DIALOG.BUTTONS.CANCEL')
+              : $t('CRM.ADD_PIPELINE')
+          "
+          @click="togglePipelineCreate"
+        />
+      </div>
+
+      <div
+        v-if="isCreatePipelineOpen"
+        class="flex flex-wrap items-center gap-2"
+      >
+        <input
+          v-model="createPipelineName"
+          type="text"
+          :placeholder="$t('CRM.CREATE_PIPELINE_PROMPT')"
+          class="w-56 rounded-md border border-n-weak bg-white px-3 py-1.5 text-sm text-n-slate-12 outline-none transition-all focus:border-n-brand-primary"
+          @keydown.enter.prevent="createPipeline"
+        />
+        <NextButton
+          color="blue"
+          size="sm"
+          icon="i-lucide-save"
+          :label="$t('CRM.SAVE')"
           @click="createPipeline"
         />
       </div>
@@ -138,6 +359,7 @@ const setDefaultPipeline = async () => {
         v-if="currentPipelineStages.length"
         :stages="currentPipelineStages"
         @select="onDealSelect"
+        @select-contact="onContactSelect"
       />
       <div
         v-else-if="isLoading"
@@ -171,9 +393,3 @@ const setDefaultPipeline = async () => {
     </main>
   </div>
 </template>
-
-<style scoped>
-:deep(.draggable-container) {
-  height: 100%;
-}
-</style>

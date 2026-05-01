@@ -10,7 +10,7 @@ defineProps({
   },
 });
 
-defineEmits(['select']);
+defineEmits(['select', 'selectContact']);
 
 const store = useStore();
 const isFetchingStages = computed(
@@ -30,6 +30,7 @@ const isFetchingStages = computed(
           :key="stage.id"
           :stage="stage"
           @select="$emit('select', $event)"
+          @select-contact="$emit('selectContact', $event)"
         />
       </div>
 

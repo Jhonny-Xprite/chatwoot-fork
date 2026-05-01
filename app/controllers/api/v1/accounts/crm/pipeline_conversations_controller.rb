@@ -7,6 +7,10 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
     @conversations = @conversations.search_by_contact_name(params[:q]) if params[:q].present?
     @conversations = @conversations.where(assignee_id: params[:assignee_id]) if params[:assignee_id].present?
     @conversations = @conversations.tagged_with(params[:labels], any: true) if params[:labels].present?
+    @conversations = @conversations.where(status: params[:status]) if params[:status].present?
+    @conversations = @conversations.where(inbox_id: params[:inbox_id]) if params[:inbox_id].present?
+    @conversations = @conversations.where(team_id: params[:team_id]) if params[:team_id].present?
+    @conversations = @conversations.where(priority: params[:priority]) if params[:priority].present?
 
     @conversations = @conversations.page(params[:page])
                                    .per(params[:per_page] || 25)
