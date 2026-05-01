@@ -16,6 +16,9 @@
     "ADD_PIPELINE": "New Pipeline",
     "SAVE": "Save",
     "CANCEL": "Cancel",
-    "PHONE": "Phone"
+    "PHONE": "Phone",
+    "UNASSIGNED": "Unassigned",
+    "UNKNOWN_CONTACT": "Unknown Contact",
+    "NO_LEADS_HERE": "No leads here"
   }
 }

@@ -15,9 +15,10 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
 
   # Handle moving a conversation between stages
   def update
-    @conversation = current_account.conversations.find(params[:id])
-    authorize @conversation
+    authorize @stage, :show?
+    @conversation = current_account.conversations.find_by!(display_id: params[:id])
     @conversation.update!(pipeline_stage_id: @stage.id, pipeline_id: @stage.pipeline_id)
+    render :update
   end
 
   private

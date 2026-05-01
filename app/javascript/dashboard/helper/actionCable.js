@@ -100,6 +100,7 @@ class ActionCableConnector extends BaseActionCableConnector {
     } = data;
     DashboardAudioNotificationHelper.onNewMessage(data);
     this.app.$store.dispatch('addMessage', data);
+    this.app.$store.dispatch('crmPipeline/addMessage', data);
     this.app.$store.dispatch('updateConversationLastActivity', {
       lastActivityAt,
       conversationId,
@@ -111,11 +112,13 @@ class ActionCableConnector extends BaseActionCableConnector {
 
   onStatusChange = data => {
     this.app.$store.dispatch('updateConversation', data);
+    this.app.$store.dispatch('crmPipeline/updateConversation', data);
     this.fetchConversationStats();
   };
 
   onConversationUpdated = data => {
     this.app.$store.dispatch('updateConversation', data);
+    this.app.$store.dispatch('crmPipeline/updateConversation', data);
     this.fetchConversationStats();
   };
 

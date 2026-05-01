@@ -1,11 +1,10 @@
-/* eslint-disable no-alert */
 <script setup>
-import { computed, ref, onMounted } from 'vue';
-import draggable from 'vuedraggable';
-import DealCard from './DealCard.vue';
-import DealCardSkeleton from './DealCardSkeleton.vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
+import { useI18n } from 'vue-i18n';
+import draggable from 'vuedraggable';
 import NextButton from 'dashboard/components-next/button/Button.vue';
+import DealCard from './DealCard.vue';
 
 const props = defineProps({
   stage: {
@@ -14,10 +13,8 @@ const props = defineProps({
   },
 });
 
-defineEmits(['select']);
-
 const store = useStore();
-const scrollContainer = ref(null);
+const { t } = useI18n();
 
 const conversations = computed({
   get: () =>
@@ -29,19 +26,35 @@ const conversations = computed({
     });
   },
 });
+
+const stageCount = computed(() => {
+  const meta = store.getters['crmPipeline/getMetaByStage'](props.stage.id);
+  return meta.total_count || conversations.value.length;
+});
+
 const isLoading = computed(() =>
   store.getters['crmPipeline/isStageLoading'](props.stage.id)
 );
-const totalCount = computed(
-  () =>
-    store.getters['crmPipeline/getMetaByStage'](props.stage.id)?.total_count ??
-    props.stage.conversations_count ??
-    0
-);
 
-const onDragChange = evt => {
-  if (evt.added) {
-    const { element } = evt.added;
+const dragOptions = computed(() => ({
+  animation: 200,
+  group: 'conversations',
+  disabled: false,
+  ghostClass: 'sortable-ghost',
+  dragClass: 'sortable-drag',
+  chosenClass: 'sortable-chosen',
+  fallbackOnBody: true,
+  forceFallback: true,
+  invertSwap: true,
+  emptyInsertThreshold: 120,
+  scrollSensitivity: 100,
+  scrollSpeed: 20,
+  swapThreshold: 0.65,
+}));
+
+const onDragChange = event => {
+  if (event.added) {
+    const { element } = event.added;
     store.dispatch('crmPipeline/moveConversation', {
       conversationId: element.id,
       fromStageId: element.pipeline_stage_id,
@@ -49,151 +62,110 @@ const onDragChange = evt => {
     });
   }
 };
-
-const handleScroll = e => {
-  const { scrollTop, scrollHeight, clientHeight } = e.target;
-  if (scrollHeight - scrollTop <= clientHeight + 100) {
-    const meta = store.getters['crmPipeline/getMetaByStage'](props.stage.id);
-    if (meta && meta.current_page < meta.total_pages) {
-      store.dispatch('crmPipeline/fetchConversations', {
-        stageId: props.stage.id,
-        page: meta.current_page + 1,
-      });
-    }
-  }
-};
-
-const renameStage = () => {
-  const name = window.prompt('Novo nome da etapa:', props.stage.name);
-  if (name && name !== props.stage.name) {
-    store.dispatch('crmPipeline/updateStage', {
-      stageId: props.stage.id,
-      name,
-    });
-  }
-};
-
-const deleteStage = () => {
-  if (window.confirm('Tem certeza que deseja excluir esta etapa?')) {
-    store.dispatch('crmPipeline/deleteStage', props.stage.id);
-  }
-};
-
-onMounted(() => {
-  if (conversations.value.length === 0) {
-    store.dispatch('crmPipeline/fetchConversations', {
-      stageId: props.stage.id,
-      page: 1,
-    });
-  }
-});
 </script>
 
 <template>
   <div
-    class="flex flex-col flex-shrink-0 w-80 bg-n-slate-2 rounded-xl p-2 max-h-full transition-all group/column"
+    class="flex flex-col w-[320px] h-full bg-slate-50/50 dark:bg-slate-900/30 rounded-2xl border border-slate-200/60 dark:border-slate-800/60 flex-shrink-0"
   >
-    <div class="flex items-center justify-between px-3 py-4 mb-1">
-      <div class="flex items-center gap-2.5 min-w-0">
-        <h2
-          class="text-sm font-bold text-n-slate-12 truncate uppercase tracking-tight"
+    <!-- Column Header -->
+    <div
+      class="p-4 flex items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60 bg-white/50 dark:bg-slate-800/50 rounded-t-2xl"
+    >
+      <div class="flex items-center gap-2 overflow-hidden">
+        <div
+          class="w-2 h-6 rounded-full"
+          :style="{ backgroundColor: stage.color || '#cbd5e1' }"
+        />
+        <h3
+          class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate"
         >
           {{ stage.name }}
-        </h2>
-        <div
-          class="px-2 py-0.5 text-[10px] bg-n-alpha-2 text-n-slate-11 rounded-md font-bold border border-n-weak"
+        </h3>
+        <span
+          class="px-2 py-0.5 rounded-full bg-slate-200/50 dark:bg-slate-700/50 text-[10px] font-bold text-slate-500 dark:text-slate-400"
         >
-          {{ totalCount }}
-        </div>
+          {{ stageCount }}
+        </span>
       </div>
-      
-      <Popover @click.stop>
-        <template #trigger>
-          <button class="p-1 hover:bg-n-alpha-1 rounded-lg transition-colors text-n-slate-10 hover:text-n-slate-12">
-            <i class="i-lucide-more-horizontal w-4 h-4" />
-          </button>
-        </template>
-        <template #content>
-          <div class="bg-n-solid-1 border border-n-weak rounded-xl shadow-2xl p-1 min-w-[140px] z-50">
-            <button 
-              class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-n-slate-12 hover:bg-n-alpha-1 rounded-lg transition-colors"
-              @click="renameStage"
-            >
-              <i class="i-lucide-pencil w-3.5 h-3.5" />
-              Renomear Etapa
-            </button>
-            <div class="h-px bg-n-weak my-1" />
-            <button 
-              class="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-n-ruby-9 hover:bg-n-ruby-9/10 rounded-lg transition-colors"
-              @click="deleteStage"
-            >
-              <i class="i-lucide-trash-2 w-3.5 h-3.5" />
-              Excluir Etapa
-            </button>
-          </div>
-        </template>
-      </Popover>
+      <NextButton ghost xs slate icon="i-lucide-grip-vertical" disabled />
     </div>
 
-    <div
-      ref="scrollContainer"
-      class="flex-1 overflow-y-auto overflow-x-hidden px-1 custom-scrollbar"
-      @scroll="handleScroll"
-    >
+    <!-- Draggable Area -->
+    <div class="flex-1 min-h-0 relative">
       <draggable
         v-model="conversations"
-        group="conversations"
+        v-bind="dragOptions"
+        class="h-full overflow-y-auto overflow-x-hidden p-3 flex flex-col gap-2 custom-scrollbar"
         item-key="id"
-        class="min-h-[150px] pb-20"
-        ghost-class="opacity-40"
-        drag-class="rotate-[2deg] scale-105 shadow-xl !z-[9999]"
-        :animation="200"
-        :delay="0"
-        :disabled="false"
-        :force-fallback="true"
-        :fallback-on-body="true"
         @change="onDragChange"
       >
         <template #item="{ element }">
-          <div class="mb-3 last:mb-0">
-            <DealCard
-              :conversation="element"
-              @select="$emit('select', $event)"
-            />
-          </div>
+          <DealCard :conversation="element" />
         </template>
       </draggable>
 
-      <div v-if="isLoading" class="space-y-3">
-        <DealCardSkeleton v-for="i in 3" :key="i" />
-      </div>
+      <!-- Empty State -->
       <div
-        v-else-if="!conversations.length"
-        class="flex items-center justify-center px-4 py-10 text-center text-sm text-n-slate-10"
+        v-if="!conversations.length && !isLoading"
+        class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none opacity-40"
       >
-        {{ $t('CRM.EMPTY_STAGE') }}
+        <div
+          class="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-2"
+        >
+          <span class="i-lucide-layout-list text-xl text-slate-400" />
+        </div>
+        <p class="text-[11px] font-medium text-slate-400">
+          {{ t('CRM.NO_LEADS_HERE') }}
+        </p>
+      </div>
+
+      <!-- Loading State -->
+      <div v-if="isLoading" class="p-4 flex flex-col gap-3">
+        <div
+          v-for="i in 3"
+          :key="i"
+          class="h-24 bg-white/50 dark:bg-slate-800/50 rounded-xl animate-pulse border border-slate-100 dark:border-slate-700"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.list-complete-enter-active,
-.list-complete-leave-active {
-  transition: all 0.3s ease;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
 }
-
-.list-complete-enter-from,
-.list-complete-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #94a3b8;
 }
 
 .sortable-ghost {
-  @apply bg-n-slate-3 border-dashed border-2 border-n-slate-4 shadow-none opacity-40 rounded-xl;
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.3);
+  opacity: 0.5;
 }
 
 .sortable-drag {
-  @apply shadow-2xl scale-[1.02] rotate-1 !z-[9999] cursor-grabbing !pointer-events-none;
+  z-index: 1000;
+  transform: rotate(2deg) scale(1.05);
+  box-shadow:
+    0 25px 50px -12px rgba(15, 23, 42, 0.35),
+    0 10px 20px -10px rgba(15, 23, 42, 0.25);
+}
+
+:global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+:global(.dark) .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #64748b;
 }
 </style>

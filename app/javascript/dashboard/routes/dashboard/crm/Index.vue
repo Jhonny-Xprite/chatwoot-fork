@@ -26,7 +26,6 @@ const isLoading = computed(
 );
 
 onMounted(async () => {
-  const pipelinesCount = store.getters['crmPipeline/getAllPipelines'].length;
   const initialPipelineId = await store.dispatch('crmPipeline/fetchPipelines');
 
   // Only fetch stages if we don't have them or it's a first load
@@ -41,6 +40,16 @@ const unsubscribe = store.subscribeAction(action => {
   }
   if (action.type === 'updateConversation') {
     store.dispatch('crmPipeline/updateConversation', action.payload);
+  }
+  if (action.type === 'addConversation') {
+    // Force a refresh or specific add for CRM
+    const activePipelineId = store.state.crmPipeline.activePipelineId;
+
+    // If the conversation belongs to the active pipeline, we should handle it
+    // For now, refreshing stages is the safest way to ensure correct column placement
+    if (activePipelineId) {
+      store.dispatch('crmPipeline/fetchStages', activePipelineId);
+    }
   }
 });
 
@@ -60,6 +69,7 @@ const onDealSelect = deal => {
 };
 
 const createPipeline = async () => {
+  // eslint-disable-next-line no-alert
   const name = prompt('Nome da nova pipeline:');
   if (name) {
     try {
@@ -143,3 +153,10 @@ const createPipeline = async () => {
     </main>
   </div>
 </template>
+
+<style scoped>
+/* Ensure the board fills the screen correctly without double scrollbars */
+:deep(.draggable-container) {
+  height: 100%;
+}
+</style>
