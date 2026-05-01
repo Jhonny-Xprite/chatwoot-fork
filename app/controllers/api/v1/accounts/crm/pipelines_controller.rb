@@ -40,11 +40,13 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   end
 
   def destroy
-    Rails.logger.info "[CRM] Excluindo pipeline ##{@pipeline.id} da conta #{current_account.id}"
     authorize @pipeline
-    @pipeline.destroy
-    Rails.logger.info "[CRM] Pipeline ##{@pipeline.id} removido."
+    @pipeline.destroy!
     head :no_content
+  rescue ActiveRecord::InvalidForeignKey => e
+    render json: { error: "Não é possível excluir esta pipeline porque existem registros associados que não puderam ser migrados. Detalhes: #{e.message}" }, status: :unprocessable_entity
+  rescue StandardError => e
+    render json: { error: e.message }, status: :internal_server_error
   end
 
   private

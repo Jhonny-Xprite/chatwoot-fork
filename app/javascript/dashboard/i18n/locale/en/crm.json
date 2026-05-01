@@ -104,6 +104,7 @@
       "UPDATE_STAGES_SUCCESS": "Stages updated successfully",
       "UPDATE_STAGES_ERROR": "Error updating stages",
       "DELETE_PIPELINE_SUCCESS": "Pipeline deleted successfully",
+      "DELETE_PIPELINE_ERROR": "An error occurred while trying to delete the pipeline.",
       "DELETE_STAGE_SUCCESS": "Stage deleted successfully",
       "DEFAULT_PIPELINE_TITLE": "Default pipeline",
       "DEFAULT_PIPELINE_DESCRIPTION": "Choose the default pipeline from the pipelines tab so new conversations land in the right board automatically.",

@@ -83,27 +83,35 @@ const stagesList = computed({
 
 <style scoped>
 .custom-horizontal-scrollbar::-webkit-scrollbar {
-  height: 8px;
+  height: 10px;
 }
 .custom-horizontal-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--n-alpha-1);
+  border-radius: 9999px;
 }
 .custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--n-slate-3);
-  border: 4px solid var(--n-alpha-1);
+  background: var(--n-slate-4);
+  border: 2px solid transparent;
+  background-clip: content-box;
   border-radius: 9999px;
 }
 .custom-horizontal-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: var(--n-slate-4);
+  background: var(--n-slate-5);
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+:global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-track {
+  background: var(--n-slate-1);
 }
 
 :global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--n-slate-2);
-  border-color: var(--n-slate-1);
+  background: var(--n-slate-3);
+  border-color: transparent;
 }
 
 :global(.dark) .custom-horizontal-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: var(--n-slate-3);
+  background: var(--n-slate-4);
 }
 
 /* Ensure the board fills the screen correctly without double scrollbars */

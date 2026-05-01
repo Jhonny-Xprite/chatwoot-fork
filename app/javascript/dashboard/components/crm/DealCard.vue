@@ -8,6 +8,7 @@ import CardPriorityIcon from 'dashboard/components-next/Conversation/Conversatio
 import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
 import { getInboxIconByType } from 'dashboard/helper/inbox';
+import { dynamicTime, shortTimestamp } from 'shared/helpers/timeHelper';
 
 const props = defineProps({
   conversation: {
@@ -89,10 +90,7 @@ const lastMessageTime = computed(() => {
     props.conversation.updated_at;
   if (!time) return '';
 
-  return new Date(time * 1000).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return shortTimestamp(dynamicTime(time));
 });
 
 const lastMessagePreview = computed(() => {
@@ -102,14 +100,20 @@ const lastMessagePreview = computed(() => {
 
   return t('CRM.NO_MESSAGES_YET');
 });
+
+const leadScore = computed(() => contact.value.lead_score || 0);
+const isHotLead = computed(() => leadScore.value >= 70);
 </script>
 
 <template>
   <div
     role="button"
     tabindex="0"
-    class="group relative cursor-pointer select-none rounded-xl border border-n-slate-3 bg-n-alpha-3 hover:-translate-y-0.5 hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1 dark:hover:border-n-brand-primary/50"
-    :class="viewPrefs.density === 'compact' ? 'p-2 gap-2' : 'p-3 gap-3'"
+    class="group relative cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-n-brand-primary/40 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
+    :class="[
+      viewPrefs.density === 'compact' ? 'p-3 gap-3' : 'p-4 gap-4',
+      isHotLead ? 'ring-1 ring-n-brand-primary/20' : '',
+    ]"
     @click="emit('select', conversation)"
     @keydown.enter.prevent="emit('select', conversation)"
     @keydown.space.prevent="emit('select', conversation)"
@@ -140,17 +144,29 @@ const lastMessagePreview = computed(() => {
           <div class="flex items-center justify-between gap-1">
             <h4
               class="truncate font-bold text-n-slate-12 transition-colors group-hover:text-n-brand-primary"
-              :class="
-                viewPrefs.density === 'compact' ? 'text-xs' : 'text-[13px]'
-              "
+              :class="viewPrefs.density === 'compact' ? 'text-xs' : 'text-sm'"
             >
               {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
             </h4>
-            <span
-              class="whitespace-nowrap text-[10px] font-medium text-n-slate-10"
-            >
-              {{ lastMessageTime }}
-            </span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <div
+                v-if="leadScore > 0"
+                class="flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-black"
+                :class="
+                  isHotLead
+                    ? 'bg-n-brand-primary-alpha-1 text-n-brand-primary'
+                    : 'bg-n-slate-2 text-n-slate-11'
+                "
+              >
+                <i v-if="isHotLead" class="i-lucide-flame text-[10px]" />
+                {{ leadScore }}
+              </div>
+              <span
+                class="whitespace-nowrap text-[10px] font-medium text-n-slate-10"
+              >
+                {{ lastMessageTime }}
+              </span>
+            </div>
           </div>
           <p
             class="truncate font-medium text-n-slate-11"
@@ -207,10 +223,10 @@ const lastMessagePreview = computed(() => {
 
       <div
         v-if="viewPrefs.showLastMessage"
-        class="rounded-xl border border-n-slate-2 bg-n-alpha-2 px-2.5 py-2 text-[11px] leading-4 text-n-slate-11"
+        class="rounded-2xl border border-n-slate-2 bg-n-alpha-1 px-3 py-2.5 text-[11px] leading-relaxed text-n-slate-11 transition-colors"
         :class="
           showReplyNeeded
-            ? 'border-n-brand-primary/30 bg-n-brand-primary-alpha-1 text-n-slate-12'
+            ? 'border-n-brand-primary/20 bg-n-brand-primary-alpha-1/40 text-n-slate-12 shadow-sm'
             : ''
         "
       >
@@ -225,10 +241,9 @@ const lastMessagePreview = computed(() => {
         </p>
       </div>
 
-      <!-- Dynamic Custom Attributes -->
       <div
         v-if="dynamicAttributes.length"
-        class="flex flex-col gap-1.5 rounded-xl border border-n-slate-2 bg-n-alpha-1/30 p-2.5"
+        class="flex flex-col gap-2 rounded-2xl border border-n-slate-2 bg-n-alpha-1/20 p-3"
       >
         <div
           v-for="attr in dynamicAttributes"
@@ -266,20 +281,20 @@ const lastMessagePreview = computed(() => {
         </div>
 
         <div
-          class="flex items-center gap-1"
+          class="flex items-center gap-1.5"
           :class="{ 'ml-auto': !viewPrefs.showAssignee }"
         >
           <button
             v-if="contact.id"
             type="button"
-            class="rounded-md px-2 py-1 text-[10px] font-semibold text-n-slate-11 hover:bg-n-slate-2"
+            class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-n-slate-11 transition-colors hover:bg-n-slate-2 dark:hover:bg-n-slate-2"
             @click.stop="emit('selectContact', conversation)"
           >
             {{ t('CRM.OPEN_CONTACT') }}
           </button>
           <button
             type="button"
-            class="rounded-md px-2 py-1 text-[10px] font-semibold text-n-brand-primary hover:bg-n-brand-primary-alpha-1"
+            class="rounded-lg bg-n-brand-primary-alpha-1 px-2.5 py-1.5 text-[10px] font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2"
             @click.stop="emit('select', conversation)"
           >
             {{ t('CRM.OPEN_CONVERSATION') }}

@@ -80,6 +80,7 @@
       "DELETE_PIPELINE": "Excluir pipeline",
       "DELETE_PIPELINE_CONFIRM": "Excluir esta pipeline? As conversas em seus estágios podem perder seu posicionamento no painel.",
       "DELETE_PIPELINE_SUCCESS": "Pipeline excluída com sucesso.",
+      "DELETE_PIPELINE_ERROR": "Houve um erro ao tentar excluir a pipeline.",
       "UPDATE_PIPELINE_SUCCESS": "Pipeline salva com sucesso.",
       "UPDATE_PIPELINE_ERROR": "Erro ao atualizar pipeline.",
       "STAGES_TITLE": "Estágios",

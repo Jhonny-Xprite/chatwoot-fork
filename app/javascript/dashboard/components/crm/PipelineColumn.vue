@@ -138,7 +138,7 @@ const onDragChange = event => {
 
 <style scoped>
 .custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;

@@ -155,7 +155,9 @@ const confirmDeletePipeline = async () => {
     deletePipelineDialogRef.value?.close();
     useAlert(t('CRM.SETTINGS.DELETE_PIPELINE_SUCCESS'));
   } catch (error) {
-    useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
+    const errorMessage =
+      error.response?.data?.error || t('CRM.SETTINGS.DELETE_PIPELINE_ERROR');
+    useAlert(errorMessage);
   }
 };
 
