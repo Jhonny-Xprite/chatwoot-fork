@@ -10,7 +10,6 @@ import { useAlert } from 'dashboard/composables';
 
 const store = useStore();
 const { t } = useI18n();
-const { showAlert } = useAlert();
 
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
 const currentStages = computed(() => store.getters['crmPipeline/getStages']);
@@ -93,10 +92,10 @@ const createPipeline = async () => {
 
     if (pipelineId) {
       selectedPipelineId.value = pipelineId;
-      showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
+      useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
     }
   } catch (error) {
-    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
+    useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
   }
 };
 
@@ -108,9 +107,9 @@ const savePipeline = async () => {
       pipelineId: activePipeline.value.id,
       pipeline: { ...pipelineForm },
     });
-    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
+    useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
   } catch (error) {
-    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
+    useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
   }
 };
 
@@ -128,9 +127,9 @@ const confirmDeletePipeline = async () => {
     selectedPipelineId.value = nextPipelineId || null;
     pendingDeletePipelineId.value = null;
     deletePipelineDialogRef.value?.close();
-    showAlert(t('CRM.SETTINGS.DELETE_PIPELINE_SUCCESS'));
+    useAlert(t('CRM.SETTINGS.DELETE_PIPELINE_SUCCESS'));
   } catch (error) {
-    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
+    useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
   }
 };
 
@@ -147,9 +146,9 @@ const createStage = async () => {
     newStage.color = '#14B8A6';
     newStage.active = true;
     syncStageDrafts();
-    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
+    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
   } catch (error) {
-    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
+    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
   }
 };
 
@@ -159,9 +158,9 @@ const saveStages = async () => {
       pipelineId: Number(selectedPipelineId.value),
       stages: stageDrafts.value,
     });
-    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
+    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
   } catch (error) {
-    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
+    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
   }
 };
 
@@ -179,9 +178,9 @@ const confirmDeleteStage = async () => {
     pendingDeleteStageId.value = null;
     deleteStageDialogRef.value?.close();
     syncStageDrafts();
-    showAlert(t('CRM.SETTINGS.DELETE_STAGE_SUCCESS'));
+    useAlert(t('CRM.SETTINGS.DELETE_STAGE_SUCCESS'));
   } catch (error) {
-    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
+    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
   }
 };
 </script>
