@@ -6,8 +6,11 @@ import draggable from 'vuedraggable';
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 
+import { useAlert } from 'dashboard/composables';
+
 const store = useStore();
 const { t } = useI18n();
+const { showAlert } = useAlert();
 
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
 const currentStages = computed(() => store.getters['crmPipeline/getStages']);
@@ -23,7 +26,6 @@ const deletePipelineDialogRef = ref(null);
 const deleteStageDialogRef = ref(null);
 const pendingDeletePipelineId = ref(null);
 const pendingDeleteStageId = ref(null);
-const isReordering = ref(false);
 
 const newStage = reactive({
   name: '',
@@ -50,11 +52,20 @@ const syncPipelineForm = pipeline => {
   pipelineForm.is_default = pipeline?.is_default ?? false;
 };
 
+const syncStageDrafts = () => {
+  stageDrafts.value = currentStages.value.map(stage => ({ ...stage }));
+};
+
 onMounted(async () => {
-  const pipelineId = await store.dispatch('crmPipeline/fetchPipelines');
-  if (pipelineId) {
-    selectedPipelineId.value = pipelineId;
-    await store.dispatch('crmPipeline/fetchStages', pipelineId);
+  await store.dispatch('crmPipeline/fetchPipelines');
+  if (activePipeline.value) {
+    selectedPipelineId.value = activePipeline.value.id;
+    await store.dispatch('crmPipeline/fetchStages', activePipeline.value.id);
+    syncStageDrafts();
+  } else if (pipelines.value.length) {
+    selectedPipelineId.value = pipelines.value[0].id;
+    await store.dispatch('crmPipeline/fetchStages', pipelines.value[0].id);
+    syncStageDrafts();
   }
 });
 
@@ -62,38 +73,43 @@ watch(activePipeline, pipeline => {
   syncPipelineForm(pipeline);
 });
 
-watch(currentStages, stages => {
-  if (!isReordering.value) {
-    stageDrafts.value = stages.map(stage => ({ ...stage }));
-  }
-});
-
 watch(selectedPipelineId, async pipelineId => {
   if (!pipelineId) return;
   await store.dispatch('crmPipeline/fetchStages', Number(pipelineId));
+  syncStageDrafts();
 });
 
 const createPipeline = async () => {
   if (!createPipelineName.value.trim()) return;
 
-  const pipelineId = await store.dispatch(
-    'crmPipeline/createPipeline',
-    createPipelineName.value.trim()
-  );
-  createPipelineName.value = '';
+  try {
+    const pipelineId = await store.dispatch(
+      'crmPipeline/createPipeline',
+      createPipelineName.value.trim()
+    );
+    createPipelineName.value = '';
 
-  if (pipelineId) {
-    selectedPipelineId.value = pipelineId;
+    if (pipelineId) {
+      selectedPipelineId.value = pipelineId;
+      showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
+    }
+  } catch (error) {
+    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
   }
 };
 
 const savePipeline = async () => {
   if (!activePipeline.value) return;
 
-  await store.dispatch('crmPipeline/updatePipeline', {
-    pipelineId: activePipeline.value.id,
-    pipeline: { ...pipelineForm },
-  });
+  try {
+    await store.dispatch('crmPipeline/updatePipeline', {
+      pipelineId: activePipeline.value.id,
+      pipeline: { ...pipelineForm },
+    });
+    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
+  } catch (error) {
+    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
+  }
 };
 
 const openDeletePipelineDialog = pipelineId => {
@@ -102,55 +118,48 @@ const openDeletePipelineDialog = pipelineId => {
 };
 
 const confirmDeletePipeline = async () => {
-  const nextPipelineId = await store.dispatch(
-    'crmPipeline/deletePipeline',
-    pendingDeletePipelineId.value
-  );
-  selectedPipelineId.value = nextPipelineId || null;
-  pendingDeletePipelineId.value = null;
-  deletePipelineDialogRef.value?.close();
+  try {
+    const nextPipelineId = await store.dispatch(
+      'crmPipeline/deletePipeline',
+      pendingDeletePipelineId.value
+    );
+    selectedPipelineId.value = nextPipelineId || null;
+    pendingDeletePipelineId.value = null;
+    deletePipelineDialogRef.value?.close();
+    showAlert(t('CRM.SETTINGS.DELETE_PIPELINE_SUCCESS'));
+  } catch (error) {
+    showAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
+  }
 };
 
 const createStage = async () => {
   if (!selectedPipelineId.value || !newStage.name.trim()) return;
 
-  await store.dispatch('crmPipeline/createStage', {
-    pipelineId: Number(selectedPipelineId.value),
-    stage: { ...newStage, name: newStage.name.trim() },
-  });
-
-  newStage.name = '';
-  newStage.color = '#14B8A6';
-  newStage.active = true;
-};
-
-const saveStage = async stage => {
-  await store.dispatch('crmPipeline/updateStage', {
-    pipelineId: Number(selectedPipelineId.value),
-    stageId: stage.id,
-    stage: {
-      name: stage.name,
-      color: stage.color,
-      active: stage.active,
-      position: stage.position,
-    },
-  });
-};
-
-const onDragChange = async () => {
-  isReordering.value = true;
   try {
-    const updatedStages = stageDrafts.value.map((stage, index) => ({
-      ...stage,
-      position: index + 1,
-    }));
+    await store.dispatch('crmPipeline/createStage', {
+      pipelineId: Number(selectedPipelineId.value),
+      stage: { ...newStage, name: newStage.name.trim() },
+    });
 
+    newStage.name = '';
+    newStage.color = '#14B8A6';
+    newStage.active = true;
+    syncStageDrafts();
+    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
+  } catch (error) {
+    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
+  }
+};
+
+const saveStages = async () => {
+  try {
     await store.dispatch('crmPipeline/reorderStages', {
       pipelineId: Number(selectedPipelineId.value),
-      stages: updatedStages,
+      stages: stageDrafts.value,
     });
-  } finally {
-    isReordering.value = false;
+    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
+  } catch (error) {
+    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
   }
 };
 
@@ -160,12 +169,18 @@ const openDeleteStageDialog = stageId => {
 };
 
 const confirmDeleteStage = async () => {
-  await store.dispatch('crmPipeline/deleteStage', {
-    pipelineId: Number(selectedPipelineId.value),
-    stageId: pendingDeleteStageId.value,
-  });
-  pendingDeleteStageId.value = null;
-  deleteStageDialogRef.value?.close();
+  try {
+    await store.dispatch('crmPipeline/deleteStage', {
+      pipelineId: Number(selectedPipelineId.value),
+      stageId: pendingDeleteStageId.value,
+    });
+    pendingDeleteStageId.value = null;
+    deleteStageDialogRef.value?.close();
+    syncStageDrafts();
+    showAlert(t('CRM.SETTINGS.DELETE_STAGE_SUCCESS'));
+  } catch (error) {
+    showAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
+  }
 };
 </script>
 
@@ -340,11 +355,10 @@ const confirmDeleteStage = async () => {
                 class="space-y-3"
                 item-key="id"
                 handle=".drag-handle"
-                @change="onDragChange"
               >
                 <template #item="{ element: stage }">
                   <div
-                    class="grid gap-3 rounded-xl border border-n-slate-3 bg-n-alpha-3 p-4 md:grid-cols-[24px_1.3fr_120px_100px_1fr]"
+                    class="grid gap-3 rounded-xl border border-n-slate-3 bg-n-alpha-3 p-4 md:grid-cols-[24px_1.3fr_120px_100px_48px]"
                   >
                     <div
                       class="drag-handle flex cursor-grab items-center justify-center text-n-slate-8 active:cursor-grabbing hover:text-n-slate-11"
@@ -367,26 +381,28 @@ const confirmDeleteStage = async () => {
                       <input v-model="stage.active" type="checkbox" />
                       {{ t('CRM.SETTINGS.ACTIVE') }}
                     </label>
-                    <div class="flex gap-2">
+                    <div class="flex items-center justify-end">
                       <NextButton
-                        color="blue"
-                        size="sm"
-                        icon="i-lucide-save"
-                        :label="t('CRM.SAVE')"
-                        @click="saveStage(stage)"
-                      />
-                      <NextButton
-                        variant="outline"
+                        ghost
                         color="ruby"
                         size="sm"
                         icon="i-lucide-trash-2"
-                        :label="t('CRM.SETTINGS.DELETE_STAGE')"
                         @click="openDeleteStageDialog(stage.id)"
                       />
                     </div>
                   </div>
                 </template>
               </draggable>
+
+              <div v-if="stageDrafts.length" class="flex justify-end pt-4">
+                <NextButton
+                  color="blue"
+                  size="sm"
+                  icon="i-lucide-save"
+                  :label="t('CRM.SETTINGS.SAVE_STAGES')"
+                  @click="saveStages"
+                />
+              </div>
             </div>
           </div>
         </div>

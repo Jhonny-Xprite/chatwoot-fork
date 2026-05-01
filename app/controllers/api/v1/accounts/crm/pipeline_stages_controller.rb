@@ -30,7 +30,9 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   def reorder
     authorize @pipeline, :update?
     params[:stages].each do |stage_param|
-      @pipeline.stages.find(stage_param[:id]).update!(position: stage_param[:position])
+      @pipeline.stages
+               .find(stage_param[:id])
+               .update!(stage_param.permit(:position, :name, :color, :active))
     end
     head :no_content
   end

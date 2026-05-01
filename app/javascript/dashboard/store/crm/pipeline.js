@@ -476,6 +476,9 @@ const actions = {
     const stagesPayload = stages.map((stage, index) => ({
       id: stage.id,
       position: index,
+      name: stage.name,
+      color: stage.color,
+      active: stage.active,
     }));
     await PipelineAPI.reorderStages(targetPipelineId, stagesPayload);
     await dispatch('fetchStages', targetPipelineId);
