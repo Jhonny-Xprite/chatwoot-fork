@@ -9,6 +9,11 @@ import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabe
 
 import { getInboxIconByType } from 'dashboard/helper/inbox';
 import { dynamicTime, shortTimestamp } from 'shared/helpers/timeHelper';
+import Popover from 'dashboard/components-next/popover/Popover.vue';
+import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
+import InlineInput from 'dashboard/components-next/inline-input/InlineInput.vue';
+import TagMultiSelectComboBox from 'dashboard/components-next/combobox/TagMultiSelectComboBox.vue';
 
 const props = defineProps({
   conversation: {
@@ -101,8 +106,110 @@ const lastMessagePreview = computed(() => {
   return t('CRM.NO_MESSAGES_YET');
 });
 
+const formattedLastMessagePreview = computed(() => {
+  return `“${lastMessagePreview.value}”`;
+});
+
 const leadScore = computed(() => contact.value.lead_score || 0);
 const isHotLead = computed(() => leadScore.value >= 70);
+
+const agents = computed(() => store.getters['agents/getAgents']);
+const agentOptions = computed(() =>
+  agents.value.map(agent => ({
+    label: agent.name,
+    value: agent.id,
+    thumbnail: agent.thumbnail,
+  }))
+);
+
+const priorityOptions = [
+  {
+    label: t('CONVERSATION.PRIORITY.OPTIONS.NONE'),
+    value: null,
+    icon: 'i-lucide-minus',
+  },
+  {
+    label: t('CONVERSATION.PRIORITY.OPTIONS.URGENT'),
+    value: 'urgent',
+    icon: 'i-lucide-alert-circle',
+    color: 'text-n-ruby-9',
+  },
+  {
+    label: t('CONVERSATION.PRIORITY.OPTIONS.HIGH'),
+    value: 'high',
+    icon: 'i-lucide-chevron-up',
+    color: 'text-n-amber-9',
+  },
+  {
+    label: t('CONVERSATION.PRIORITY.OPTIONS.MEDIUM'),
+    value: 'medium',
+    icon: 'i-lucide-minus',
+    color: 'text-n-teal-9',
+  },
+  {
+    label: t('CONVERSATION.PRIORITY.OPTIONS.LOW'),
+    value: 'low',
+    icon: 'i-lucide-chevron-down',
+    color: 'text-n-slate-9',
+  },
+];
+
+const onPriorityChange = async priority => {
+  try {
+    await store.dispatch('assignPriority', {
+      conversationId: props.conversation.id,
+      priority,
+    });
+  } catch (error) {
+    // Error handled by store
+  }
+};
+
+const onAssigneeChange = async agentId => {
+  try {
+    await store.dispatch('assignAgent', {
+      conversationId: props.conversation.id,
+      agentId,
+    });
+  } catch (error) {
+    // Error handled by store
+  }
+};
+
+const allLabels = computed(() => store.getters['labels/getLabels']);
+const labelOptions = computed(() =>
+  allLabels.value.map(l => ({ label: l.title, value: l.title }))
+);
+
+const onLabelsChange = async labels => {
+  try {
+    await store.dispatch('conversationLabels/updateConversationLabels', {
+      conversationId: props.conversation.id,
+      labels,
+    });
+  } catch (error) {
+    // Error
+  }
+};
+
+const onAttributeUpdate = async (attr, newValue) => {
+  try {
+    const updatedAttrs = { [attr.key]: newValue };
+    if (attr.model === 'contact_attribute') {
+      await store.dispatch('contacts/updateCustomAttributes', {
+        contactId: contact.value.id,
+        customAttributes: updatedAttrs,
+      });
+    } else {
+      await store.dispatch('updateCustomAttributes', {
+        conversationId: props.conversation.id,
+        customAttributes: updatedAttrs,
+      });
+    }
+  } catch (error) {
+    // Error
+  }
+};
 </script>
 
 <template>
@@ -113,6 +220,9 @@ const isHotLead = computed(() => leadScore.value >= 70);
     :class="[
       viewPrefs.density === 'compact' ? 'p-3 gap-3' : 'p-4 gap-4',
       isHotLead ? 'ring-1 ring-n-brand-primary/20' : '',
+      showReplyNeeded
+        ? 'bg-n-brand-primary-alpha-1/10 border-n-brand-primary-alpha-2'
+        : '',
     ]"
     @click="emit('select', conversation)"
     @keydown.enter.prevent="emit('select', conversation)"
@@ -134,12 +244,18 @@ const isHotLead = computed(() => leadScore.value >= 70);
         class="flex items-start"
         :class="viewPrefs.density === 'compact' ? 'gap-2' : 'gap-3'"
       >
-        <Avatar
-          :src="contact.thumbnail"
-          :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
-          :size="viewPrefs.density === 'compact' ? 32 : 40"
-          class="shadow-sm"
-        />
+        <div class="relative">
+          <Avatar
+            :src="contact.thumbnail"
+            :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
+            :size="viewPrefs.density === 'compact' ? 32 : 40"
+            class="shadow-sm transition-transform group-hover:scale-105"
+          />
+          <div
+            v-if="showReplyNeeded"
+            class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-n-brand-primary dark:border-n-slate-1 animate-pulse shadow-sm"
+          />
+        </div>
         <div class="min-w-0 flex-1">
           <div class="flex items-center justify-between gap-1">
             <h4
@@ -199,10 +315,29 @@ const isHotLead = computed(() => leadScore.value >= 70);
               <span :class="inboxIcon" class="text-xs" />
               <span class="max-w-[80px] truncate">{{ inboxName }}</span>
             </div>
-            <CardPriorityIcon
-              v-if="conversation.priority && viewPrefs.showPriority"
-              :priority="conversation.priority"
-            />
+            <Popover align="end">
+              <template #trigger>
+                <div
+                  class="cursor-pointer hover:scale-110 transition-transform"
+                >
+                  <CardPriorityIcon
+                    v-if="viewPrefs.showPriority"
+                    :priority="conversation.priority || 'none'"
+                  />
+                  <div
+                    v-else-if="!conversation.priority"
+                    class="i-lucide-flag text-n-slate-4 w-3 h-3"
+                  />
+                </div>
+              </template>
+              <template #content>
+                <SelectMenu
+                  :options="priorityOptions"
+                  :value="conversation.priority"
+                  @select="onPriorityChange"
+                />
+              </template>
+            </Popover>
           </div>
         </div>
       </div>
@@ -212,72 +347,100 @@ const isHotLead = computed(() => leadScore.value >= 70);
           (conversationLabels.length && viewPrefs.showLabels) ||
           (hasSlaPolicyId && viewPrefs.showSla)
         "
-        class="mt-1"
+        class="mt-1 flex items-center gap-1.5"
       >
-        <CardLabels :labels="conversationLabels">
+        <CardLabels :labels="conversationLabels" class="flex-1">
           <template v-if="hasSlaPolicyId && viewPrefs.showSla" #before>
             <SLACardLabel :chat="conversation" class="ltr:mr-1 rtl:ml-1" />
           </template>
         </CardLabels>
+        <Popover align="end">
+          <template #trigger>
+            <Button
+              variant="ghost"
+              color="slate"
+              size="xs"
+              icon="i-lucide-plus"
+              class="!p-1 h-5 w-5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+              @click.stop
+            />
+          </template>
+          <template #content>
+            <div class="p-2 w-64">
+              <TagMultiSelectComboBox
+                :options="labelOptions"
+                :model-value="conversationLabels"
+                @update:model-value="onLabelsChange"
+              />
+            </div>
+          </template>
+        </Popover>
       </div>
 
       <div
         v-if="viewPrefs.showLastMessage"
-        class="rounded-2xl border border-n-slate-2 bg-n-alpha-1 px-3 py-2.5 text-[11px] leading-relaxed text-n-slate-11 transition-colors"
-        :class="
-          showReplyNeeded
-            ? 'border-n-brand-primary/20 bg-n-brand-primary-alpha-1/40 text-n-slate-12 shadow-sm'
-            : ''
-        "
+        class="rounded-xl border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-2.5 py-2 text-[11px] leading-snug text-n-slate-11 group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors"
       >
-        <p
-          v-if="showReplyNeeded"
-          class="mb-1 text-[10px] font-bold uppercase tracking-wide text-n-brand-primary"
-        >
-          {{ t('CRM.REPLY_NEEDED') }}
-        </p>
-        <p class="line-clamp-2 break-words">
-          {{ lastMessagePreview }}
+        <p class="line-clamp-1 break-words italic">
+          {{ formattedLastMessagePreview }}
         </p>
       </div>
 
-      <div
-        v-if="dynamicAttributes.length"
-        class="flex flex-col gap-2 rounded-2xl border border-n-slate-2 bg-n-alpha-1/20 p-3"
-      >
+      <div v-if="dynamicAttributes.length" class="flex flex-wrap gap-1.5">
         <div
           v-for="attr in dynamicAttributes"
           :key="attr.key"
-          class="flex items-start justify-between gap-2 overflow-hidden"
+          class="flex items-center gap-1.5 rounded-md border border-n-slate-3 bg-n-slate-1 px-2 py-0.5 shadow-sm hover:border-n-brand-primary/40 transition-colors"
         >
           <span
-            class="shrink-0 text-[10px] font-bold uppercase tracking-tight text-n-slate-10"
+            class="text-[9px] font-black uppercase text-n-slate-9 tracking-tighter"
           >
             {{ attr.label }}
           </span>
-          <span class="truncate text-[10px] font-medium text-n-slate-12">
-            {{ attr.value }}
-          </span>
+          <InlineInput
+            :value="attr.value"
+            size="xs"
+            class="!text-[10px] !font-bold !p-0 !min-h-0 !border-none !bg-transparent"
+            @save="val => onAttributeUpdate(attr, val)"
+          />
         </div>
       </div>
 
       <div
         class="mt-1 flex items-center justify-between border-t border-n-slate-2 pt-2 dark:border-n-slate-2"
       >
-        <div
-          v-if="viewPrefs.showAssignee"
-          class="flex items-center gap-1.5 overflow-hidden"
-        >
-          <Avatar
-            v-if="assignee.id"
-            :src="assignee.thumbnail"
-            :name="assignee.name"
-            :size="18"
-            rounded-full
-          />
-          <span class="truncate text-[10px] font-bold text-n-slate-11">
-            {{ assignee.name || t('CRM.UNASSIGNED') }}
-          </span>
+        <div v-if="viewPrefs.showAssignee" class="flex-1">
+          <Popover align="start">
+            <template #trigger>
+              <div
+                class="flex items-center gap-1.5 cursor-pointer hover:bg-n-slate-2 p-1 rounded-lg transition-colors"
+              >
+                <Avatar
+                  v-if="assignee.id"
+                  :src="assignee.thumbnail"
+                  :name="assignee.name"
+                  :size="18"
+                  rounded-full
+                />
+                <div
+                  v-else
+                  class="w-[18px] h-[18px] rounded-full border border-dashed border-n-slate-4 flex items-center justify-center"
+                >
+                  <i class="i-lucide-user text-[10px] text-n-slate-10" />
+                </div>
+                <span class="truncate text-[10px] font-bold text-n-slate-11">
+                  {{ assignee.name || t('CRM.UNASSIGNED') }}
+                </span>
+              </div>
+            </template>
+            <template #content>
+              <SelectMenu
+                :options="agentOptions"
+                :value="assignee.id"
+                @select="onAssigneeChange"
+              />
+            </template>
+          </Popover>
         </div>
 
         <div
