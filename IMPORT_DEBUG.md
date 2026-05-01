@@ -138,6 +138,20 @@ Estas são as validações que podem causar erros:
 3. **app/controllers/api/v1/accounts/contacts_controller.rb**
    - Validação de mapeamento não-vazio
 
+4. **app/javascript/dashboard/components-next/Contacts/ContactsForm/ContactImportMapper.vue**
+   - Expandido dicionário AUTO_MAPPING_DICTIONARY com centenas de variações de nomes de coluna
+   - Suporte para `LeadFirstName`, `LeadLastName`, e múltiplas variações
+   - Suporte para formatos com espaços, sem espaços, com underscores
+   - Suporte para português e inglês
+   - Exemplo de mapeamentos automáticos agora suportados:
+     - `LeadFirstName` → `first_name`
+     - `LeadLastName` → `last_name`
+     - `LeadEmail` → `email`
+     - `LeadPhone` → `phone_number`
+     - `lead first name` → `first_name` (com espaço)
+     - `Lead Email Address` → `email`
+     - `Telefone_Celular` → `phone_number`
+
 ## Próximas Etapas
 
 Se tudo funcionar:
