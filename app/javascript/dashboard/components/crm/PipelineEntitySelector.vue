@@ -4,7 +4,7 @@ import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import ButtonV4 from 'dashboard/components-next/button/Button.vue';
 import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
-import { useToggle } from '@vueuse/core';
+import Popover from 'dashboard/components-next/popover/Popover.vue';
 
 const props = defineProps({
   conversation: {
@@ -15,9 +15,6 @@ const props = defineProps({
 
 const { t } = useI18n();
 const store = useStore();
-
-const [showPipelineDropdown, togglePipelineDropdown] = useToggle(false);
-const [showStageDropdown, toggleStageDropdown] = useToggle(false);
 
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
 const stages = computed(() => store.getters['crmPipeline/getStages']);
@@ -50,7 +47,8 @@ const pipelineMenuItems = computed(() => {
   return pipelines.value.map(p => ({
     label: p.name,
     value: p.id,
-    active: p.id === currentPipelineId.value,
+    action: 'select-pipeline',
+    isSelected: p.id === currentPipelineId.value,
   }));
 });
 
@@ -58,23 +56,23 @@ const stageMenuItems = computed(() => {
   return stages.value.map(s => ({
     label: s.name,
     value: s.id,
-    active: s.id === currentStageId.value,
+    action: 'select-stage',
+    isSelected: s.id === currentStageId.value,
     color: s.color,
   }));
 });
 
-const handlePipelineAction = async ({ value }) => {
+const handlePipelineAction = async ({ value }, hide) => {
   await store.dispatch('crmPipeline/fetchStages', value);
-  togglePipelineDropdown(false);
-  toggleStageDropdown(true);
+  hide();
 };
 
-const handleStageAction = async ({ value }) => {
+const handleStageAction = async ({ value }, hide) => {
   await store.dispatch('crmPipeline/moveConversation', {
     conversationId: props.conversation.id,
     toStageId: value,
   });
-  toggleStageDropdown(false);
+  hide();
 };
 
 const badgeStyle = computed(() => {
@@ -92,59 +90,57 @@ const badgeStyle = computed(() => {
 <template>
   <div class="flex items-center gap-1 ml-2 mr-1">
     <div class="relative flex items-center">
-      <!-- Icon/Cube Button -->
-      <ButtonV4
-        v-tooltip="
-          currentPipeline
-            ? `${t('CRM.PIPELINE')}: ${currentPipeline.name}`
-            : t('CRM.ADD_TO_PIPELINE')
-        "
-        size="xs"
-        variant="ghost"
-        color="slate"
-        icon="i-lucide-box"
-        :class="{ 'text-n-brand-primary': currentPipelineId }"
-        @click="togglePipelineDropdown()"
-      />
+      <!-- Pipeline Dropdown -->
+      <Popover align="start">
+        <ButtonV4
+          v-tooltip="
+            currentPipeline
+              ? `${t('CRM.PIPELINE')}: ${currentPipeline.name}`
+              : t('CRM.ADD_TO_PIPELINE')
+          "
+          size="xs"
+          variant="ghost"
+          color="slate"
+          icon="i-lucide-box"
+          :class="{ 'text-n-brand-primary': currentPipelineId }"
+        />
+        <template #content="{ hide }">
+          <DropdownMenu
+            :menu-items="pipelineMenuItems"
+            @action="handlePipelineAction($event, hide)"
+          />
+        </template>
+      </Popover>
 
       <!-- Stage Badge/Dropdown -->
-      <button
-        v-if="currentStageId && currentStage"
-        class="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all hover:brightness-95 active:scale-95 whitespace-nowrap"
-        :style="badgeStyle"
-        @click="toggleStageDropdown()"
-      >
-        <span
-          class="w-1.5 h-1.5 rounded-full"
-          :style="{ backgroundColor: currentStage.color }"
-        />
-        {{ currentStage.name }}
-        <i class="i-lucide-chevron-down size-3 opacity-70" />
-      </button>
+      <Popover v-if="currentPipelineId" align="start">
+        <button
+          v-if="currentStageId && currentStage"
+          class="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all hover:brightness-95 active:scale-95 whitespace-nowrap"
+          :style="badgeStyle"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full"
+            :style="{ backgroundColor: currentStage.color }"
+          />
+          {{ currentStage.name }}
+          <i class="i-lucide-chevron-down size-3 opacity-70" />
+        </button>
 
-      <button
-        v-else-if="currentPipelineId"
-        class="text-[10px] font-medium text-n-slate-11 hover:text-n-brand-primary transition-colors px-1"
-        @click="toggleStageDropdown()"
-      >
-        {{ t('CRM.SELECT_STAGE') }}
-      </button>
+        <button
+          v-else
+          class="text-[10px] font-medium text-n-slate-11 hover:text-n-brand-primary transition-colors px-1"
+        >
+          {{ t('CRM.SELECT_STAGE') }}
+        </button>
 
-      <!-- Pipeline Dropdown -->
-      <DropdownMenu
-        v-if="showPipelineDropdown"
-        :menu-items="pipelineMenuItems"
-        class="mt-1 left-0 top-full z-50 min-w-[160px]"
-        @action="handlePipelineAction"
-      />
-
-      <!-- Stage Dropdown -->
-      <DropdownMenu
-        v-if="showStageDropdown"
-        :menu-items="stageMenuItems"
-        class="mt-1 left-0 top-full z-50 min-w-[160px]"
-        @action="handleStageAction"
-      />
+        <template #content="{ hide }">
+          <DropdownMenu
+            :menu-items="stageMenuItems"
+            @action="handleStageAction($event, hide)"
+          />
+        </template>
+      </Popover>
     </div>
   </div>
 </template>
