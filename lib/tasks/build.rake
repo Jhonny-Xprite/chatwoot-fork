@@ -1,10 +1,16 @@
 # ref: https://github.com/rails/rails/issues/43906#issuecomment-1094380699
 # https://github.com/rails/rails/issues/43906#issuecomment-1099992310
 task before_assets_precompile: :environment do
-  # run a command which starts your packaging
-  system('pnpm install')
+  skip_pnpm_install = ActiveModel::Type::Boolean.new.cast(
+    ENV.fetch('SKIP_PRECOMPILE_PNPM_INSTALL', false)
+  )
+
+  unless skip_pnpm_install
+    system('pnpm install') || abort('pnpm install failed before assets:precompile')
+  end
+
   system('echo "-------------- Bulding SDK for Production --------------"')
-  system('pnpm run build:sdk')
+  system('pnpm run build:sdk') || abort('pnpm run build:sdk failed before assets:precompile')
   system('echo "-------------- Bulding App for Production --------------"')
 end
 

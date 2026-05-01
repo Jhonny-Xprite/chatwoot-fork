@@ -70,15 +70,14 @@ RUN bundle config set --local path "$BUNDLE_PATH" \
   && bundle config set --local retry "$BUNDLE_RETRY"
 
 # Do not install development or test gems in production
-RUN --mount=type=cache,target=/gems \
-  if [ "$RAILS_ENV" = "production" ]; then \
+RUN if [ "$RAILS_ENV" = "production" ]; then \
   bundle config set without 'development test'; bundle install; \
   else bundle install; \
   fi
 
 COPY package.json pnpm-lock.yaml ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-  pnpm install --frozen-lockfile --child-concurrency=2
+  HUSKY=0 CI=true pnpm install --frozen-lockfile --child-concurrency=2
 
 COPY . /app
 
