@@ -3,7 +3,9 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   before_action :set_stage, only: [:show, :update, :destroy]
 
   def index
-    @stages = @pipeline.stages
+    @stages = Rails.cache.fetch("pipeline_#{@pipeline.id}_stages", expires_in: 1.hour) do
+      @pipeline.stages.to_a
+    end
     authorize @stages
     render json: @stages
   end
@@ -12,6 +14,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
     @stage = @pipeline.stages.build(stage_params.merge(account_id: current_account.id))
     authorize @stage
     if @stage.save
+      Rails.cache.delete("pipeline_#{@pipeline.id}_stages")
       render json: @stage, status: :created
     else
       render json: @stage.errors, status: :unprocessable_entity
@@ -21,6 +24,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   def update
     authorize @stage
     if @stage.update(stage_params)
+      Rails.cache.delete("pipeline_#{@pipeline.id}_stages")
       render json: @stage
     else
       render json: @stage.errors, status: :unprocessable_entity
@@ -51,6 +55,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
       end
     end
 
+    Rails.cache.delete("pipeline_#{@pipeline.id}_stages")
     render json: @pipeline.stages
   rescue ActiveRecord::RecordNotFound => e
     render json: { error: e.message }, status: :not_found
@@ -61,6 +66,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   def destroy
     authorize @stage
     @stage.destroy
+    Rails.cache.delete("pipeline_#{@pipeline.id}_stages")
     head :no_content
   end
 

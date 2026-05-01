@@ -31,6 +31,10 @@
     "REPLY_NEEDED": "Reply needed",
     "OPEN_CONTACT": "Contact",
     "OPEN_CONVERSATION": "Conversation",
+    "MESSAGE_SENDER": {
+      "LEAD": "Lead",
+      "TEAM": "Team"
+    },
     "PIPELINE": "Pipeline",
     "SELECT_PIPELINE": "Select Pipeline",
     "SELECT_STAGE": "Select Stage",

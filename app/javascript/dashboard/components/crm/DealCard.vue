@@ -60,10 +60,18 @@ const dynamicAttributes = computed(() => {
 
       if (value === undefined || value === null || value === '') return null;
 
+      const options = (definition.attribute_values || []).map(opt => ({
+        label: opt,
+        value: opt,
+      }));
+
       return {
         label: definition.attribute_display_name,
         value,
         key: attr.key,
+        type: definition.attribute_type,
+        options,
+        model: attr.model,
       };
     })
     .filter(Boolean);
@@ -106,8 +114,15 @@ const lastMessagePreview = computed(() => {
   return t('CRM.NO_MESSAGES_YET');
 });
 
+const lastMessageSenderLabel = computed(() => {
+  if (!lastMessage.value) return '';
+  const isAgent = lastMessage.value.message_type === 1;
+  return isAgent ? t('CRM.MESSAGE_SENDER.TEAM') : t('CRM.MESSAGE_SENDER.LEAD');
+});
+
 const formattedLastMessagePreview = computed(() => {
-  return `“${lastMessagePreview.value}”`;
+  if (!lastMessage.value) return t('CRM.NO_MESSAGES_YET');
+  return `${lastMessageSenderLabel.value}: “${lastMessagePreview.value}”`;
 });
 
 const leadScore = computed(() => contact.value.lead_score || 0);
@@ -319,6 +334,7 @@ const onAttributeUpdate = async (attr, newValue) => {
               <template #trigger>
                 <div
                   class="cursor-pointer hover:scale-110 transition-transform"
+                  @click.stop
                 >
                   <CardPriorityIcon
                     v-if="viewPrefs.showPriority"
@@ -331,11 +347,13 @@ const onAttributeUpdate = async (attr, newValue) => {
                 </div>
               </template>
               <template #content>
-                <SelectMenu
-                  :options="priorityOptions"
-                  :value="conversation.priority"
-                  @select="onPriorityChange"
-                />
+                <div @click.stop>
+                  <SelectMenu
+                    :options="priorityOptions"
+                    :value="conversation.priority"
+                    @select="onPriorityChange"
+                  />
+                </div>
               </template>
             </Popover>
           </div>
@@ -366,7 +384,7 @@ const onAttributeUpdate = async (attr, newValue) => {
             />
           </template>
           <template #content>
-            <div class="p-2 w-64">
+            <div class="p-2 w-64" @click.stop>
               <TagMultiSelectComboBox
                 :options="labelOptions"
                 :model-value="conversationLabels"
@@ -391,13 +409,33 @@ const onAttributeUpdate = async (attr, newValue) => {
           v-for="attr in dynamicAttributes"
           :key="attr.key"
           class="flex items-center gap-1.5 rounded-md border border-n-slate-3 bg-n-slate-1 px-2 py-0.5 shadow-sm hover:border-n-brand-primary/40 transition-colors"
+          @click.stop
         >
           <span
             class="text-[9px] font-black uppercase text-n-slate-9 tracking-tighter"
           >
             {{ attr.label }}
           </span>
+          <Popover v-if="attr.type === 'list'" align="start">
+            <template #trigger>
+              <div
+                class="cursor-pointer text-[10px] font-bold text-n-slate-12 hover:text-n-brand-primary"
+              >
+                {{ attr.value }}
+              </div>
+            </template>
+            <template #content>
+              <div @click.stop>
+                <SelectMenu
+                  :options="attr.options"
+                  :value="attr.value"
+                  @select="val => onAttributeUpdate(attr, val)"
+                />
+              </div>
+            </template>
+          </Popover>
           <InlineInput
+            v-else
             :value="attr.value"
             size="xs"
             class="!text-[10px] !font-bold !p-0 !min-h-0 !border-none !bg-transparent"
@@ -414,6 +452,7 @@ const onAttributeUpdate = async (attr, newValue) => {
             <template #trigger>
               <div
                 class="flex items-center gap-1.5 cursor-pointer hover:bg-n-slate-2 p-1 rounded-lg transition-colors"
+                @click.stop
               >
                 <Avatar
                   v-if="assignee.id"
@@ -434,11 +473,13 @@ const onAttributeUpdate = async (attr, newValue) => {
               </div>
             </template>
             <template #content>
-              <SelectMenu
-                :options="agentOptions"
-                :value="assignee.id"
-                @select="onAssigneeChange"
-              />
+              <div @click.stop>
+                <SelectMenu
+                  :options="agentOptions"
+                  :value="assignee.id"
+                  @select="onAssigneeChange"
+                />
+              </div>
             </template>
           </Popover>
         </div>

@@ -2,12 +2,14 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   before_action :set_pipeline, only: [:show, :update, :destroy]
 
   def index
-    bootstrap_service = Crm::PipelineBootstrapService.new(account: current_account)
-    if current_account.feature_enabled?('crm')
-      bootstrap_service.perform!
-      bootstrap_service.heal_orphaned_conversations!
+    @pipelines = Rails.cache.fetch("account_#{current_account.id}_crm_pipelines", expires_in: 1.hour) do
+      bootstrap_service = Crm::PipelineBootstrapService.new(account: current_account)
+      if current_account.feature_enabled?('crm')
+        bootstrap_service.perform!
+        bootstrap_service.heal_orphaned_conversations!
+      end
+      current_account.crm_pipelines.to_a
     end
-    @pipelines = current_account.crm_pipelines
     authorize @pipelines
     render json: @pipelines
   end
@@ -18,14 +20,12 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   end
 
   def create
-    Rails.logger.info "[CRM] Criando novo pipeline para conta #{current_account.id}: #{pipeline_params[:name]}"
     @pipeline = current_account.crm_pipelines.build(pipeline_params)
     authorize @pipeline
     if @pipeline.save
-      Rails.logger.info "[CRM] Pipeline ##{@pipeline.id} criado com sucesso."
+      Rails.cache.delete("account_#{current_account.id}_crm_pipelines")
       render json: @pipeline, status: :created
     else
-      Rails.logger.warn "[CRM] Falha ao criar pipeline: #{@pipeline.errors.full_messages}"
       render json: @pipeline.errors, status: :unprocessable_entity
     end
   end
@@ -33,6 +33,7 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   def update
     authorize @pipeline
     if @pipeline.update(pipeline_params)
+      Rails.cache.delete("account_#{current_account.id}_crm_pipelines")
       render json: @pipeline
     else
       render json: @pipeline.errors, status: :unprocessable_entity
@@ -42,6 +43,7 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   def destroy
     authorize @pipeline
     @pipeline.destroy!
+    Rails.cache.delete("account_#{current_account.id}_crm_pipelines")
     head :no_content
   rescue ActiveRecord::InvalidForeignKey => e
     render json: { error: "Não é possível excluir esta pipeline porque existem registros associados que não puderam ser migrados. Detalhes: #{e.message}" }, status: :unprocessable_entity

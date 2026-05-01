@@ -439,7 +439,7 @@ const createStage = async () => {
 
     <FilterBar />
 
-    <main class="flex-1 min-h-0 flex flex-col overflow-hidden">
+    <main class="flex-1 min-h-0 flex flex-col relative overflow-hidden">
       <PipelineBoard
         v-if="currentPipelineStages.length"
         :stages="currentPipelineStages"

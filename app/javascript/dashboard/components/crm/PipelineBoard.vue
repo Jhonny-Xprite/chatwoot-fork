@@ -21,6 +21,7 @@ const isFetchingStages = computed(
 const stagesList = computed({
   get: () => props.stages,
   set: value => {
+    // ATENÇÃO: MANTER COMO 'stages'. NÃO MUDAR PARA 'positions'.
     store.dispatch('crmPipeline/reorderStages', {
       stages: value,
     });
@@ -29,16 +30,19 @@ const stagesList = computed({
 </script>
 
 <template>
-  <div class="flex-1 overflow-hidden flex flex-col bg-n-alpha-1">
-    <!-- Board Body -->
+  <div class="relative flex flex-col flex-1 overflow-hidden bg-n-alpha-1">
+    <!-- Board Body - Onde o scroll horizontal real acontece -->
     <div
-      class="flex-1 overflow-x-auto overflow-y-hidden custom-horizontal-scrollbar"
+      class="custom-horizontal-scrollbar flex-1 overflow-y-hidden overflow-x-auto scroll-smooth"
     >
-      <div v-if="!isFetchingStages" class="flex h-full p-6 gap-6 min-w-max">
+      <div
+        v-if="!isFetchingStages"
+        class="flex h-full min-w-max items-start gap-6 p-6"
+      >
         <draggable
           v-model="stagesList"
           item-key="id"
-          class="flex h-full gap-6"
+          class="flex h-full items-start gap-6"
           handle=".column-drag-handle"
           ghost-class="opacity-50"
           :animation="200"
@@ -55,10 +59,10 @@ const stagesList = computed({
         <!-- Add Stage Placeholder -->
         <div
           v-if="!isFetchingStages && stages.length > 0"
-          class="w-[320px] flex-shrink-0 flex items-start pt-6 pr-6"
+          class="w-[320px] flex-shrink-0 flex items-start pr-6 pt-6"
         >
           <button
-            class="w-full py-4 border-2 border-dashed border-n-slate-3 dark:border-n-slate-2 rounded-2xl flex items-center justify-center gap-2 text-n-slate-10 hover:text-n-brand-primary hover:border-n-brand-primary/50 hover:bg-n-brand-primary-alpha-1 transition-all group"
+            class="group flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-n-slate-3 py-4 text-n-slate-10 transition-all hover:border-n-brand-primary/50 hover:bg-n-brand-primary-alpha-1 hover:text-n-brand-primary dark:border-n-slate-2"
             @click="$emit('addStage')"
           >
             <span class="i-lucide-plus-circle text-lg" />
@@ -70,11 +74,11 @@ const stagesList = computed({
       </div>
 
       <!-- Loading State -->
-      <div v-else class="flex h-full p-6 gap-6">
+      <div v-else class="flex h-full gap-6 p-6">
         <div
           v-for="i in 4"
           :key="i"
-          class="w-[320px] h-full bg-n-slate-2 dark:bg-n-slate-3 rounded-2xl animate-pulse"
+          class="h-full w-[320px] animate-pulse rounded-2xl bg-n-slate-2 dark:bg-n-slate-3"
         />
       </div>
     </div>
@@ -82,23 +86,28 @@ const stagesList = computed({
 </template>
 
 <style scoped>
+/* Estilização agressiva do Scrollbar Horizontal para facilitar a usabilidade */
+.custom-horizontal-scrollbar {
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior-x: contain;
+}
+
 .custom-horizontal-scrollbar::-webkit-scrollbar {
-  height: 10px;
+  height: 12px; /* Aumentado para facilitar o clique */
 }
 .custom-horizontal-scrollbar::-webkit-scrollbar-track {
   background: var(--n-alpha-1);
-  border-radius: 9999px;
+  border-radius: 0;
 }
 .custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--n-slate-4);
-  border: 2px solid transparent;
-  background-clip: content-box;
-  border-radius: 9999px;
-}
-.custom-horizontal-scrollbar:hover::-webkit-scrollbar-thumb {
   background: var(--n-slate-5);
-  border: 2px solid transparent;
-  background-clip: content-box;
+  border: 3px solid var(--n-alpha-1);
+  border-radius: 9999px;
+  transition: background 0.2s ease;
+}
+.custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--n-brand-primary);
 }
 
 :global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-track {
@@ -107,14 +116,14 @@ const stagesList = computed({
 
 :global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
   background: var(--n-slate-3);
-  border-color: transparent;
+  border-color: var(--n-slate-1);
 }
 
-:global(.dark) .custom-horizontal-scrollbar:hover::-webkit-scrollbar-thumb {
-  background: var(--n-slate-4);
+:global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--n-brand-primary);
 }
 
-/* Ensure the board fills the screen correctly without double scrollbars */
+/* Garante que o container do board ocupe a altura total disponível */
 :deep(.draggable-container) {
   height: 100%;
 }
