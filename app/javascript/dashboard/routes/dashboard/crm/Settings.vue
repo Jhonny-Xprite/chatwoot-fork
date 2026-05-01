@@ -222,7 +222,7 @@ const confirmDeleteStage = async () => {
           <NextButton
             color="blue"
             size="sm"
-            icon="i-lucide-plus"
+            icon="i-woot-plus"
             :label="t('CRM.SETTINGS.CREATE_PIPELINE')"
             @click="createPipeline"
           />
@@ -299,7 +299,7 @@ const confirmDeleteStage = async () => {
               <NextButton
                 color="blue"
                 size="sm"
-                icon="i-lucide-save"
+                icon="i-woot-save"
                 :label="t('CRM.SAVE')"
                 @click="savePipeline"
               />
@@ -307,7 +307,7 @@ const confirmDeleteStage = async () => {
                 variant="outline"
                 color="ruby"
                 size="sm"
-                icon="i-lucide-trash-2"
+                icon="i-woot-bin"
                 :label="t('CRM.SETTINGS.DELETE_PIPELINE')"
                 @click="openDeletePipelineDialog(activePipeline.id)"
               />
@@ -344,7 +344,7 @@ const confirmDeleteStage = async () => {
                 <NextButton
                   color="blue"
                   size="sm"
-                  icon="i-lucide-plus"
+                  icon="i-woot-plus"
                   :label="t('CRM.SETTINGS.CREATE_STAGE')"
                   @click="createStage"
                 />
@@ -365,7 +365,7 @@ const confirmDeleteStage = async () => {
                     <div
                       class="drag-handle flex cursor-grab items-center justify-center text-n-slate-8 active:cursor-grabbing hover:text-n-slate-11"
                     >
-                      <i class="i-lucide-grip-vertical" />
+                      <i class="i-woot-drag" />
                     </div>
                     <input
                       v-model="stage.name"
@@ -388,7 +388,7 @@ const confirmDeleteStage = async () => {
                         ghost
                         color="ruby"
                         size="sm"
-                        icon="i-lucide-trash-2"
+                        icon="i-woot-bin"
                         @click="openDeleteStageDialog(stage.id)"
                       />
                     </div>
@@ -400,7 +400,7 @@ const confirmDeleteStage = async () => {
                 <NextButton
                   color="blue"
                   size="sm"
-                  icon="i-lucide-save"
+                  icon="i-woot-save"
                   :label="t('CRM.SETTINGS.SAVE_STAGES')"
                   @click="saveStages"
                 />

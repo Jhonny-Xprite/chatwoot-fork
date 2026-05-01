@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
-import NextButton from 'dashboard/components-next/button/Button.vue';
 import DealCard from './DealCard.vue';
 import DealCardSkeleton from './DealCardSkeleton.vue';
 
@@ -89,13 +88,11 @@ const onDragChange = event => {
           {{ stageCount }}
         </span>
       </div>
-      <NextButton
-        ghost
-        xs
-        slate
-        icon="i-lucide-grip-vertical"
-        class="column-drag-handle cursor-grab active:cursor-grabbing"
-      />
+      <div
+        class="drag-handle flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-slate-400 hover:text-slate-600"
+      >
+        <i class="i-woot-drag text-lg" />
+      </div>
     </div>
 
     <!-- Draggable Area -->
