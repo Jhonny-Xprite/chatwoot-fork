@@ -77,19 +77,13 @@ const lastMessagePreview = computed(() => {
   <div
     role="button"
     tabindex="0"
-    class="group relative bg-n-alpha-3 dark:bg-n-slate-1 rounded-xl border border-n-slate-3 dark:border-n-slate-2 hover:border-n-brand-primary/50 dark:hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 hover:-translate-y-0.5 transition-all duration-300 spring-motion cursor-grab active:cursor-grabbing select-none"
+    class="group relative bg-n-alpha-3 dark:bg-n-slate-1 rounded-xl border border-n-slate-3 dark:border-n-slate-2 hover:border-n-brand-primary/50 dark:hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 select-none cursor-pointer"
     :class="viewPrefs.density === 'compact' ? 'p-2 gap-2' : 'p-3 gap-3'"
     @click="emit('select', conversation)"
     @keydown.enter.prevent="emit('select', conversation)"
     @keydown.space.prevent="emit('select', conversation)"
   >
-    <div
-      v-if="hasUnread"
-      class="absolute -top-1 -right-1 flex h-4 w-4 spring-pop"
-    >
-      <span
-        class="animate-ping-subtle absolute inline-flex h-full w-full rounded-full bg-n-brand-primary/30 opacity-75"
-      />
+    <div v-if="hasUnread" class="absolute -top-1 -right-1 flex h-4 w-4">
       <span
         class="relative inline-flex rounded-full h-4 w-4 bg-n-brand-primary text-[9px] font-bold text-n-white items-center justify-center shadow-sm"
       >
@@ -254,51 +248,3 @@ const lastMessagePreview = computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.spring-motion {
-  transition-timing-function: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-.spring-pop {
-  animation: spring-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-}
-
-@keyframes spring-pop {
-  0% {
-    transform: scale(0.5);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes ping-subtle {
-  75%,
-  100% {
-    transform: scale(1.4);
-    opacity: 0;
-  }
-}
-
-.animate-ping-subtle {
-  animation: ping-subtle 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.group {
-  animation: fadeIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-</style>

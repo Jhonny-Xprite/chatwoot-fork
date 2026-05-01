@@ -161,24 +161,37 @@ const extractFiltersFromView = view => {
   );
 };
 
+const isSyncing = ref(false);
 const syncBoardContext = async () => {
-  const promises = [store.dispatch('customViews/get', 'conversation')];
-  if (!pipelines.value.length) {
-    promises.push(store.dispatch('crmPipeline/fetchPipelines'));
-  }
-  await Promise.all(promises);
+  if (isSyncing.value) return;
+  isSyncing.value = true;
+  try {
+    const promises = [store.dispatch('customViews/get', 'conversation')];
+    if (!pipelines.value.length) {
+      promises.push(store.dispatch('crmPipeline/fetchPipelines'));
+    }
+    await Promise.all(promises);
 
-  const view = savedViews.value.find(item => item.id === Number(props.viewId));
-  const filters = view ? extractFiltersFromView(view) : { ...DEFAULT_FILTERS };
-  let nextPipelineId =
-    Number(props.pipelineId) ||
-    getPipelineIdFromView(view) ||
-    store.getters['crmPipeline/getActivePipeline']?.id;
+    const view = savedViews.value.find(
+      item => item.id === Number(props.viewId)
+    );
+    const filters = view
+      ? extractFiltersFromView(view)
+      : { ...DEFAULT_FILTERS };
+    let nextPipelineId =
+      Number(props.pipelineId) ||
+      getPipelineIdFromView(view) ||
+      store.getters['crmPipeline/getActivePipeline']?.id;
 
-  await store.dispatch('crmPipeline/replaceFilters', filters);
+    await store.dispatch('crmPipeline/replaceFilters', filters);
 
-  if (nextPipelineId) {
-    await store.dispatch('crmPipeline/fetchStages', nextPipelineId);
+    if (nextPipelineId) {
+      await store.dispatch('crmPipeline/fetchStages', nextPipelineId);
+    }
+  } catch (error) {
+    // Error handling
+  } finally {
+    isSyncing.value = false;
   }
 };
 

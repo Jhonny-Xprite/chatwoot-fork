@@ -68,9 +68,11 @@ const getters = {
   uiFlags: _state => _state.uiFlags,
   isStageLoading: _state => stageId => !!_state.uiFlags.loadingStages[stageId],
   findConversationById: _state => conversationId => {
-    return Object.values(_state.conversationsByStage)
-      .flat()
-      .find(conversation => conversation.id === conversationId);
+    return (
+      Object.values(_state.conversationsByStage)
+        .find(conversations => conversations.find(c => c.id === conversationId))
+        ?.find(c => c.id === conversationId) || null
+    );
   },
   viewPreferences: _state => _state.viewPreferences,
 };
@@ -331,15 +333,6 @@ const actions = {
   },
   async fetchStages({ commit, dispatch, state: _state }, pipelineId) {
     if (_state.activePipelineId === pipelineId && _state.stages.length > 0) {
-      // Just refresh without clearing if it's the same pipeline
-      commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: true });
-      try {
-        const response = await PipelineAPI.getStages(pipelineId);
-        commit('SET_STAGES', response.data);
-        await dispatch('refreshAllStages');
-      } finally {
-        commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: false });
-      }
       return;
     }
 
