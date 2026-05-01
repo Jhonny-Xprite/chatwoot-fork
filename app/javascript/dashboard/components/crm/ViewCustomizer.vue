@@ -32,7 +32,7 @@ const densityOptions = [
 
 <template>
   <div
-    class="w-64 p-2 bg-white dark:bg-n-slate-1 border border-n-weak rounded-xl shadow-xl"
+    class="w-64 p-2 bg-n-alpha-3 dark:bg-n-slate-1 border border-n-weak rounded-xl shadow-xl"
   >
     <div class="px-3 py-2 border-b border-n-slate-2 mb-2">
       <h3 class="text-xs font-bold text-n-slate-11 uppercase tracking-wider">
@@ -52,7 +52,7 @@ const densityOptions = [
           class="flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-md text-xs font-medium transition-all"
           :class="
             viewPrefs.density === option.value
-              ? 'bg-white dark:bg-n-slate-2 text-n-brand-primary shadow-sm'
+              ? 'bg-n-white dark:bg-n-slate-2 text-n-brand-primary shadow-sm'
               : 'text-n-slate-11 hover:text-n-slate-12 hover:bg-n-alpha-1'
           "
           @click="updatePref('density', option.value)"
@@ -86,7 +86,7 @@ const densityOptions = [
           :class="viewPrefs.showLabels ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
         >
           <div
-            class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm"
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
             :class="{ 'translate-x-4': viewPrefs.showLabels }"
           />
         </div>
@@ -109,7 +109,7 @@ const densityOptions = [
           :class="viewPrefs.showSla ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
         >
           <div
-            class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm"
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
             :class="{ 'translate-x-4': viewPrefs.showSla }"
           />
         </div>
@@ -134,7 +134,7 @@ const densityOptions = [
           "
         >
           <div
-            class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm"
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
             :class="{ 'translate-x-4': viewPrefs.showPriority }"
           />
         </div>
@@ -159,7 +159,7 @@ const densityOptions = [
           "
         >
           <div
-            class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm"
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
             :class="{ 'translate-x-4': viewPrefs.showLastMessage }"
           />
         </div>
@@ -184,7 +184,7 @@ const densityOptions = [
           "
         >
           <div
-            class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm"
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
             :class="{ 'translate-x-4': viewPrefs.showAssignee }"
           />
         </div>
@@ -209,7 +209,7 @@ const densityOptions = [
           "
         >
           <div
-            class="absolute top-0.5 left-0.5 w-3 h-3 bg-white rounded-full transition-transform shadow-sm"
+            class="absolute top-0.5 left-0.5 w-3 h-3 bg-n-white rounded-full transition-transform shadow-sm"
             :class="{ 'translate-x-4': viewPrefs.showCompanyName }"
           />
         </div>

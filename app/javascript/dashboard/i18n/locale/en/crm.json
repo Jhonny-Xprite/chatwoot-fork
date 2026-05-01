@@ -31,6 +31,9 @@
     "REPLY_NEEDED": "Reply needed",
     "OPEN_CONTACT": "Contact",
     "OPEN_CONVERSATION": "Conversation",
+    "PIPELINE": "Pipeline",
+    "ADD_TO_PIPELINE": "Add to Pipeline",
+    "SELECT_STAGE": "Select Stage",
     "TABS": {
       "DASHBOARD": "Dashboard",
       "PIPELINES": "Pipelines",

@@ -380,7 +380,7 @@ const createStage = async () => {
           v-model="createPipelineName"
           type="text"
           :placeholder="$t('CRM.CREATE_PIPELINE_PROMPT')"
-          class="w-56 rounded-md border border-n-weak bg-white px-3 py-1.5 text-sm text-n-slate-12 outline-none transition-all focus:border-n-brand-primary"
+          class="w-56 rounded-md border border-n-weak bg-n-alpha-3 px-3 py-1.5 text-sm text-n-slate-12 outline-none transition-all focus:border-n-brand-primary"
           @keydown.enter.prevent="createPipeline"
         />
         <NextButton

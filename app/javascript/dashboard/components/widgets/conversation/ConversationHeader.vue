@@ -7,6 +7,7 @@ import BackButton from '../BackButton.vue';
 import InboxName from '../InboxName.vue';
 import MoreActions from './MoreActions.vue';
 import Avatar from 'next/avatar/Avatar.vue';
+import PipelineEntitySelector from '../../crm/PipelineEntitySelector.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
 import wootConstants from 'dashboard/constants/globals';
 import { conversationListPageURL } from 'dashboard/helper/URLHelper';
@@ -123,6 +124,7 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
           >
             {{ currentContact.name }}
           </span>
+          <PipelineEntitySelector :conversation="chat" />
           <fluent-icon
             v-if="!isHMACVerified"
             v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"

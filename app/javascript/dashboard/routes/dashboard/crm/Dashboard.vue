@@ -20,7 +20,7 @@ const { t } = useI18n();
         <div
           v-for="index in 3"
           :key="index"
-          class="p-6 bg-white dark:bg-n-slate-1 border border-n-weak rounded-2xl shadow-sm"
+          class="p-6 bg-n-alpha-3 dark:bg-n-slate-1 border border-n-weak rounded-2xl shadow-sm"
         >
           <div class="text-n-slate-10 text-sm font-medium mb-1">
             {{ t('CRM.DASHBOARD.METRIC_LABEL', { index }) }}
