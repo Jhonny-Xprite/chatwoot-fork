@@ -164,8 +164,6 @@ const extractFiltersFromView = view => {
 const isSyncing = ref(false);
 const syncBoardContext = async () => {
   if (isSyncing.value) return;
-  // eslint-disable-next-line no-console
-  console.log('[CRM] Sincronizando contexto do Kanban Board...');
   isSyncing.value = true;
   try {
     const promises = [store.dispatch('customViews/get', 'conversation')];
@@ -180,21 +178,21 @@ const syncBoardContext = async () => {
     const filters = view
       ? extractFiltersFromView(view)
       : { ...DEFAULT_FILTERS };
+
+    // Tenta resolver o ID da pipeline na ordem: Prop -> View -> Store (Active) -> Store (Primeira)
     let nextPipelineId =
       Number(props.pipelineId) ||
       getPipelineIdFromView(view) ||
-      store.getters['crmPipeline/getActivePipeline']?.id;
+      store.getters['crmPipeline/getActivePipeline']?.id ||
+      (pipelines.value.length > 0 ? pipelines.value[0].id : null);
 
     await store.dispatch('crmPipeline/replaceFilters', filters);
 
     if (nextPipelineId) {
-      // eslint-disable-next-line no-console
-      console.log('[CRM] Carregando estágios para o pipeline:', nextPipelineId);
       await store.dispatch('crmPipeline/fetchStages', nextPipelineId);
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[CRM] Erro ao sincronizar contexto:', error);
+    // Error handling
   } finally {
     isSyncing.value = false;
   }
@@ -242,19 +240,12 @@ const createPipeline = async () => {
   const name = createPipelineName.value.trim();
   if (!name) return;
 
-  // eslint-disable-next-line no-console
-  console.log('[CRM] Criando novo pipeline via UI:', name);
   try {
     const nextPipelineId = await store.dispatch(
       'crmPipeline/createPipeline',
       name
     );
     if (nextPipelineId) {
-      // eslint-disable-next-line no-console
-      console.log(
-        '[CRM] Pipeline criado com sucesso, redirecionando para ID:',
-        nextPipelineId
-      );
       createPipelineName.value = '';
       isCreatePipelineOpen.value = false;
       router.push({
@@ -266,8 +257,7 @@ const createPipeline = async () => {
       });
     }
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[CRM] Erro ao criar pipeline via UI:', error);
+    // Error handling
   }
 };
 
@@ -303,23 +293,13 @@ const createStage = async () => {
       : 'New stage name:'
   );
   if (name) {
-    // eslint-disable-next-line no-console
-    console.log(
-      '[CRM] Criando novo estágio no pipeline ##' +
-        selectedPipeline.value.id +
-        ':',
-      name
-    );
     try {
       await store.dispatch('crmPipeline/createStage', {
         pipelineId: selectedPipeline.value.id,
         stage: { name },
       });
-      // eslint-disable-next-line no-console
-      console.log('[CRM] Estágio criado com sucesso');
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('[CRM] Erro ao criar estágio:', error);
+      // Error handling
     }
   }
 };
@@ -440,13 +420,15 @@ const createStage = async () => {
     <FilterBar />
 
     <main class="flex-1 min-h-0 flex flex-col relative overflow-hidden">
+      <!-- Caso existam estágios, mostra o Board -->
       <PipelineBoard
-        v-if="currentPipelineStages.length"
+        v-if="currentPipelineStages.length > 0"
         :stages="currentPipelineStages"
         @select="onDealSelect"
         @select-contact="onContactSelect"
         @add-stage="createStage"
       />
+      <!-- Caso esteja carregando, mostra skeletons -->
       <div
         v-else-if="isLoading"
         class="flex-1 flex flex-col items-center justify-center space-y-4"
@@ -460,8 +442,9 @@ const createStage = async () => {
         </div>
         <p class="text-n-slate-11">{{ $t('CRM.LOADING') }}</p>
       </div>
+      <!-- Caso NÃO existam pipelines no sistema -->
       <div
-        v-else
+        v-else-if="pipelines.length === 0"
         class="flex-1 flex flex-col items-center justify-center p-8 text-center"
       >
         <div
@@ -475,13 +458,29 @@ const createStage = async () => {
         <p class="text-sm text-n-slate-11 max-w-xs mb-4">
           {{ $t('CRM.NO_PIPELINES_SUBTITLE') }}
         </p>
+      </div>
+      <!-- Caso exista pipeline mas não existam estágios -->
+      <div
+        v-else
+        class="flex-1 flex flex-col items-center justify-center p-8 text-center"
+      >
+        <div
+          class="w-16 h-16 bg-n-alpha-1 rounded-full flex items-center justify-center mb-4 text-n-slate-10"
+        >
+          <i class="i-lucide-list-plus w-8 h-8" />
+        </div>
+        <h3 class="text-lg font-semibold text-n-slate-12 mb-1">
+          {{ t('CRM.EMPTY_PIPELINE_TITLE') }}
+        </h3>
+        <p class="text-sm text-n-slate-11 max-w-xs mb-6">
+          {{ t('CRM.EMPTY_PIPELINE_SUBTITLE') }}
+        </p>
         <NextButton
-          v-if="selectedPipeline"
-          variant="faded"
+          variant="filled"
           color="blue"
           size="sm"
           icon="i-lucide-plus"
-          label="Add first stage"
+          :label="t('CRM.ADD_FIRST_STAGE')"
           @click="createStage"
         />
       </div>
