@@ -142,11 +142,13 @@ const mutations = {
 
     const existingConversations = _state.conversationsByStage[stageId] || [];
     const mergedConversations = [...existingConversations, ...conversations];
+
+    // Efficiently remove duplicates using a Map (O(n))
+    const conversationMap = new Map();
+    mergedConversations.forEach(c => conversationMap.set(c.id, c));
+
     _state.conversationsByStage[stageId] = sortConversationsByActivity(
-      mergedConversations.filter(
-        (conversation, index, list) =>
-          list.findIndex(item => item.id === conversation.id) === index
-      )
+      Array.from(conversationMap.values())
     );
   },
   SET_META(_state, { stageId, meta }) {
@@ -327,7 +329,20 @@ const actions = {
 
     return null;
   },
-  async fetchStages({ commit, dispatch }, pipelineId) {
+  async fetchStages({ commit, dispatch, state: _state }, pipelineId) {
+    if (_state.activePipelineId === pipelineId && _state.stages.length > 0) {
+      // Just refresh without clearing if it's the same pipeline
+      commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: true });
+      try {
+        const response = await PipelineAPI.getStages(pipelineId);
+        commit('SET_STAGES', response.data);
+        await dispatch('refreshAllStages');
+      } finally {
+        commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: false });
+      }
+      return;
+    }
+
     commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: true });
     commit('SET_ACTIVE_PIPELINE', pipelineId);
     commit('RESET_STAGE_DATA');

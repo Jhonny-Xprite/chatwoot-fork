@@ -162,10 +162,11 @@ const extractFiltersFromView = view => {
 };
 
 const syncBoardContext = async () => {
-  await Promise.all([
-    store.dispatch('customViews/get', 'conversation'),
-    store.dispatch('crmPipeline/fetchPipelines'),
-  ]);
+  const promises = [store.dispatch('customViews/get', 'conversation')];
+  if (!pipelines.value.length) {
+    promises.push(store.dispatch('crmPipeline/fetchPipelines'));
+  }
+  await Promise.all(promises);
 
   const view = savedViews.value.find(item => item.id === Number(props.viewId));
   const filters = view ? extractFiltersFromView(view) : { ...DEFAULT_FILTERS };

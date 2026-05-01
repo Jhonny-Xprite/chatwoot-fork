@@ -58,7 +58,9 @@ const syncStageDrafts = () => {
 };
 
 onMounted(async () => {
-  await store.dispatch('crmPipeline/fetchPipelines');
+  if (!pipelines.value.length) {
+    await store.dispatch('crmPipeline/fetchPipelines');
+  }
   if (activePipeline.value) {
     selectedPipelineId.value = activePipeline.value.id;
     await store.dispatch('crmPipeline/fetchStages', activePipeline.value.id);
