@@ -2,19 +2,18 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
   before_action :set_pipeline, only: [:show, :update, :destroy]
 
   def index
-    @pipelines = Rails.cache.fetch("account_#{current_account.id}_crm_pipelines", expires_in: 1.hour) do
-      # MODO DE SEGURANÇA: O bootstrap e o healer não podem derrubar a listagem principal
-      begin
-        if current_account.feature_enabled?('crm')
-          bootstrap_service = Crm::PipelineBootstrapService.new(account: current_account)
-          bootstrap_service.perform!
-          bootstrap_service.heal_orphaned_conversations!
-        end
-      rescue StandardError => e
-        Rails.logger.error "[CRM] Falha crítica no bootstrap/healer: #{e.message}"
+    # MODO DE SEGURANÇA: O bootstrap e o healer não podem derrubar a listagem principal
+    begin
+      if current_account.feature_enabled?('crm')
+        bootstrap_service = Crm::PipelineBootstrapService.new(account: current_account)
+        bootstrap_service.perform!
+        bootstrap_service.heal_orphaned_conversations!
       end
-      current_account.crm_pipelines.to_a
+    rescue StandardError => e
+      Rails.logger.error "[CRM] Falha crítica no bootstrap/healer: #{e.message}"
     end
+
+    @pipelines = current_account.crm_pipelines.to_a
     authorize @pipelines
     render json: @pipelines
   end
