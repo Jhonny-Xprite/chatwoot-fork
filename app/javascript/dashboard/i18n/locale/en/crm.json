@@ -78,6 +78,8 @@
       "FIELD_COMPANY": "Company",
       "FIELD_ASSIGNEE": "Assignee",
       "FIELD_CHANNEL": "Channel",
+      "CUSTOM_ATTRIBUTES": "Custom Attributes",
+      "CUSTOM_ATTRIBUTES_HELP": "Selected fields will appear on the card if they have data.",
       "PIPELINES_TITLE": "Pipeline management",
       "PIPELINES_DESCRIPTION": "Create pipelines, set the default one and keep the board structure aligned with your sales flow.",
       "NEW_PIPELINE_PLACEHOLDER": "New pipeline name",

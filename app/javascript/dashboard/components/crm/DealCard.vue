@@ -22,6 +22,7 @@ const store = useStore();
 const { t } = useI18n();
 
 const viewPrefs = computed(() => store.getters['crmPipeline/viewPreferences']);
+const allAttributes = computed(() => store.getters['attributes/getAttributes']);
 
 const contact = computed(() => props.conversation.meta?.sender || {});
 const assignee = computed(() => props.conversation.meta?.assignee || {});
@@ -31,6 +32,36 @@ const hasSlaPolicyId = computed(() => props.conversation?.sla_policy_id);
 const companyName = computed(
   () => contact.value.additional_attributes?.company_name || ''
 );
+
+const dynamicAttributes = computed(() => {
+  if (!viewPrefs.value.customAttributes?.length) return [];
+
+  const selected = viewPrefs.value.customAttributes;
+  const contactAttrs = contact.value.custom_attributes || {};
+  const convAttrs = props.conversation.custom_attributes || {};
+
+  return selected
+    .map(attr => {
+      const definition = allAttributes.value.find(
+        a => a.attribute_key === attr.key && a.attribute_model === attr.model
+      );
+      if (!definition) return null;
+
+      const value =
+        attr.model === 'contact_attribute'
+          ? contactAttrs[attr.key]
+          : convAttrs[attr.key];
+
+      if (value === undefined || value === null || value === '') return null;
+
+      return {
+        label: definition.attribute_display_name,
+        value,
+        key: attr.key,
+      };
+    })
+    .filter(Boolean);
+});
 
 const inbox = computed(
   () => store.getters['inboxes/getInbox'](props.conversation.inbox_id) || {}
@@ -77,15 +108,15 @@ const lastMessagePreview = computed(() => {
   <div
     role="button"
     tabindex="0"
-    class="group relative bg-n-alpha-3 dark:bg-n-slate-1 rounded-xl border border-n-slate-3 dark:border-n-slate-2 hover:border-n-brand-primary/50 dark:hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 select-none cursor-pointer"
+    class="group relative cursor-pointer select-none rounded-xl border border-n-slate-3 bg-n-alpha-3 hover:-translate-y-0.5 hover:border-n-brand-primary/50 hover:shadow-lg hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1 dark:hover:border-n-brand-primary/50"
     :class="viewPrefs.density === 'compact' ? 'p-2 gap-2' : 'p-3 gap-3'"
     @click="emit('select', conversation)"
     @keydown.enter.prevent="emit('select', conversation)"
     @keydown.space.prevent="emit('select', conversation)"
   >
-    <div v-if="hasUnread" class="absolute -top-1 -right-1 flex h-4 w-4">
+    <div v-if="hasUnread" class="absolute -right-1 -top-1 flex h-4 w-4">
       <span
-        class="relative inline-flex rounded-full h-4 w-4 bg-n-brand-primary text-[9px] font-bold text-n-white items-center justify-center shadow-sm"
+        class="relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-n-brand-primary text-[9px] font-bold text-n-white shadow-sm"
       >
         {{ unreadCount }}
       </span>
@@ -105,10 +136,10 @@ const lastMessagePreview = computed(() => {
           :size="viewPrefs.density === 'compact' ? 32 : 40"
           class="shadow-sm"
         />
-        <div class="flex-1 min-w-0">
+        <div class="min-w-0 flex-1">
           <div class="flex items-center justify-between gap-1">
             <h4
-              class="font-bold text-n-slate-12 truncate group-hover:text-n-brand-primary transition-colors"
+              class="truncate font-bold text-n-slate-12 transition-colors group-hover:text-n-brand-primary"
               :class="
                 viewPrefs.density === 'compact' ? 'text-xs' : 'text-[13px]'
               "
@@ -116,13 +147,13 @@ const lastMessagePreview = computed(() => {
               {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
             </h4>
             <span
-              class="text-[10px] font-medium text-n-slate-10 whitespace-nowrap"
+              class="whitespace-nowrap text-[10px] font-medium text-n-slate-10"
             >
               {{ lastMessageTime }}
             </span>
           </div>
           <p
-            class="text-n-slate-11 truncate font-medium"
+            class="truncate font-medium text-n-slate-11"
             :class="
               viewPrefs.density === 'compact'
                 ? 'text-[10px]'
@@ -137,11 +168,11 @@ const lastMessagePreview = computed(() => {
               viewPrefs.showPriority ||
               viewPrefs.showChannel
             "
-            class="flex items-center gap-2 mt-1"
+            class="mt-1 flex items-center gap-2"
           >
             <p
               v-if="companyName && viewPrefs.showCompanyName"
-              class="text-[10px] font-semibold text-n-slate-10 truncate"
+              class="truncate text-[10px] font-semibold text-n-slate-10"
             >
               {{ companyName }}
             </p>
@@ -150,7 +181,7 @@ const lastMessagePreview = computed(() => {
               class="flex items-center gap-1 text-[10px] font-semibold text-n-slate-10"
             >
               <span :class="inboxIcon" class="text-xs" />
-              <span class="truncate max-w-[80px]">{{ inboxName }}</span>
+              <span class="max-w-[80px] truncate">{{ inboxName }}</span>
             </div>
             <CardPriorityIcon
               v-if="conversation.priority && viewPrefs.showPriority"
@@ -176,11 +207,11 @@ const lastMessagePreview = computed(() => {
 
       <div
         v-if="viewPrefs.showLastMessage"
-        class="rounded-xl border px-2.5 py-2 text-[11px] leading-4"
+        class="rounded-xl border border-n-slate-2 bg-n-alpha-2 px-2.5 py-2 text-[11px] leading-4 text-n-slate-11"
         :class="
           showReplyNeeded
             ? 'border-n-brand-primary/30 bg-n-brand-primary-alpha-1 text-n-slate-12'
-            : 'border-n-slate-2 bg-n-alpha-2 text-n-slate-11'
+            : ''
         "
       >
         <p
@@ -194,8 +225,29 @@ const lastMessagePreview = computed(() => {
         </p>
       </div>
 
+      <!-- Dynamic Custom Attributes -->
       <div
-        class="flex items-center justify-between pt-2 mt-1 border-t border-n-slate-2 dark:border-n-slate-2"
+        v-if="dynamicAttributes.length"
+        class="flex flex-col gap-1.5 rounded-xl border border-n-slate-2 bg-n-alpha-1/30 p-2.5"
+      >
+        <div
+          v-for="attr in dynamicAttributes"
+          :key="attr.key"
+          class="flex items-start justify-between gap-2 overflow-hidden"
+        >
+          <span
+            class="shrink-0 text-[10px] font-bold uppercase tracking-tight text-n-slate-10"
+          >
+            {{ attr.label }}
+          </span>
+          <span class="truncate text-[10px] font-medium text-n-slate-12">
+            {{ attr.value }}
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="mt-1 flex items-center justify-between border-t border-n-slate-2 pt-2 dark:border-n-slate-2"
       >
         <div
           v-if="viewPrefs.showAssignee"
@@ -208,7 +260,7 @@ const lastMessagePreview = computed(() => {
             :size="18"
             rounded-full
           />
-          <span class="text-[10px] font-bold text-n-slate-11 truncate">
+          <span class="truncate text-[10px] font-bold text-n-slate-11">
             {{ assignee.name || t('CRM.UNASSIGNED') }}
           </span>
         </div>
@@ -237,12 +289,12 @@ const lastMessagePreview = computed(() => {
 
       <div class="flex items-center justify-between">
         <span
-          class="text-[10px] font-black text-n-slate-8 dark:text-n-slate-9 uppercase tracking-tight"
+          class="text-[10px] font-black uppercase tracking-tight text-n-slate-8 dark:text-n-slate-9"
         >
           {{ t('CRM.DEAL_ID', { id: conversation.id }) }}
         </span>
         <span
-          class="i-lucide-grip-vertical text-n-slate-8 dark:text-n-slate-9 opacity-0 group-hover:opacity-100 transition-opacity"
+          class="i-lucide-grip-vertical text-n-slate-8 opacity-0 transition-opacity group-hover:opacity-100 dark:text-n-slate-9"
         />
       </div>
     </div>

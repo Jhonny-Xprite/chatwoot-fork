@@ -49,6 +49,7 @@ const state = {
     showCompanyName: true,
     showChannel: true,
     density: 'comfortable', // 'compact' | 'comfortable'
+    customAttributes: [], // Array of { key: string, model: 'contact_attribute' | 'conversation_attribute' }
   },
 };
 

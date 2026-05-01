@@ -329,6 +329,12 @@
           "SUCCESS_MESSAGE": "You will be notified via email when the import is complete.",
           "ERROR_MESSAGE": "There was an error, please try again"
         },
+        "IMPORT_MAPPER": {
+          "TITLE": "Map CSV Columns",
+          "DESCRIPTION": "Associate your spreadsheet columns with Chatwoot fields.",
+          "CANCEL": "Cancel",
+          "PROCEED": "Start Import"
+        },
         "EXPORT_CONTACT": {
           "TITLE": "Export contacts",
           "DESCRIPTION": "Quickly export a csv file with comprehensive details of your contacts",

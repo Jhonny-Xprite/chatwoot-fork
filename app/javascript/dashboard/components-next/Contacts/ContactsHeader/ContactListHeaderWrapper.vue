@@ -103,9 +103,9 @@ const onCreate = async contact => {
   }
 };
 
-const onImport = async file => {
+const onImport = async importPayload => {
   try {
-    await store.dispatch('contacts/import', file);
+    await store.dispatch('contacts/import', importPayload);
     contactImportDialogRef.value?.dialogRef.close();
     useAlert(
       t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.SUCCESS_MESSAGE')
