@@ -1,8 +1,9 @@
 <script setup>
+// Importação de componentes e utilitários
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
-import draggable from 'vuedraggable';
+import draggable from 'vuedraggable'; // Biblioteca para o Drag & Drop de estágios
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 
@@ -11,6 +12,7 @@ import { useAlert } from 'dashboard/composables';
 const store = useStore();
 const { t } = useI18n();
 
+// Computeds para acessar o estado da store crmPipeline
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
 const currentStages = computed(() => store.getters['crmPipeline/getStages']);
 const activePipeline = computed(
@@ -18,19 +20,23 @@ const activePipeline = computed(
 );
 const uiFlags = computed(() => store.getters['crmPipeline/uiFlags']);
 
+// Referências reativas para controles de UI
 const selectedPipelineId = ref(null);
 const createPipelineName = ref('');
-const stageDrafts = ref([]);
+const stageDrafts = ref([]); // Rascunho local dos estágios para manipulação (Drag/Drop)
 const deletePipelineDialogRef = ref(null);
 const deleteStageDialogRef = ref(null);
 const pendingDeletePipelineId = ref(null);
 const pendingDeleteStageId = ref(null);
 
+// Estado inicial para criação de novo estágio
 const newStage = reactive({
   name: '',
   color: '#14B8A6',
   active: true,
 });
+
+// Estado do formulário de edição de pipeline
 const pipelineForm = reactive({
   name: '',
   active: true,
@@ -38,14 +44,16 @@ const pipelineForm = reactive({
   position: 0,
 });
 
+// Configurações visuais do vuedraggable
 const dragOptions = computed(() => ({
   animation: 200,
   group: 'stages',
   disabled: false,
-  ghostClass: 'sortable-ghost',
-  dragClass: 'sortable-drag',
+  ghostClass: 'sortable-ghost', // Classe aplicada ao espaço vazio durante o arraste
+  dragClass: 'sortable-drag', // Classe aplicada ao item sendo arrastado
 }));
 
+// Sincroniza o formulário de edição com os dados da pipeline ativa
 const syncPipelineForm = pipeline => {
   pipelineForm.name = pipeline?.name || '';
   pipelineForm.active = pipeline?.active ?? true;
@@ -53,35 +61,42 @@ const syncPipelineForm = pipeline => {
   pipelineForm.position = pipeline?.position ?? 0;
 };
 
+// Cria uma cópia dos estágios reais para o rascunho (evita mutação direta da store)
 const syncStageDrafts = () => {
   stageDrafts.value = currentStages.value.map(stage => ({ ...stage }));
 };
 
 onMounted(async () => {
+  // Busca inicial das pipelines do servidor
   if (!pipelines.value.length) {
     await store.dispatch('crmPipeline/fetchPipelines');
   }
+  // Se já houver uma pipeline ativa, carrega seus estágios
   if (activePipeline.value) {
     selectedPipelineId.value = activePipeline.value.id;
     await store.dispatch('crmPipeline/fetchStages', activePipeline.value.id);
     syncStageDrafts();
   } else if (pipelines.value.length) {
+    // Caso contrário, seleciona a primeira da lista
     selectedPipelineId.value = pipelines.value[0].id;
     await store.dispatch('crmPipeline/fetchStages', pipelines.value[0].id);
     syncStageDrafts();
   }
 });
 
+// Observa mudanças na pipeline ativa para atualizar o formulário
 watch(activePipeline, pipeline => {
   syncPipelineForm(pipeline);
 });
 
+// Observa a mudança de pipeline selecionada no menu lateral
 watch(selectedPipelineId, async pipelineId => {
   if (!pipelineId) return;
   await store.dispatch('crmPipeline/fetchStages', Number(pipelineId));
   syncStageDrafts();
 });
 
+// Ações de criação, salvamento e exclusão (Pipelines)
 const createPipeline = async () => {
   if (!createPipelineName.value.trim()) return;
 
@@ -135,6 +150,7 @@ const confirmDeletePipeline = async () => {
   }
 };
 
+// Ações de gerenciamento de estágios (Statuses)
 const createStage = async () => {
   if (!selectedPipelineId.value || !newStage.name.trim()) return;
 
@@ -154,6 +170,7 @@ const createStage = async () => {
   }
 };
 
+// Salva a nova ordem (ou alterações de nome/cor) dos estágios em lote
 const saveStages = async () => {
   try {
     await store.dispatch('crmPipeline/reorderStages', {

@@ -1,5 +1,6 @@
 import PipelineAPI from 'dashboard/api/crm/pipeline';
 
+// Helper: Extrai o timestamp de atividade mais recente de uma conversa
 const getConversationActivityTimestamp = conversation => {
   return Number(
     conversation?.last_non_activity_message?.created_at ||
@@ -10,6 +11,7 @@ const getConversationActivityTimestamp = conversation => {
   );
 };
 
+// Helper: Ordena conversas pela atividade mais recente (Padrão do Kanban)
 const sortConversationsByActivity = conversations => {
   return [...conversations].sort((left, right) => {
     return (
@@ -20,12 +22,12 @@ const sortConversationsByActivity = conversations => {
 };
 
 const state = {
-  pipelines: [],
-  activePipelineId: null,
-  stages: [],
-  conversationsByStage: {},
-  conversationLookupMap: {}, // O(1) lookup for conversations by ID
-  metaByStage: {},
+  pipelines: [], // Lista de todos os funis de venda
+  activePipelineId: null, // ID do funil selecionado atualmente
+  stages: [], // Lista de estágios (colunas) da pipeline ativa
+  conversationsByStage: {}, // Leads organizados por ID de estágio
+  conversationLookupMap: {}, // O(1) lookup: Busca instantânea de leads por ID
+  metaByStage: {}, // Metadados (paginação, total) de cada coluna
   filters: {
     q: '',
     assigneeId: null,
@@ -42,6 +44,7 @@ const state = {
     loadingStages: {},
   },
   viewPreferences: {
+    // Preferências de visualização salvas no LocalStorage
     showLabels: true,
     showSla: true,
     showPriority: true,
@@ -50,8 +53,8 @@ const state = {
     showCompanyName: true,
     showChannel: true,
     showScore: true,
-    density: 'comfortable', // 'compact' | 'comfortable'
-    customAttributes: [], // Array of { key: string, model: 'contact_attribute' | 'conversation_attribute' }
+    density: 'comfortable', // Densidade: compact | comfortable
+    customAttributes: [], // Chaves de atributos customizados para exibir no card
   },
 };
 
@@ -70,6 +73,7 @@ const getters = {
   appliedFilters: _state => _state.filters,
   uiFlags: _state => _state.uiFlags,
   isStageLoading: _state => stageId => !!_state.uiFlags.loadingStages[stageId],
+  // Performance de Elite: Busca um lead sem precisar varrer todas as colunas
   findConversationById: _state => conversationId => {
     return _state.conversationLookupMap[conversationId] || null;
   },
@@ -77,6 +81,7 @@ const getters = {
 };
 
 const mutations = {
+  // Atualiza as preferências de UI e persiste no navegador
   UPDATE_VIEW_PREFERENCES(_state, preferences) {
     _state.viewPreferences = {
       ..._state.viewPreferences,
@@ -135,6 +140,7 @@ const mutations = {
     _state.uiFlags.loadingStages = loadingStages;
   },
   SET_CONVERSATIONS(_state, { stageId, conversations, page }) {
+    // Seta os leads em uma coluna específica, garantindo que não haja duplicatas
     if (page === 1) {
       _state.conversationsByStage[stageId] =
         sortConversationsByActivity(conversations);
@@ -148,7 +154,7 @@ const mutations = {
       );
     }
 
-    // Update lookup map for O(1) performance
+    // Atualiza o mapa de busca para manter a performance O(1)
     conversations.forEach(conversation => {
       _state.conversationLookupMap[conversation.id] = conversation;
     });
@@ -172,17 +178,17 @@ const mutations = {
     };
   },
   UPSERT_CONVERSATION(_state, conversation) {
+    // Adiciona ou atualiza um lead no Kanban de forma atômica
     const targetStageId = conversation.pipeline_stage_id;
     if (!targetStageId) return;
 
-    // 1. Remove from ALL stages to prevent duplication
+    // Remove o lead de QUALQUER outra coluna para evitar o bug de duplicação visual
     Object.keys(_state.conversationsByStage).forEach(stageId => {
       _state.conversationsByStage[stageId] = (
         _state.conversationsByStage[stageId] || []
       ).filter(item => item.id !== conversation.id);
     });
 
-    // 2. Update lookup map
     const previousConversation = _state.conversationLookupMap[conversation.id];
     const mergedConversation = {
       ...previousConversation,
@@ -190,10 +196,8 @@ const mutations = {
     };
     _state.conversationLookupMap[conversation.id] = mergedConversation;
 
-    // 3. Add to target stage (only if the stage exists in state)
     if (_state.conversationsByStage[targetStageId]) {
       const stageConversations = _state.conversationsByStage[targetStageId];
-      // Final safety check: ensure no duplicates in the array we're about to update
       const filtered = stageConversations.filter(c => c.id !== conversation.id);
       _state.conversationsByStage[targetStageId] = sortConversationsByActivity([
         mergedConversation,

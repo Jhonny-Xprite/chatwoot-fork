@@ -1,8 +1,11 @@
 <script setup>
+// Importação de utilitários do Vue e Chatwoot
 import { computed, onMounted, ref } from 'vue';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
+
+// Componentes da UI (Sistema Novo - Next)
 import NextButton from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
@@ -11,24 +14,28 @@ import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
 const store = useStore();
 const { t } = useI18n();
 
-const rules = ref([]);
-const createRuleDialogRef = ref(null);
-const isRecalculating = ref(false);
+// Estado reativo da página
+const rules = ref([]); // Lista de regras de scoring vinda do banco
+const createRuleDialogRef = ref(null); // Referência para abrir/fechar o modal
+const isRecalculating = ref(false); // Estado de loading do botão de recálculo
 
+// Getters para buscar atributos e etiquetas disponíveis no sistema
 const contactAttributes = useMapGetter('attributes/getContactAttributes');
 const conversationAttributes = useMapGetter(
   'attributes/getConversationAttributes'
 );
 const labels = useMapGetter('labels/getLabels');
 
+// Estado do formulário de nova regra
 const newRule = ref({
-  attribute_model: 'contact_attribute',
-  attribute_key: '',
-  filter_operator: 'equal_to',
-  values: [],
-  score: 10,
+  attribute_model: 'contact_attribute', // Origem: Contato, Conversa ou Etiqueta
+  attribute_key: '', // Chave do atributo selecionado
+  filter_operator: 'equal_to', // Condição (Igual, Contém, etc)
+  values: [], // Valores esperados para validar a regra
+  score: 10, // Pontuação a ser atribuída
 });
 
+// Opções de operadores para o seletor da UI
 const operators = [
   {
     label: t('CRM.SCORING.MODAL.CONDITION_LABELS.EQUAL_TO') || 'Igual a',
@@ -61,6 +68,7 @@ const operators = [
   },
 ];
 
+// Modelos de dados suportados pelo motor de scoring
 const attributeModels = [
   { label: t('CRM.SCORING.MODELS.CONTACT'), value: 'contact_attribute' },
   {
@@ -70,6 +78,7 @@ const attributeModels = [
   { label: t('CRM.SCORING.MODELS.LABEL'), value: 'label' },
 ];
 
+// Filtra os atributos baseados na origem selecionada
 const availableAttributes = computed(() => {
   if (newRule.value.attribute_model === 'contact_attribute') {
     return contactAttributes.value.map(a => ({
@@ -86,6 +95,7 @@ const availableAttributes = computed(() => {
   return [{ label: t('CRM.LABELS'), value: 'labels' }];
 });
 
+// Busca as regras existentes no backend
 const fetchRules = async () => {
   try {
     const response = await window.axios.get(
@@ -97,6 +107,7 @@ const fetchRules = async () => {
   }
 };
 
+// Dispara o recálculo total de pontos para todos os contatos (Job em background)
 const recalculateAll = async () => {
   isRecalculating.value = true;
   try {
@@ -113,10 +124,12 @@ const recalculateAll = async () => {
 
 onMounted(() => {
   fetchRules();
+  // Garante que atributos e etiquetas estejam carregados na store global
   store.dispatch('attributes/get');
   store.dispatch('labels/get');
 });
 
+// Prepara e abre o modal de criação
 const openCreateModal = () => {
   newRule.value = {
     attribute_model: 'contact_attribute',
@@ -128,6 +141,7 @@ const openCreateModal = () => {
   createRuleDialogRef.value?.open();
 };
 
+// Salva a nova regra no banco
 const createRule = async () => {
   try {
     await window.axios.post(
@@ -144,6 +158,7 @@ const createRule = async () => {
   }
 };
 
+// Remove uma regra permanentemente
 const deleteRule = async id => {
   try {
     await window.axios.delete(
@@ -156,11 +171,13 @@ const deleteRule = async id => {
   }
 };
 
+// Helpers para exibir labels amigáveis na tabela
 const getModelLabel = value =>
   attributeModels.find(m => m.value === value)?.label || value;
 const getOperatorLabel = value =>
   operators.find(o => o.value === value)?.label || value;
 
+// Formata as etiquetas para o componente TagInput
 const labelMenuItems = computed(() => {
   return labels.value.map(l => ({ label: l.title, value: l.title }));
 });
