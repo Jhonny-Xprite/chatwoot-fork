@@ -38,14 +38,6 @@ class DataImport < ApplicationRecord
         contact.name = contact.email.presence || contact.phone_number.presence || "Contact #{Time.now.to_i}"
       end
 
-      # FOCO NO TELEFONE: Telefone é obrigatório para integração com WhatsApp
-      if contact.phone_number.blank?
-        contact.errors.add(:phone_number, 'Phone number is required for WhatsApp integration')
-      end
-
-      # Email é opcional, mas se fornecido deve ser válido
-      # Identifier é opcional como fallback
-
       # Debug logging
       unless contact.valid?
         error_details = {

@@ -118,7 +118,7 @@ class DataImportJob < ApplicationJob
       validate: false,
       batch_size: 1000
     )
-    Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Updated: #{result.num_updates || 0}, Failed: #{result.failed_instances.size}"
+    Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Failed: #{result.failed_instances.size}"
 
     if result.failed_instances.any?
       Rails.logger.error "[DataImport] Failed instances: #{result.failed_instances.inspect}"

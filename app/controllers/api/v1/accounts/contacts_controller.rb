@@ -56,17 +56,6 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
       render json: { error: 'Please map at least one column' }, status: :unprocessable_entity and return
     end
 
-    # FOCO NO TELEFONE: Valida que telefone foi mapeado (obrigatório para WhatsApp)
-    mapped_attributes = mapping.values.compact.map(&:to_s)
-    has_phone = mapped_attributes.include?('phone_number')
-
-    unless has_phone
-      Rails.logger.warn "[CRM] Importação falhou: campo de telefone não foi mapeado"
-      render json: {
-        error: 'Phone number mapping is required for WhatsApp integration. Please map a column to "phone_number".'
-      }, status: :unprocessable_entity and return
-    end
-
     ActiveRecord::Base.transaction do
       import = Current.account.data_imports.create!(data_type: 'contacts', mapping: mapping)
       import.import_file.attach(params[:import_file])
