@@ -4,7 +4,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
 
   def index
     @stages = @pipeline.stages.to_a
-    authorize @stages
+    authorize @pipeline, :show?
     render json: @stages
   end
 

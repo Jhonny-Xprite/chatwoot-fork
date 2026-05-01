@@ -14,7 +14,7 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
     end
 
     @pipelines = current_account.crm_pipelines.to_a
-    authorize @pipelines
+    authorize :crm_pipeline, :index?
     render json: @pipelines
   end
 
