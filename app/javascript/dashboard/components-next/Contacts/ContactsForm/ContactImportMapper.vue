@@ -50,6 +50,46 @@ const availableFields = computed(() => {
   return fields;
 });
 
+const AUTO_MAPPING_DICTIONARY = {
+  name: [
+    'name',
+    'full name',
+    'nome',
+    'nome completo',
+    'lead name',
+    'contact name',
+  ],
+  first_name: [
+    'first name',
+    'given name',
+    'primeiro nome',
+    'leadfirstname',
+    'firstname',
+  ],
+  last_name: [
+    'last_name',
+    'surname',
+    'sobrenome',
+    'leadlastname',
+    'lastname',
+    'family name',
+  ],
+  email: ['email', 'e-mail', 'mail', 'correio', 'leademail', 'contact email'],
+  phone_number: [
+    'phone',
+    'phone number',
+    'telefone',
+    'celular',
+    'mobile',
+    'whatsapp',
+    'leadphone',
+    'contact phone',
+  ],
+  identifier: ['id', 'external id', 'identifier', 'lead id', 'uid'],
+  company_name: ['company', 'company name', 'empresa', 'organização', 'org'],
+  city: ['city', 'cidade', 'localidade'],
+};
+
 const parseCsvPreview = () => {
   const reader = new FileReader();
   reader.onload = e => {
@@ -82,14 +122,32 @@ const parseCsvPreview = () => {
         const values = parseLine(lines[1], delimiter);
         headers.value.forEach((header, index) => {
           previewRow.value[header] = values[index] || '';
-          const lowerHeader = header.toLowerCase();
-          const match = availableFields.value.find(
-            f =>
-              f.label.toLowerCase() === lowerHeader ||
-              f.key.toLowerCase() === lowerHeader ||
-              f.key.split(':').pop().toLowerCase() === lowerHeader
-          );
-          if (match) mapping.value[header] = match.key;
+          const lowerHeader = header.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+          // Smart Mapping Logic
+          let matchedKey = '';
+          Object.keys(AUTO_MAPPING_DICTIONARY).forEach(key => {
+            const synonyms = AUTO_MAPPING_DICTIONARY[key];
+            if (
+              synonyms.some(
+                s => s.toLowerCase().replace(/[^a-z0-9]/g, '') === lowerHeader
+              )
+            ) {
+              matchedKey = key;
+            }
+          });
+
+          if (matchedKey) {
+            mapping.value[header] = matchedKey;
+          } else {
+            // Fallback to exact match with available fields (including custom)
+            const exactMatch = availableFields.value.find(
+              f =>
+                f.label.toLowerCase() === header.toLowerCase() ||
+                f.key.toLowerCase() === header.toLowerCase()
+            );
+            if (exactMatch) mapping.value[header] = exactMatch.key;
+          }
         });
       }
     }
