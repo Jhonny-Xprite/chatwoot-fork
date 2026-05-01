@@ -58,7 +58,7 @@ const parseCsvPreview = () => {
         const result = [];
         let cur = '';
         let inQuote = false;
-        for (let i = 0; i < line.length; i++) {
+        for (let i = 0; i < line.length; i += 1) {
           const char = line[i];
           if (char === '"') inQuote = !inQuote;
           else if (char === delimiter && !inQuote) {
@@ -137,14 +137,16 @@ onMounted(() => {
     <div class="flex items-center justify-between gap-1">
       <div class="flex flex-col">
         <h3 class="text-lg font-semibold text-n-slate-12">
-          {{ t('CONTACTS_LAYOUT.IMPORT_MAPPER.TITLE') }}
+          {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.TITLE') }}
         </h3>
         <p class="text-sm text-n-slate-11">
-          {{ t('CONTACTS_LAYOUT.IMPORT_MAPPER.DESCRIPTION') }}
+          {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.DESCRIPTION') }}
         </p>
       </div>
       <Button
-        label="Create New Field"
+        :label="
+          t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_NEW_FIELD')
+        "
         icon="i-lucide-plus"
         variant="ghost"
         color="blue"
@@ -164,17 +166,23 @@ onMounted(() => {
             <th
               class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider"
             >
-              Column in CSV
+              {{
+                t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.COLUMN_HEADER')
+              }}
             </th>
             <th
               class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider"
             >
-              Example Value
+              {{
+                t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.EXAMPLE_VALUE')
+              }}
             </th>
             <th
               class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider"
             >
-              Chatwoot Field
+              {{
+                t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CHATWOOT_FIELD')
+              }}
             </th>
           </tr>
         </thead>
@@ -202,8 +210,20 @@ onMounted(() => {
                 v-model="mapping[header]"
                 class="w-full h-9 px-3 text-sm rounded-lg bg-n-surface-1 border border-n-strong focus:outline-none focus:ring-2 focus:ring-n-blue-8 transition-all appearance-none cursor-pointer hover:border-n-blue-7"
               >
-                <option value="">Do not import</option>
-                <optgroup label="Standard Fields">
+                <option value="">
+                  {{
+                    t(
+                      'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.DO_NOT_IMPORT'
+                    )
+                  }}
+                </option>
+                <optgroup
+                  :label="
+                    t(
+                      'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.STANDARD_FIELDS'
+                    )
+                  "
+                >
                   <option
                     v-for="field in standardFields"
                     :key="field.key"
@@ -214,7 +234,11 @@ onMounted(() => {
                 </optgroup>
                 <optgroup
                   v-if="contactAttributes.length"
-                  label="Custom Attributes"
+                  :label="
+                    t(
+                      'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CUSTOM_ATTRIBUTES'
+                    )
+                  "
                 >
                   <option
                     v-for="attr in contactAttributes"
@@ -235,13 +259,13 @@ onMounted(() => {
       class="flex items-center justify-end gap-3 pt-4 border-t border-n-strong"
     >
       <Button
-        :label="t('CONTACTS_LAYOUT.IMPORT_MAPPER.CANCEL')"
+        :label="t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CANCEL')"
         color="slate"
         variant="ghost"
         @click="emit('cancel')"
       />
       <Button
-        :label="t('CONTACTS_LAYOUT.IMPORT_MAPPER.PROCEED')"
+        :label="t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.PROCEED')"
         color="blue"
         variant="filled"
         @click="handleImport"
@@ -251,29 +275,81 @@ onMounted(() => {
     <!-- Create Attribute Dialog -->
     <Dialog
       v-if="isCreateAttributeModalOpen"
-      title="Create Custom Attribute"
-      confirm-button-label="Create Field"
+      :title="
+        t(
+          'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.TITLE'
+        )
+      "
+      :confirm-button-label="
+        t(
+          'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.CONFIRM'
+        )
+      "
       @confirm="createCustomAttribute"
       @close="isCreateAttributeModalOpen = false"
     >
       <div class="flex flex-col gap-4 py-4">
         <Input
           v-model="newAttribute.displayName"
-          label="Field Name"
-          placeholder="e.g. Sales Tier"
+          :label="
+            t(
+              'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_NAME.LABEL'
+            )
+          "
+          :placeholder="
+            t(
+              'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_NAME.PLACEHOLDER'
+            )
+          "
           required
         />
         <div class="flex flex-col gap-1.5">
-          <label class="text-sm font-medium text-n-slate-12">Field Type</label>
+          <label class="text-sm font-medium text-n-slate-12">
+            {{
+              t(
+                'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_TYPE.LABEL'
+              )
+            }}
+          </label>
           <select
             v-model="newAttribute.displayType"
             class="w-full h-10 px-3 text-sm rounded-lg bg-n-surface-1 border border-n-strong focus:outline-none focus:ring-2 focus:ring-n-blue-8 transition-all"
           >
-            <option value="text">Text</option>
-            <option value="number">Number</option>
-            <option value="date">Date</option>
-            <option value="link">Link</option>
-            <option value="checkbox">Checkbox</option>
+            <option value="text">
+              {{
+                t(
+                  'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_TYPE.TEXT'
+                )
+              }}
+            </option>
+            <option value="number">
+              {{
+                t(
+                  'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_TYPE.NUMBER'
+                )
+              }}
+            </option>
+            <option value="date">
+              {{
+                t(
+                  'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_TYPE.DATE'
+                )
+              }}
+            </option>
+            <option value="link">
+              {{
+                t(
+                  'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_TYPE.LINK'
+                )
+              }}
+            </option>
+            <option value="checkbox">
+              {{
+                t(
+                  'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CREATE_ATTRIBUTE_DIALOG.FIELD_TYPE.CHECKBOX'
+                )
+              }}
+            </option>
           </select>
         </div>
       </div>

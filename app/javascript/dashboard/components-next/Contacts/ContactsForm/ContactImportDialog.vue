@@ -71,76 +71,71 @@ defineExpose({ dialogRef });
     size="medium"
     @confirm="proceedToMapping"
   >
-    <template v-if="!showMapper">
-      <template #description>
-        <p class="mb-0 text-sm text-n-slate-11">
-          {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.DESCRIPTION') }}
-          <a
-            :href="csvUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            download="import-contacts-sample.csv"
-            class="text-n-blue-11"
-          >
-            {{
-              t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.DOWNLOAD_LABEL')
-            }}
-          </a>
-        </p>
-      </template>
+    <template v-if="!showMapper" #description>
+      <p class="mb-0 text-sm text-n-slate-11">
+        {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.DESCRIPTION') }}
+        <a
+          :href="csvUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          download="import-contacts-sample.csv"
+          class="text-n-blue-11"
+        >
+          {{
+            t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.DOWNLOAD_LABEL')
+          }}
+        </a>
+      </p>
+    </template>
 
-      <div class="flex flex-col gap-2 py-4">
-        <div class="flex items-center gap-2">
-          <label class="text-sm text-n-slate-12 whitespace-nowrap">
-            {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.LABEL') }}
-          </label>
-          <div class="flex items-center justify-between w-full gap-2">
-            <span v-if="hasSelectedFile" class="text-sm text-n-slate-12">
-              {{ selectedFileName }}
-            </span>
+    <div v-if="!showMapper" class="flex flex-col gap-2 py-4">
+      <div class="flex items-center gap-2">
+        <label class="text-sm text-n-slate-12 whitespace-nowrap">
+          {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.LABEL') }}
+        </label>
+        <div class="flex items-center justify-between w-full gap-2">
+          <span v-if="hasSelectedFile" class="text-sm text-n-slate-12">
+            {{ selectedFileName }}
+          </span>
+          <Button
+            v-if="!hasSelectedFile"
+            :label="
+              t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.CHOOSE_FILE')
+            "
+            icon="i-lucide-upload"
+            color="slate"
+            variant="ghost"
+            size="sm"
+            class="!w-fit"
+            @click="handleFileClick"
+          />
+          <div class="flex items-center gap-1">
             <Button
-              v-if="!hasSelectedFile"
-              :label="
-                t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.CHOOSE_FILE')
-              "
-              icon="i-lucide-upload"
+              :label="t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.CHANGE')"
               color="slate"
               variant="ghost"
               size="sm"
-              class="!w-fit"
               @click="handleFileClick"
             />
-            <div v-else class="flex items-center gap-1">
-              <Button
-                :label="
-                  t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.CHANGE')
-                "
-                color="slate"
-                variant="ghost"
-                size="sm"
-                @click="handleFileClick"
-              />
-              <div class="w-px h-3 bg-n-strong" />
-              <Button
-                icon="i-lucide-trash"
-                color="slate"
-                variant="ghost"
-                size="sm"
-                @click="handleRemoveFile"
-              />
-            </div>
+            <div class="w-px h-3 bg-n-strong" />
+            <Button
+              icon="i-lucide-trash"
+              color="slate"
+              variant="ghost"
+              size="sm"
+              @click="handleRemoveFile"
+            />
           </div>
         </div>
       </div>
-    </template>
+    </div>
 
-    <template v-else>
-      <ContactImportMapper
-        :file="hasSelectedFile"
-        @map="onMapComplete"
-        @cancel="showMapper = false"
-      />
-    </template>
+    <ContactImportMapper
+      v-if="showMapper"
+      :file="hasSelectedFile"
+      @map="onMapComplete"
+      @cancel="showMapper = false"
+    />
 
     <input
       ref="fileInput"
