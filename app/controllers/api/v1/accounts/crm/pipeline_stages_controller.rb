@@ -9,14 +9,11 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   end
 
   def create
-    Rails.logger.info "[CRM] Criando novo estágio no pipeline ##{@pipeline.id}: #{stage_params[:name]}"
     @stage = @pipeline.stages.build(stage_params.merge(account_id: current_account.id))
     authorize @stage
     if @stage.save
-      Rails.logger.info "[CRM] Estágio ##{@stage.id} criado com sucesso."
       render json: @stage, status: :created
     else
-      Rails.logger.warn "[CRM] Falha ao criar estágio: #{@stage.errors.full_messages}"
       render json: @stage.errors, status: :unprocessable_entity
     end
   end
@@ -32,35 +29,35 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
 
   def reorder
     authorize @pipeline, :update?
-    positions = params[:positions]
+    stages_params = params[:stages]
 
-    if positions.blank?
-      render json: { error: 'Positions must be provided' }, status: :bad_request
+    if stages_params.blank? || !stages_params.is_a?(Array)
+      render json: { error: 'Stages array must be provided' }, status: :bad_request
       return
     end
 
-    Rails.logger.info "[CRM] Reordenando estágios do pipeline ##{@pipeline.id}. Novas posições: #{positions.inspect}"
     ActiveRecord::Base.transaction do
-      positions.each do |id, position|
-        stage = @pipeline.stages.find(id)
-        stage.update!(position: position)
+      stages_params.each_with_index do |stage_data, index|
+        stage = @pipeline.stages.find(stage_data[:id])
+        stage.update!(
+          name: stage_data[:name],
+          color: stage_data[:color],
+          position: index + 1,
+          active: true
+        )
       end
     end
 
     render json: @pipeline.stages
   rescue ActiveRecord::RecordNotFound => e
-    Rails.logger.error "[CRM] Erro ao reordenar estágios: #{e.message}"
     render json: { error: e.message }, status: :not_found
   rescue ActiveRecord::RecordInvalid => e
-    Rails.logger.error "[CRM] Erro ao reordenar estágios: #{e.record.errors.full_messages.join(', ')}"
     render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_entity
   end
 
   def destroy
-    Rails.logger.info "[CRM] Excluindo estágio ##{@stage.id} do pipeline ##{@pipeline.id}"
     authorize @stage
     @stage.destroy
-    Rails.logger.info "[CRM] Estágio ##{@stage.id} removido."
     head :no_content
   end
 

@@ -116,14 +116,23 @@ const createPipeline = async () => {
   }
 };
 
-const savePipeline = async () => {
+// Salva TUDO: Nome da pipeline, Padrão, Ativa e também a ordem/nomes dos estágios
+const saveEverything = async () => {
   if (!activePipeline.value) return;
 
   try {
+    // 1. Salva metadados da Pipeline
     await store.dispatch('crmPipeline/updatePipeline', {
       pipelineId: activePipeline.value.id,
       pipeline: { ...pipelineForm },
     });
+
+    // 2. Salva estágios (Ordem, Nomes e Cores)
+    await store.dispatch('crmPipeline/reorderStages', {
+      pipelineId: activePipeline.value.id,
+      stages: stageDrafts.value,
+    });
+
     useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_SUCCESS'));
   } catch (error) {
     useAlert(t('CRM.SETTINGS.UPDATE_PIPELINE_ERROR'));
@@ -170,19 +179,6 @@ const createStage = async () => {
   }
 };
 
-// Salva a nova ordem (ou alterações de nome/cor) dos estágios em lote
-const saveStages = async () => {
-  try {
-    await store.dispatch('crmPipeline/reorderStages', {
-      pipelineId: Number(selectedPipelineId.value),
-      stages: stageDrafts.value,
-    });
-    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_SUCCESS'));
-  } catch (error) {
-    useAlert(t('CRM.SETTINGS.UPDATE_STAGES_ERROR'));
-  }
-};
-
 const openDeleteStageDialog = stageId => {
   pendingDeleteStageId.value = stageId;
   deleteStageDialogRef.value?.open();
@@ -207,13 +203,24 @@ const confirmDeleteStage = async () => {
 <template>
   <div class="flex-1 p-6 bg-n-surface-1 overflow-auto">
     <div class="max-w-6xl mx-auto space-y-6">
-      <div>
-        <h2 class="text-2xl font-bold text-n-slate-12">
-          {{ t('CRM.SETTINGS.TITLE') }}
-        </h2>
-        <p class="text-n-slate-11">
-          {{ t('CRM.SETTINGS.SUBTITLE') }}
-        </p>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-n-slate-12">
+            {{ t('CRM.SETTINGS.TITLE') }}
+          </h2>
+          <p class="text-n-slate-11">
+            {{ t('CRM.SETTINGS.SUBTITLE') }}
+          </p>
+        </div>
+        <!-- Botão Único de Salvar Tudo -->
+        <NextButton
+          v-if="activePipeline"
+          color="blue"
+          icon="i-lucide-save"
+          :label="t('CRM.SETTINGS.SAVE_STAGES')"
+          :is-loading="uiFlags.isMovingConversation"
+          @click="saveEverything"
+        />
       </div>
 
       <section
@@ -250,6 +257,7 @@ const confirmDeleteStage = async () => {
           v-if="pipelines.length"
           class="grid gap-4 lg:grid-cols-[280px_1fr]"
         >
+          <!-- Seletor de Pipelines (Lado Esquerdo) -->
           <div class="space-y-2">
             <button
               v-for="pipeline in pipelines"
@@ -284,6 +292,7 @@ const confirmDeleteStage = async () => {
             </button>
           </div>
 
+          <!-- Configurações da Pipeline Ativa (Lado Direito) -->
           <div
             v-if="activePipeline"
             class="rounded-2xl border border-n-slate-3 bg-n-alpha-2 p-5 space-y-5"
@@ -314,13 +323,7 @@ const confirmDeleteStage = async () => {
             </div>
 
             <div class="flex gap-3">
-              <NextButton
-                color="blue"
-                size="sm"
-                icon="i-lucide-save"
-                :label="t('CRM.SAVE')"
-                @click="savePipeline"
-              />
+              <!-- Excluir Pipeline -->
               <NextButton
                 variant="outline"
                 color="ruby"
@@ -332,7 +335,7 @@ const confirmDeleteStage = async () => {
             </div>
 
             <div class="space-y-4">
-              <div>
+              <div class="border-t border-n-slate-3 pt-4">
                 <h4 class="text-base font-bold text-n-slate-12">
                   {{ t('CRM.SETTINGS.STAGES_TITLE') }}
                 </h4>
@@ -341,7 +344,8 @@ const confirmDeleteStage = async () => {
                 </p>
               </div>
 
-              <div class="grid gap-3 md:grid-cols-[1.3fr_120px_100px_160px]">
+              <!-- Criar Novo Estágio -->
+              <div class="grid gap-3 md:grid-cols-[1.3fr_120px_160px]">
                 <input
                   v-model="newStage.name"
                   type="text"
@@ -353,12 +357,6 @@ const confirmDeleteStage = async () => {
                   type="color"
                   class="h-10 w-full rounded-lg border border-n-slate-3 bg-n-alpha-3 px-2"
                 />
-                <label
-                  class="flex items-center gap-2 rounded-lg border border-n-slate-3 bg-n-alpha-3 px-3 py-2 text-sm text-n-slate-12"
-                >
-                  <input v-model="newStage.active" type="checkbox" />
-                  {{ t('CRM.SETTINGS.ACTIVE') }}
-                </label>
                 <NextButton
                   color="blue"
                   size="sm"
@@ -368,6 +366,7 @@ const confirmDeleteStage = async () => {
                 />
               </div>
 
+              <!-- Lista de Estágios com Reordenação -->
               <draggable
                 v-if="stageDrafts.length"
                 v-model="stageDrafts"
@@ -378,29 +377,27 @@ const confirmDeleteStage = async () => {
               >
                 <template #item="{ element: stage }">
                   <div
-                    class="grid gap-3 rounded-xl border border-n-slate-3 bg-n-alpha-3 p-4 md:grid-cols-[24px_1.3fr_120px_100px_48px]"
+                    class="grid gap-3 rounded-xl border border-n-slate-3 bg-n-alpha-3 p-4 md:grid-cols-[24px_1.3fr_120px_48px]"
                   >
+                    <!-- Alça de Arraste -->
                     <div
                       class="drag-handle flex cursor-grab items-center justify-center text-n-slate-8 active:cursor-grabbing hover:text-n-slate-11"
                     >
                       <i class="i-lucide-grip-vertical" />
                     </div>
+                    <!-- Nome do Estágio -->
                     <input
                       v-model="stage.name"
                       type="text"
                       class="rounded-lg border border-n-slate-3 bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12 outline-none focus:border-n-brand-primary"
                     />
+                    <!-- Cor do Estágio -->
                     <input
                       v-model="stage.color"
                       type="color"
                       class="h-10 w-full rounded-lg border border-n-slate-3 bg-n-alpha-3 px-2"
                     />
-                    <label
-                      class="flex items-center gap-2 rounded-lg border border-n-slate-3 bg-n-slate-1 px-3 py-2 text-sm text-n-slate-12"
-                    >
-                      <input v-model="stage.active" type="checkbox" />
-                      {{ t('CRM.SETTINGS.ACTIVE') }}
-                    </label>
+                    <!-- Excluir Estágio -->
                     <div class="flex items-center justify-end">
                       <NextButton
                         ghost
@@ -413,16 +410,6 @@ const confirmDeleteStage = async () => {
                   </div>
                 </template>
               </draggable>
-
-              <div v-if="stageDrafts.length" class="flex justify-end pt-4">
-                <NextButton
-                  color="blue"
-                  size="sm"
-                  icon="i-lucide-save"
-                  :label="t('CRM.SETTINGS.SAVE_STAGES')"
-                  @click="saveStages"
-                />
-              </div>
             </div>
           </div>
         </div>

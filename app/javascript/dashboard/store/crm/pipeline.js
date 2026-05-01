@@ -435,11 +435,7 @@ const actions = {
   },
   async reorderStages({ dispatch, state: _state }, { pipelineId, stages }) {
     const targetPipelineId = pipelineId || _state.activePipelineId;
-    const positions = {};
-    stages.forEach((stage, index) => {
-      positions[stage.id] = index + 1;
-    });
-    await PipelineAPI.reorderStages(targetPipelineId, positions);
+    await PipelineAPI.reorderStages(targetPipelineId, stages);
     await dispatch('fetchStages', targetPipelineId);
   },
   async deletePipeline({ dispatch }, pipelineId) {
