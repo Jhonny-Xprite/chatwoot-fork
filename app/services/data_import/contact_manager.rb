@@ -19,10 +19,15 @@ class DataImport < ApplicationRecord
 
     def build_contact(row)
       params = transform_row(row)
-      
+
+      # Remove valores nil para evitar sobrescrever campos com nil
+      params.compact!
+      params[:custom_attributes]&.compact!
+      params[:additional_attributes]&.compact!
+
       # Busca contato existente para evitar duplicidade
       contact = find_existing_contact(params) || @account.contacts.new
-      
+
       # Define como 'lead' por padrão se for novo, seguindo a lógica de CRM
       contact.contact_type = :lead if contact.new_record?
 
@@ -34,18 +39,24 @@ class DataImport < ApplicationRecord
 
       # Atribui os parâmetros
       contact.assign_attributes(params.merge(account_id: @account.id))
-      
+
       # Fallback de Nome: Se name for vazio, usa o Email ou Telefone como nome temporário
-      # Isso evita que o registro seja rejeitado por falta de nome (obrigatório no Chatwoot)
       if contact.name.blank?
         contact.name = contact.email.presence || contact.phone_number.presence || "Contact #{Time.now.to_i}"
       end
 
-      # Logs de auditoria para o desenvolvedor
+      # Debug logging
       unless contact.valid?
-        Rails.logger.error "[Import] Final Validation Failed: #{contact.errors.full_messages} | Data: #{params.slice(:email, :phone_number)}"
+        error_details = {
+          errors: contact.errors.full_messages,
+          email: contact.email,
+          phone_number: contact.phone_number,
+          name: contact.name,
+          contact_type: contact.contact_type
+        }
+        Rails.logger.error "[Import] Validation Failed: #{error_details.inspect}"
       end
-      
+
       contact
     end
 
@@ -62,7 +73,10 @@ class DataImport < ApplicationRecord
 
         if Contact.column_names.include?(attribute) || ['first_name', 'last_name'].include?(attribute)
           # Tratamento especial para telefone
-          value = format_phone_number(value) if attribute == 'phone_number'
+          if attribute == 'phone_number'
+            value = format_phone_number(value)
+            next if value.blank? # Não inclui telefone inválido
+          end
           transformed[attribute.to_sym] = value
         elsif attribute.start_with?('custom_attribute:')
           key = attribute.sub('custom_attribute:', '')
@@ -127,26 +141,48 @@ class DataImport < ApplicationRecord
       return nil if phone.blank?
 
       phone = phone.to_s.strip
-      # Se já tem +, apenas remove espaços e caracteres inválidos
-      return phone if phone.match?(/^\+\d{1,15}$/)
 
-      # Remove tudo exceto números
-      cleaned = phone.gsub(/[^\d]/, '')
+      # Remove tudo exceto números e +
+      cleaned = phone.gsub(/[^\d+]/, '')
       return nil if cleaned.blank?
 
-      # Se começa com 0, provavelmente é Brasil - remove o 0 e adiciona +55
-      if cleaned.start_with?('0')
-        cleaned = cleaned[1..-1]
-        return "+55#{cleaned}"
+      # Se já tem +, valida formato e retorna
+      if cleaned.start_with?('+')
+        # Remove o + temporariamente para análise
+        digits = cleaned[1..-1]
+        # Valida: deve ter 1-15 dígitos com primeiro diferente de 0
+        if digits.match?(/^[1-9]\d{0,14}$/)
+          return "+#{digits}"
+        else
+          return nil
+        end
       end
 
+      # Trabalha com números puros (sem +)
+      digits = cleaned.gsub(/[^\d]/, '')
+      return nil if digits.blank?
+
+      # Se começa com 0, remove (provavelmente Brasil)
+      digits = digits[1..-1] if digits.start_with?('0')
+
       # Se tem menos de 10 dígitos, é inválido
-      return nil if cleaned.length < 10
+      return nil if digits.length < 10
 
-      # Se não tem prefixo internacional, tenta adicionar +55 (Brasil)
-      return "+55#{cleaned}" unless cleaned.match?(/^[1-9]\d{1,14}$/)
+      # Se tem mais de 15 dígitos, é inválido
+      return nil if digits.length > 15
 
-      "+#{cleaned}"
+      # Se já tem código de país (primeiro dígito 1-9, seguido de até 14 dígitos)
+      if digits.match?(/^[1-9]\d{0,14}$/)
+        return "+#{digits}"
+      end
+
+      # Padrão brasileiro: números de 10-11 dígitos
+      # Adiciona +55 para compatibilidade
+      if digits.length.between?(10, 11)
+        return "+55#{digits}"
+      end
+
+      nil
     end
   end
 end

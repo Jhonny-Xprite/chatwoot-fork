@@ -211,10 +211,11 @@ watch(
 
 const onDealSelect = deal => {
   router.push({
-    name: 'crm_conversation',
+    name: 'inbox_conversation',
     params: {
       accountId: accountId.value,
-      conversationId: deal.id,
+      inboxId: deal.inbox_id,
+      conversation_id: deal.id,
     },
   });
 };
@@ -224,7 +225,7 @@ const onContactSelect = deal => {
   if (!contactId) return;
 
   router.push({
-    name: 'crm_contact',
+    name: 'contacts_edit',
     params: {
       accountId: accountId.value,
       contactId,

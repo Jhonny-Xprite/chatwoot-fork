@@ -173,57 +173,37 @@ const mutations = {
   },
   UPSERT_CONVERSATION(_state, conversation) {
     const targetStageId = conversation.pipeline_stage_id;
-    const previousConversation = _state.conversationLookupMap[conversation.id];
-    const previousStageId = previousConversation?.pipeline_stage_id;
+    if (!targetStageId) return;
 
-    if (previousStageId) {
-      _state.conversationsByStage[previousStageId] = (
-        _state.conversationsByStage[previousStageId] || []
+    // 1. Remove from all other stages to prevent duplication
+    Object.keys(_state.conversationsByStage).forEach(stageId => {
+      _state.conversationsByStage[stageId] = (
+        _state.conversationsByStage[stageId] || []
       ).filter(item => item.id !== conversation.id);
-    }
+    });
 
-    if (!targetStageId || !_state.conversationsByStage[targetStageId]) {
-      delete _state.conversationLookupMap[conversation.id];
-      return;
-    }
-
+    // 2. Update lookup map
+    const previousConversation = _state.conversationLookupMap[conversation.id];
     const mergedConversation = {
       ...previousConversation,
       ...conversation,
     };
-
     _state.conversationLookupMap[conversation.id] = mergedConversation;
-    _state.conversationsByStage[targetStageId] = sortConversationsByActivity([
-      mergedConversation,
-      ...(_state.conversationsByStage[targetStageId] || []),
-    ]);
 
-    if (previousStageId && previousStageId !== targetStageId) {
-      const previousMeta = _state.metaByStage[previousStageId];
-      if (previousMeta) {
-        _state.metaByStage[previousStageId] = {
-          ...previousMeta,
-          total_count: Math.max((previousMeta.total_count || 0) - 1, 0),
-        };
-      }
-    }
-
-    if (previousStageId !== targetStageId) {
-      const targetMeta = _state.metaByStage[targetStageId];
-      if (targetMeta) {
-        _state.metaByStage[targetStageId] = {
-          ...targetMeta,
-          total_count: (targetMeta.total_count || 0) + 1,
-        };
-      }
+    // 3. Add to target stage
+    if (_state.conversationsByStage[targetStageId]) {
+      _state.conversationsByStage[targetStageId] = sortConversationsByActivity([
+        mergedConversation,
+        ..._state.conversationsByStage[targetStageId],
+      ]);
     }
   },
   UPDATE_CONVERSATION_STAGE(_state, { conversationId, stageId, pipelineId }) {
     const conversation = _state.conversationLookupMap[conversationId];
-    if (!conversation) return;
-
-    conversation.pipeline_stage_id = stageId;
-    conversation.pipeline_id = pipelineId;
+    if (conversation) {
+      conversation.pipeline_stage_id = stageId;
+      conversation.pipeline_id = pipelineId;
+    }
   },
   ADD_MESSAGE(_state, message) {
     const { conversation_id: conversationId } = message;

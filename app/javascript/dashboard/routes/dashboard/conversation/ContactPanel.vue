@@ -174,7 +174,9 @@ onMounted(() => {
             <AccordionItem
               :title="t('CRM.HEADER')"
               :is-open="isContactSidebarItemOpen('is_crm_pipeline_open')"
-              @toggle="value => toggleSidebarUIState('is_crm_pipeline_open', value)"
+              @toggle="
+                value => toggleSidebarUIState('is_crm_pipeline_open', value)
+              "
             >
               <CRMPipelineSection :conversation="currentChat" />
             </AccordionItem>

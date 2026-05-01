@@ -58,6 +58,13 @@ class DataImportJob < ApplicationJob
   end
 
   def import_contacts(contacts)
+    return if contacts.blank?
+
+    Rails.logger.info "[DataImport] Processing #{contacts.length} contacts..."
+    contacts.each_with_index do |contact, idx|
+      Rails.logger.debug "[DataImport] Contact #{idx + 1}: email=#{contact.email.inspect}, phone=#{contact.phone_number.inspect}, name=#{contact.name.inspect}"
+    end
+
     result = Contact.import(
       contacts,
       synchronize: contacts,
@@ -70,6 +77,10 @@ class DataImportJob < ApplicationJob
       batch_size: 1000
     )
     Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Updated: #{result.num_updates || 0}, Failed: #{result.failed_instances.size}"
+
+    if result.failed_instances.any?
+      Rails.logger.error "[DataImport] Failed instances: #{result.failed_instances.inspect}"
+    end
   end
 
   def update_data_import_status(processed_records, rejected_records)

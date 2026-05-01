@@ -33,6 +33,24 @@ export default [
         },
       },
       {
+        path: 'pipelines/:pipelineId',
+        name: 'crm_pipeline_details',
+        component: CRMPipelines,
+        props: true,
+        meta: {
+          permissions: ROLES,
+        },
+      },
+      {
+        path: 'views/:viewId',
+        name: 'crm_view',
+        component: CRMPipelines,
+        props: true,
+        meta: {
+          permissions: ROLES,
+        },
+      },
+      {
         path: 'scoring',
         name: 'crm_scoring',
         component: CRMScoring,
