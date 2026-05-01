@@ -3,9 +3,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   before_action :set_stage, only: [:show, :update, :destroy]
 
   def index
-    @stages = Rails.cache.fetch("pipeline_#{@pipeline.id}_stages", expires_in: 1.hour) do
-      @pipeline.stages.to_a
-    end
+    @stages = @pipeline.stages.to_a
     authorize @stages
     render json: @stages
   end
