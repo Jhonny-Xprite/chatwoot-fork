@@ -120,11 +120,6 @@ const lastMessageSenderLabel = computed(() => {
   return isAgent ? t('CRM.MESSAGE_SENDER.TEAM') : t('CRM.MESSAGE_SENDER.LEAD');
 });
 
-const formattedLastMessagePreview = computed(() => {
-  if (!lastMessage.value) return t('CRM.NO_MESSAGES_YET');
-  return `${lastMessageSenderLabel.value}: “${lastMessagePreview.value}”`;
-});
-
 const leadScore = computed(() => contact.value.lead_score || 0);
 const isHotLead = computed(() => leadScore.value >= 70);
 
@@ -397,50 +392,67 @@ const onAttributeUpdate = async (attr, newValue) => {
 
       <div
         v-if="viewPrefs.showLastMessage"
-        class="rounded-xl border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-2.5 py-2 text-[11px] leading-snug text-n-slate-11 group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors"
+        class="rounded-xl border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-2.5 py-2 text-[11px] leading-snug group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors"
       >
-        <p class="line-clamp-1 break-words italic">
-          {{ formattedLastMessagePreview }}
-        </p>
+        <div class="flex items-center gap-1.5 line-clamp-1">
+          <span
+            class="font-black tracking-tighter uppercase whitespace-nowrap"
+            :class="
+              lastMessage?.message_type === 1
+                ? 'text-n-slate-10'
+                : 'text-n-brand-primary'
+            "
+          >
+            {{ lastMessageSenderLabel }}:
+          </span>
+          <p class="truncate italic text-n-slate-11">
+            {{ lastMessagePreview }}
+          </p>
+        </div>
       </div>
 
-      <div v-if="dynamicAttributes.length" class="flex flex-wrap gap-1.5">
-        <div
-          v-for="attr in dynamicAttributes"
-          :key="attr.key"
-          class="flex items-center gap-1.5 rounded-md border border-n-slate-3 bg-n-slate-1 px-2 py-0.5 shadow-sm hover:border-n-brand-primary/40 transition-colors"
-          @click.stop
-        >
-          <span
-            class="text-[9px] font-black uppercase text-n-slate-9 tracking-tighter"
+      <div
+        v-if="dynamicAttributes.length"
+        class="overflow-x-auto scroll-smooth"
+      >
+        <div class="flex gap-1.5 min-w-min">
+          <div
+            v-for="attr in dynamicAttributes"
+            :key="attr.key"
+            class="flex items-center gap-1.5 rounded-md border border-n-slate-3 bg-n-slate-1 px-2 py-0.5 shadow-sm hover:border-n-brand-primary/40 transition-colors flex-shrink-0"
+            @click.stop
           >
-            {{ attr.label }}
-          </span>
-          <Popover v-if="attr.type === 'list'" align="start">
-            <template #trigger>
-              <div
-                class="cursor-pointer text-[10px] font-bold text-n-slate-12 hover:text-n-brand-primary"
-              >
-                {{ attr.value }}
-              </div>
-            </template>
-            <template #content>
-              <div @click.stop>
-                <SelectMenu
-                  :options="attr.options"
-                  :value="attr.value"
-                  @select="val => onAttributeUpdate(attr, val)"
-                />
-              </div>
-            </template>
-          </Popover>
-          <InlineInput
-            v-else
-            :value="attr.value"
-            size="xs"
-            class="!text-[10px] !font-bold !p-0 !min-h-0 !border-none !bg-transparent"
-            @save="val => onAttributeUpdate(attr, val)"
-          />
+            <span
+              class="text-[9px] font-black uppercase text-n-slate-9 tracking-tighter"
+            >
+              {{ attr.label }}
+            </span>
+            <Popover v-if="attr.type === 'list'" align="start">
+              <template #trigger>
+                <div
+                  class="cursor-pointer text-[10px] font-bold text-n-slate-12 hover:text-n-brand-primary"
+                >
+                  {{ attr.value }}
+                </div>
+              </template>
+              <template #content>
+                <div @click.stop>
+                  <SelectMenu
+                    :options="attr.options"
+                    :value="attr.value"
+                    @select="val => onAttributeUpdate(attr, val)"
+                  />
+                </div>
+              </template>
+            </Popover>
+            <InlineInput
+              v-else
+              :value="attr.value"
+              size="xs"
+              class="!text-[10px] !font-bold !p-0 !min-h-0 !border-none !bg-transparent"
+              @save="val => onAttributeUpdate(attr, val)"
+            />
+          </div>
         </div>
       </div>
 
