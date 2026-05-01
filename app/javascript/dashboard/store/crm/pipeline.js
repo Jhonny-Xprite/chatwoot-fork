@@ -278,7 +278,9 @@ const actions = {
         return activePipeline.id;
       }
     } catch (error) {
-      // Ignore error
+      // Log error to help with debugging
+      // eslint-disable-next-line no-console
+      console.error('[CRM] Error in action:', error);
     } finally {
       commit('SET_UI_FLAG', { flag: 'isFetchingPipelines', value: false });
     }
@@ -305,7 +307,9 @@ const actions = {
         )
       );
     } catch (error) {
-      // Ignore error
+      // Log error to help with debugging
+      // eslint-disable-next-line no-console
+      console.error('[CRM] Error in action:', error);
     } finally {
       commit('SET_UI_FLAG', { flag: 'isFetchingStages', value: false });
     }
@@ -330,7 +334,9 @@ const actions = {
       commit('SET_CONVERSATIONS', { stageId, conversations: payload, page });
       commit('SET_META', { stageId, meta: responseMeta });
     } catch (error) {
-      // Ignore error
+      // Log error to help with debugging
+      // eslint-disable-next-line no-console
+      console.error('[CRM] Error in action:', error);
     } finally {
       commit('SET_STAGE_LOADING', { stageId, value: false });
     }
