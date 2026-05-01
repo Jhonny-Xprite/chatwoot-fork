@@ -34,6 +34,10 @@
     "REPLY_NEEDED": "Resposta necessária",
     "OPEN_CONTACT": "Ver Contato",
     "OPEN_CONVERSATION": "Ver Conversa",
+    "MESSAGE_SENDER": {
+      "LEAD": "Lead",
+      "TEAM": "Equipe"
+    },
     "PIPELINE": "Pipeline",
     "ADD_TO_PIPELINE": "Adicionar à Pipeline",
     "SELECT_STAGE": "Selecionar Etapa",

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import draggable from 'vuedraggable';
 import PipelineColumn from './PipelineColumn.vue';
@@ -14,6 +14,7 @@ const props = defineProps({
 defineEmits(['select', 'selectContact', 'addStage']);
 
 const store = useStore();
+const scrollContainer = ref(null);
 const isFetchingStages = computed(
   () => store.state.crmPipeline.uiFlags.isFetchingStages
 );
@@ -27,13 +28,32 @@ const stagesList = computed({
     });
   },
 });
+
+const handleKeyboard = event => {
+  if (!scrollContainer.value) return;
+
+  const scrollStep = 320;
+
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    scrollContainer.value.scrollLeft += scrollStep;
+  } else if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    scrollContainer.value.scrollLeft -= scrollStep;
+  }
+};
 </script>
 
 <template>
-  <div class="relative flex flex-col flex-1 overflow-hidden bg-n-alpha-1">
+  <div
+    class="relative flex flex-col flex-1 overflow-hidden bg-n-alpha-1"
+    @keydown="handleKeyboard"
+  >
     <!-- Board Body - Onde o scroll horizontal real acontece -->
     <div
+      ref="scrollContainer"
       class="custom-horizontal-scrollbar flex-1 overflow-y-hidden overflow-x-auto scroll-smooth"
+      tabindex="0"
     >
       <div
         v-if="!isFetchingStages"
