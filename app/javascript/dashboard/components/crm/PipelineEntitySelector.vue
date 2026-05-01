@@ -7,9 +7,17 @@ import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.v
 import Popover from 'dashboard/components-next/popover/Popover.vue';
 
 const props = defineProps({
-  conversation: {
-    type: Object,
+  conversationId: {
+    type: [Number, String],
     required: true,
+  },
+  pipelineId: {
+    type: Number,
+    default: null,
+  },
+  stageId: {
+    type: Number,
+    default: null,
   },
 });
 
@@ -19,36 +27,36 @@ const store = useStore();
 const pipelines = computed(() => store.getters['crmPipeline/getAllPipelines']);
 const stages = computed(() => store.getters['crmPipeline/getStages']);
 
-const currentPipelineId = computed(() => props.conversation.pipeline_id);
-const currentStageId = computed(() => props.conversation.pipeline_stage_id);
-
 const currentPipeline = computed(() =>
-  pipelines.value.find(p => p.id === currentPipelineId.value)
+  pipelines.value.find(p => p.id === props.pipelineId)
 );
 
-const currentStage = computed(() => {
-  return stages.value.find(s => s.id === currentStageId.value);
-});
+const currentStage = computed(() =>
+  stages.value.find(s => s.id === props.stageId)
+);
 
 onMounted(async () => {
   await store.dispatch('crmPipeline/fetchPipelines');
-  if (currentPipelineId.value) {
-    store.dispatch('crmPipeline/fetchStages', currentPipelineId.value);
+  if (props.pipelineId) {
+    store.dispatch('crmPipeline/fetchStages', props.pipelineId);
   }
 });
 
-watch(currentPipelineId, newId => {
-  if (newId) {
-    store.dispatch('crmPipeline/fetchStages', newId);
+watch(
+  () => props.pipelineId,
+  newId => {
+    if (newId) {
+      store.dispatch('crmPipeline/fetchStages', newId);
+    }
   }
-});
+);
 
 const pipelineMenuItems = computed(() => {
   return pipelines.value.map(p => ({
     label: p.name,
     value: p.id,
     action: 'select-pipeline',
-    isSelected: p.id === currentPipelineId.value,
+    isSelected: p.id === props.pipelineId,
   }));
 });
 
@@ -57,8 +65,8 @@ const stageMenuItems = computed(() => {
     label: s.name,
     value: s.id,
     action: 'select-stage',
-    isSelected: s.id === currentStageId.value,
-    color: s.color,
+    isSelected: s.id === props.stageId,
+    thumbnail: { name: s.name, color: s.color },
   }));
 });
 
@@ -69,7 +77,7 @@ const handlePipelineAction = async ({ value }, hide) => {
 
 const handleStageAction = async ({ value }, hide) => {
   await store.dispatch('crmPipeline/moveConversation', {
-    conversationId: props.conversation.id,
+    conversationId: props.conversationId,
     toStageId: value,
   });
   hide();
@@ -88,59 +96,68 @@ const badgeStyle = computed(() => {
 </script>
 
 <template>
-  <div class="flex items-center gap-1 ml-2 mr-1">
-    <div class="relative flex items-center">
-      <!-- Pipeline Dropdown -->
-      <Popover align="start">
-        <ButtonV4
-          v-tooltip="
-            currentPipeline
-              ? `${t('CRM.PIPELINE')}: ${currentPipeline.name}`
-              : t('CRM.ADD_TO_PIPELINE')
-          "
-          size="xs"
-          variant="ghost"
-          color="slate"
-          icon="i-lucide-box"
-          :class="{ 'text-n-brand-primary': currentPipelineId }"
+  <div class="flex items-center gap-1">
+    <!-- Pipeline Selector (Icon only) -->
+    <Popover align="start">
+      <ButtonV4
+        v-tooltip="
+          currentPipeline
+            ? `${t('CRM.PIPELINE')}: ${currentPipeline.name}`
+            : t('CRM.SELECT_PIPELINE')
+        "
+        size="xs"
+        variant="ghost"
+        color="slate"
+        icon="i-lucide-box"
+        :class="{ 'text-n-brand-primary': pipelineId }"
+      />
+      <template #content="{ hide }">
+        <DropdownMenu
+          :menu-items="pipelineMenuItems"
+          show-search
+          class="w-48 mt-2"
+          @action="handlePipelineAction($event, hide)"
         />
-        <template #content="{ hide }">
-          <DropdownMenu
-            :menu-items="pipelineMenuItems"
-            @action="handlePipelineAction($event, hide)"
-          />
-        </template>
-      </Popover>
+      </template>
+    </Popover>
 
-      <!-- Stage Badge/Dropdown -->
-      <Popover v-if="currentPipelineId" align="start">
-        <button
-          v-if="currentStageId && currentStage"
-          class="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all hover:brightness-95 active:scale-95 whitespace-nowrap"
-          :style="badgeStyle"
+    <!-- Stage Selector (Badge) -->
+    <Popover v-if="pipelineId" align="start">
+      <button
+        v-if="stageId && currentStage"
+        class="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all hover:brightness-95 active:scale-95 whitespace-nowrap"
+        :style="badgeStyle"
+      >
+        <span
+          class="w-1.5 h-1.5 rounded-full"
+          :style="{ backgroundColor: currentStage.color }"
+        />
+        {{ currentStage.name }}
+        <i class="i-lucide-chevron-down size-3 opacity-70" />
+      </button>
+
+      <button
+        v-else
+        class="text-[10px] font-medium text-n-slate-11 hover:text-n-brand-primary transition-colors px-1 h-6 flex items-center"
+      >
+        {{ t('CRM.SELECT_STAGE') }}
+        <i class="i-lucide-chevron-down size-3 ml-1 opacity-50" />
+      </button>
+
+      <template #content="{ hide }">
+        <DropdownMenu
+          :menu-items="stageMenuItems"
+          class="w-48 mt-2"
+          @action="handleStageAction($event, hide)"
         >
-          <span
-            class="w-1.5 h-1.5 rounded-full"
-            :style="{ backgroundColor: currentStage.color }"
-          />
-          {{ currentStage.name }}
-          <i class="i-lucide-chevron-down size-3 opacity-70" />
-        </button>
-
-        <button
-          v-else
-          class="text-[10px] font-medium text-n-slate-11 hover:text-n-brand-primary transition-colors px-1"
-        >
-          {{ t('CRM.SELECT_STAGE') }}
-        </button>
-
-        <template #content="{ hide }">
-          <DropdownMenu
-            :menu-items="stageMenuItems"
-            @action="handleStageAction($event, hide)"
-          />
-        </template>
-      </Popover>
-    </div>
+          <template #thumbnail="{ item }">
+            <div
+              class="size-2 rounded-full"
+              :style="{ backgroundColor: item.thumbnail.color }"
+            />
+          </template>
+        </DropdownMenu>
+      </template>
+    </Popover>
   </div>
 </template>

@@ -27,6 +27,8 @@ export default function useAutomationValues() {
   const labels = useMapGetter('labels/getLabels');
   const teams = useMapGetter('teams/getTeams');
   const slaPolicies = useMapGetter('sla/getSLA');
+  const pipelines = useMapGetter('crmPipeline/getAllPipelines');
+  const stages = useMapGetter('crmPipeline/getStages');
 
   const booleanFilterOptions = computed(() => [
     { id: true, name: t('FILTER.ATTRIBUTE_LABELS.TRUE') },
@@ -109,6 +111,8 @@ export default function useAutomationValues() {
       priorityOptions: priorityOptions.value,
       messageTypeOptions: messageTypeOptions.value,
       teams: teams.value,
+      pipelines: pipelines.value,
+      stages: stages.value,
       languages,
       countries,
       type,
@@ -137,6 +141,7 @@ export default function useAutomationValues() {
       labels: labels.value,
       teams: teams.value,
       slaPolicies: slaPolicies.value,
+      stages: stages.value,
       languages,
       type,
       addNoneToListFn: addNoneToList,
@@ -159,5 +164,7 @@ export default function useAutomationValues() {
     labels,
     teams,
     slaPolicies,
+    pipelines,
+    stages,
   };
 }

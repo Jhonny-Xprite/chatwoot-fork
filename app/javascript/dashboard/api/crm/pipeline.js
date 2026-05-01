@@ -39,14 +39,8 @@ class PipelineAPI extends ApiClient {
   }
 
   reorderStages(pipelineId, positions) {
-    return axios.post(`${this.url}/${pipelineId}/stages/reorder`, {
+    return axios.patch(`${this.url}/${pipelineId}/stages/reorder`, {
       positions,
-    });
-  }
-
-  reorderStages(pipelineId, stages) {
-    return axios.post(`${this.url}/${pipelineId}/stages/reorder`, {
-      stages,
     });
   }
 

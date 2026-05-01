@@ -32,8 +32,21 @@
     "OPEN_CONTACT": "Contact",
     "OPEN_CONVERSATION": "Conversation",
     "PIPELINE": "Pipeline",
-    "ADD_TO_PIPELINE": "Add to Pipeline",
+    "SELECT_PIPELINE": "Select Pipeline",
     "SELECT_STAGE": "Select Stage",
+    "SIDEBAR_HINT": "Move this conversation to a pipeline stage to start tracking it as a deal.",
+    "CONTACT_PANEL": {
+      "ACTIVE_DEALS": "Active Deals",
+      "NO_ACTIVE_DEALS": "There are no active deals for this contact at the moment.",
+      "CURRENT_STAGE": "Current Stage",
+      "CONVERSATION_DEAL": "Deal from conversation",
+      "CONVERSATIONS_WITHOUT_PIPELINE": "Conversations without Pipeline",
+      "CHAT_CONVERSATION": "Chat conversation",
+      "NOT_IN_CRM": "Not yet in CRM"
+    },
+    "PIPELINE": {
+      "UNKNOWN": "Unknown Pipeline"
+    },
     "TABS": {
       "DASHBOARD": "Dashboard",
       "PIPELINES": "Pipelines",

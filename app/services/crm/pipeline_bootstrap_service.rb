@@ -32,6 +32,21 @@ class Crm::PipelineBootstrapService
     end
   end
 
+  def heal_orphaned_conversations!
+    return unless @account
+
+    default_pipeline = @account.crm_pipelines.find_by(is_default: true) || @account.crm_pipelines.first
+    return unless default_pipeline
+
+    target_stage = default_pipeline.stages.where(active: true).first || default_pipeline.stages.first
+    return unless target_stage
+
+    # Fix conversations that have a pipeline assigned but no stage (orphans from deleted stages)
+    @account.conversations.where(pipeline_stage_id: nil).where.not(pipeline_id: nil).update_all(
+      pipeline_stage_id: target_stage.id
+    )
+  end
+
   private
 
   def next_pipeline_position

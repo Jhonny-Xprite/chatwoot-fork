@@ -6,6 +6,7 @@ module ActivityMessageHandler
   include LabelActivityMessageHandler
   include SlaActivityMessageHandler
   include TeamActivityMessageHandler
+  include CrmActivityMessageHandler
 
   private
 
@@ -16,6 +17,7 @@ module ActivityMessageHandler
     handle_priority_change(user_name)
     handle_label_change(user_name)
     handle_sla_policy_change(user_name)
+    handle_crm_stage_change(user_name)
   end
 
   def determine_user_name

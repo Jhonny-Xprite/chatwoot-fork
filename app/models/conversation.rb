@@ -103,7 +103,10 @@ class Conversation < ApplicationRecord
   scope :search_by_contact_name, lambda { |query|
     return all if query.blank?
 
-    joins(:contact).where('contacts.name ILIKE :query OR contacts.email ILIKE :query OR contacts.phone_number ILIKE :query', query: "%#{query}%")
+    joins(:contact).where(
+      'conversations.display_id::text ILIKE :query OR contacts.name ILIKE :query OR contacts.email ILIKE :query OR contacts.phone_number ILIKE :query',
+      query: "%#{query}%"
+    )
   }
 
   belongs_to :account

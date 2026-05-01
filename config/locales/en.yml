@@ -272,6 +272,7 @@ en:
         added: '%{user_name} set the priority to %{new_priority}'
         updated: '%{user_name} changed the priority from %{old_priority} to %{new_priority}'
         removed: '%{user_name} removed the priority'
+      crm_stage_changed: '%{user_name} moved the deal from %{old_stage} to %{new_stage}'
       assignee:
         self_assigned: '%{user_name} self-assigned this conversation'
         assigned: 'Assigned to %{assignee_name} by %{user_name}'
@@ -472,6 +473,8 @@ en:
     no_message: 'No messages in conversation'
     attachment: '[Attachment: %{type}]'
     no_content: '[No content]'
+    pipeline:
+      unknown_stage: 'Unknown Stage'
     created_activity: |
       New conversation started on %{brand_name}
 

@@ -124,7 +124,11 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
           >
             {{ currentContact.name }}
           </span>
-          <PipelineEntitySelector :conversation="chat" />
+          <PipelineEntitySelector
+            :conversation-id="chat.id"
+            :pipeline-id="chat.pipeline_id"
+            :stage-id="chat.pipeline_stage_id"
+          />
           <fluent-icon
             v-if="!isHMACVerified"
             v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"

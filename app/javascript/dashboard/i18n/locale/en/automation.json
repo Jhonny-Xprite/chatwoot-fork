@@ -157,7 +157,8 @@
       "CHANGE_PRIORITY": "Change Priority",
       "ADD_SLA": "Add SLA",
       "OPEN_CONVERSATION": "Open conversation",
-      "PENDING_CONVERSATION": "Mark conversation as pending"
+      "PENDING_CONVERSATION": "Mark conversation as pending",
+      "MOVE_TO_PIPELINE_STAGE": "Move to CRM Stage"
     },
     "MESSAGE_TYPES": {
       "INCOMING": "Incoming Message",
@@ -187,7 +188,9 @@
       "ASSIGNEE_NAME": "Assignee",
       "TEAM_NAME": "Team",
       "PRIORITY": "Priority",
-      "LABELS": "Labels"
+      "LABELS": "Labels",
+      "CRM_PIPELINE": "CRM Pipeline",
+      "CRM_PIPELINE_STAGE": "CRM Pipeline Stage"
     }
   }
 }
