@@ -9,9 +9,9 @@ class CrmListener < BaseListener
     previous_labels, current_labels = changed_attributes[:label_list]
     new_labels = current_labels - (previous_labels || [])
 
-    if new_labels.include?('GADS-Qualified')
-      move_to_stage(conversation, 'Qualified')
-    end
+    return unless new_labels.include?('GADS-Qualified')
+
+    move_to_stage(conversation, 'Qualified')
   end
 
   def message_created(event)

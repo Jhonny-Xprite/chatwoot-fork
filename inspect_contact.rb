@@ -10,7 +10,7 @@ puts "=" * 80
 # Verificar uma conta
 account = Account.first
 if account.nil?
-  puts "ERROR: No accounts found. Create an account first."
+  puts 'ERROR: No accounts found. Create an account first.'
   exit(1)
 end
 
@@ -22,9 +22,9 @@ if contacts.empty?
   puts "\n❌ No contacts found in this account. Let's create a test contact..."
 
   contact = account.contacts.create(
-    name: "João da Silva",
-    email: "joao@example.com",
-    phone_number: "+5511987654321",
+    name: 'João da Silva',
+    email: 'joao@example.com',
+    phone_number: '+5511987654321',
     contact_type: :lead
   )
 
