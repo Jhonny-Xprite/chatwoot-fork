@@ -120,9 +120,7 @@ class DataImportJob < ApplicationJob
     )
     Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Failed: #{result.failed_instances.size}"
 
-    if result.failed_instances.any?
-      Rails.logger.error "[DataImport] Failed instances: #{result.failed_instances.inspect}"
-    end
+    Rails.logger.error "[DataImport] Failed instances: #{result.failed_instances.inspect}" if result.failed_instances.any?
   end
 
   def update_data_import_status(processed_records, rejected_records)

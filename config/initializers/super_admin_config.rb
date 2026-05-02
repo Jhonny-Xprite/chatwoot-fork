@@ -20,7 +20,7 @@ Rails.application.config.after_initialize do
       # Se o usuário não existir ainda (primeiro boot), o log avisa
       Rails.logger.warn "[AIOX] SuperAdmin automático: Usuário #{admin_email} ainda não encontrado no banco."
     end
-  rescue => e
+  rescue StandardError => e
     # Evita que erros no boot quebrem a aplicação se o banco não estiver pronto
     Rails.logger.error "[AIOX] Erro ao configurar SuperAdmin automático: #{e.message}"
   end
