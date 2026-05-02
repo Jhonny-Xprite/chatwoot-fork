@@ -1,0 +1,6 @@
+Email Address,Full Name,Phone,Company,Title
+john@example.com,John Doe,+5511987654321,,
+jane@example.com,Jane Smith,11987654322,,
+bob@example.com,Bob Johnson,11987654323,ABC Corp,Manager
+alice@example.com,,11987654324,XYZ Inc,
+charlie@example.com,Charlie Brown,,,Senior Dev
