@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_02_000000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -832,6 +832,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
     t.text "processing_errors"
     t.integer "total_records"
     t.integer "processed_records"
+    t.json "mapping", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_data_imports_on_account_id"
