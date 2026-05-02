@@ -14,6 +14,7 @@ export const useMacros = () => {
   const labels = computed(() => getters['labels/getLabels'].value);
   const teams = computed(() => getters['teams/getTeams'].value);
   const agents = computed(() => getters['agents/getVerifiedAgents'].value);
+  const stages = computed(() => getters['crmPipeline/getStages'].value);
 
   const withNoneOption = options => [
     { id: 'nil', name: t('AUTOMATION.NONE_OPTION') },
@@ -47,6 +48,11 @@ export const useMacros = () => {
         return PRIORITY_CONDITION_VALUES.map(item => ({
           id: item.id,
           name: t(`MACROS.PRIORITY_TYPES.${item.i18nKey}`),
+        }));
+      case 'move_to_pipeline_stage':
+        return stages.value.map(i => ({
+          id: i.id,
+          name: i.name,
         }));
       default:
         return [];

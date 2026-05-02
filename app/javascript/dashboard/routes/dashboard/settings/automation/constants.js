@@ -86,6 +86,18 @@ export const AUTOMATIONS = {
         inputType: 'multi_select',
         filterOperators: OPERATOR_TYPES_3,
       },
+      {
+        key: 'pipeline_id',
+        name: 'CRM_PIPELINE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'pipeline_stage_id',
+        name: 'CRM_PIPELINE_STAGE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
     ],
     actions: [
       {
@@ -151,6 +163,10 @@ export const AUTOMATIONS = {
       {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
+      },
+      {
+        key: 'move_to_pipeline_stage',
+        name: 'MOVE_TO_PIPELINE_STAGE',
       },
     ],
   },
@@ -228,6 +244,18 @@ export const AUTOMATIONS = {
         inputType: 'multi_select',
         filterOperators: OPERATOR_TYPES_3,
       },
+      {
+        key: 'pipeline_id',
+        name: 'CRM_PIPELINE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'pipeline_stage_id',
+        name: 'CRM_PIPELINE_STAGE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
     ],
     actions: [
       {
@@ -285,6 +313,10 @@ export const AUTOMATIONS = {
       {
         key: 'send_attachment',
         name: 'SEND_ATTACHMENT',
+      },
+      {
+        key: 'move_to_pipeline_stage',
+        name: 'MOVE_TO_PIPELINE_STAGE',
       },
     ],
   },
@@ -644,6 +676,18 @@ export const AUTOMATIONS = {
         inputType: 'multi_select',
         filterOperators: OPERATOR_TYPES_1,
       },
+      {
+        key: 'pipeline_id',
+        name: 'CRM_PIPELINE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
+      {
+        key: 'pipeline_stage_id',
+        name: 'CRM_PIPELINE_STAGE',
+        inputType: 'search_select',
+        filterOperators: OPERATOR_TYPES_1,
+      },
     ],
     actions: [
       {
@@ -803,6 +847,11 @@ export const AUTOMATION_ACTION_TYPES = [
   {
     key: 'add_sla',
     label: 'ADD_SLA',
+    inputType: 'search_select',
+  },
+  {
+    key: 'move_to_pipeline_stage',
+    label: 'MOVE_TO_PIPELINE_STAGE',
     inputType: 'search_select',
   },
 ];

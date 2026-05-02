@@ -13,6 +13,7 @@ import ContactNotes from 'dashboard/components-next/Contacts/ContactsSidebar/Con
 import ContactHistory from 'dashboard/components-next/Contacts/ContactsSidebar/ContactHistory.vue';
 import ContactMerge from 'dashboard/components-next/Contacts/ContactsSidebar/ContactMerge.vue';
 import ContactCustomAttributes from 'dashboard/components-next/Contacts/ContactsSidebar/ContactCustomAttributes.vue';
+import CRMContactHistory from 'dashboard/components/crm/CRMContactHistory.vue';
 
 const store = useStore();
 const route = useRoute();
@@ -41,6 +42,7 @@ const CONTACT_TABS_OPTIONS = [
   { key: 'HISTORY', value: 'history' },
   { key: 'NOTES', value: 'notes' },
   { key: 'MERGE', value: 'merge' },
+  { key: 'CRM', value: 'crm' },
 ];
 
 const tabs = computed(() => {
@@ -177,6 +179,10 @@ onMounted(() => {
             :selected-contact="selectedContact"
             @go-to-contacts-list="goToContactsList"
             @reset-tab="handleTabChange(CONTACT_TABS_OPTIONS[0])"
+          />
+          <CRMContactHistory
+            v-if="activeTab === 'crm'"
+            :selected-contact="selectedContact"
           />
         </template>
       </template>

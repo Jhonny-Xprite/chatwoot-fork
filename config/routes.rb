@@ -123,6 +123,18 @@ Rails.application.routes.draw do
             end
           end
           resources :campaigns, only: [:index, :create, :show, :update, :destroy]
+          namespace :crm do
+            resources :pipelines do
+              resources :pipeline_stages, path: :stages do
+                patch :reorder, on: :collection
+              end
+            end
+            resources :pipeline_conversations, only: [:index, :update], param: :id
+            resources :lead_scoring_rules do
+              post :recalculate, on: :collection
+            end
+          end
+
           resources :dashboard_apps, only: [:index, :show, :create, :update, :destroy]
           namespace :channels do
             resource :twilio_channel, only: [:create]

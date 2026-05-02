@@ -311,6 +311,7 @@
     "ACTIVE": "Active",
     "COMPANIES": "Companies",
     "ALL_COMPANIES": "All Companies",
+    "CRM": "CRM",
     "CAPTAIN": "Captain",
     "CAPTAIN_ASSISTANTS": "Assistants",
     "CAPTAIN_DOCUMENTS": "Documents",
@@ -383,6 +384,14 @@
     "SECURITY": "Security",
     "CAPTAIN_AI": "Captain",
     "CONVERSATION_WORKFLOW": "Conversation Workflow"
+  },
+  "CRM": {
+    "HEADER": "CRM Pipeline",
+    "ADD_DEAL": "Add Deal",
+    "ADD_STAGE": "Add Stage",
+    "NO_PIPELINES": "No Pipelines Found",
+    "NO_PIPELINES_SUBTITLE": "Create your first pipeline to start managing your deals in a kanban board.",
+    "LOADING": "Loading board..."
   },
   "CAPTAIN_SETTINGS": {
     "TITLE": "Captain Settings",

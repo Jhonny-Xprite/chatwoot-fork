@@ -7,6 +7,7 @@ import {
 } from 'dashboard/composables/store';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { useUISettings } from 'dashboard/composables/useUISettings';
+import { useI18n } from 'vue-i18n';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 
 import AccordionItem from 'dashboard/components/Accordion/AccordionItem.vue';
@@ -23,6 +24,7 @@ import ShopifyOrdersList from 'dashboard/components/widgets/conversation/Shopify
 import SidebarActionsHeader from 'dashboard/components-next/SidebarActionsHeader.vue';
 import LinearIssuesList from 'dashboard/components/widgets/conversation/linear/IssuesList.vue';
 import LinearSetupCTA from 'dashboard/components/widgets/conversation/linear/LinearSetupCTA.vue';
+import CRMPipelineSection from './contact/CRMPipelineSection.vue';
 
 const props = defineProps({
   conversationId: {
@@ -41,6 +43,8 @@ const {
   conversationSidebarItemsOrder,
   toggleSidebarUIState,
 } = useUISettings();
+
+const { t } = useI18n();
 
 const dragging = ref(false);
 const conversationSidebarItems = ref([]);
@@ -164,6 +168,17 @@ onMounted(() => {
                 :conversation-id="conversationId"
                 :inbox-id="inboxId"
               />
+            </AccordionItem>
+          </div>
+          <div v-else-if="element.name === 'crm_pipeline'">
+            <AccordionItem
+              :title="t('CRM.HEADER')"
+              :is-open="isContactSidebarItemOpen('is_crm_pipeline_open')"
+              @toggle="
+                value => toggleSidebarUIState('is_crm_pipeline_open', value)
+              "
+            >
+              <CRMPipelineSection :conversation="currentChat" />
             </AccordionItem>
           </div>
           <div

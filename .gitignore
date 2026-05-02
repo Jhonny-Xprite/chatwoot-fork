@@ -104,3 +104,28 @@ CLAUDE.local.md
 .pnpm-store/*
 local/
 Procfile.worktree
+
+# Environment & Secrets (AIOX)
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Dependencies (AIOX)
+node_modules/
+
+# Build & Logs (AIOX)
+dist/
+build/
+logs/
+
+# IDE & OS (AIOX)
+Thumbs.db
+.idea/
+
+# AIOX Local (AIOX)
+.aiox-core/local/
+.aiox/
+.aios/
+squads/
+.env.access

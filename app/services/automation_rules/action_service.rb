@@ -64,4 +64,13 @@ class AutomationRules::ActionService < ActionService
       @account.increment_email_sent_count
     end
   end
+
+  def move_to_pipeline_stage(params)
+    stage_id = params[0]
+    stage = CrmPipelineStage.find_by(id: stage_id, account_id: @account.id)
+    return unless stage
+
+    Rails.logger.info "[CRM] Automação ##{@rule.id} movendo conversa ##{@conversation.display_id} para o estágio ##{stage.id} no pipeline ##{stage.pipeline_id}"
+    @conversation.update!(pipeline_id: stage.pipeline_id, pipeline_stage_id: stage.id)
+  end
 end

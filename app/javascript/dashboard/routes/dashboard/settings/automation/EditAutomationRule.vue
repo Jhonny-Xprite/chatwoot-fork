@@ -41,6 +41,14 @@ const onSave = (payload, mode) => {
   emit('saveAutomation', payload, mode);
 };
 
+import { onMounted } from 'vue';
+import { useStore } from 'dashboard/composables/store';
+const store = useStore();
+
+onMounted(() => {
+  store.dispatch('crmPipeline/fetchPipelines');
+});
+
 watch(
   () => props.selectedResponse,
   value => {

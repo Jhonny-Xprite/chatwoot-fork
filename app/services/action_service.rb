@@ -93,6 +93,16 @@ class ActionService
     end
   end
 
+  def move_to_pipeline_stage(params)
+    stage_id = params[0]
+    return if stage_id.blank?
+
+    stage = @account.crm_pipeline_stages.find_by(id: stage_id)
+    return unless stage
+
+    @conversation.update!(pipeline_id: stage.pipeline_id, pipeline_stage_id: stage.id)
+  end
+
   private
 
   def last_responding_agent_id

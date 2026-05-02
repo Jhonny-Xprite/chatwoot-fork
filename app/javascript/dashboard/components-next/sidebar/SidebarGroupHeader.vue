@@ -21,6 +21,16 @@ const dynamicCount = useMapGetter(props.getterKeys.count);
 const count = computed(() =>
   dynamicCount.value > 99 ? '99+' : dynamicCount.value
 );
+
+const onHeaderClick = event => {
+  if (!props.expandable) {
+    return;
+  }
+
+  event.preventDefault();
+  event.stopPropagation();
+  emit('toggle');
+};
 </script>
 
 <template>
@@ -36,7 +46,7 @@ const count = computed(() =>
       'text-n-slate-12 font-medium': hasActiveChild,
       'text-n-slate-11 hover:bg-n-alpha-2': !isActive && !hasActiveChild,
     }"
-    @click.stop="emit('toggle')"
+    @click="onHeaderClick"
   >
     <div v-if="icon" class="relative flex items-center gap-2">
       <Icon v-if="icon" :icon="icon" class="size-4" />
@@ -70,7 +80,7 @@ const count = computed(() =>
       v-if="expandable"
       v-show="isExpanded"
       class="i-lucide-chevron-up size-3"
-      @click.stop="emit('toggle')"
+      @click="onHeaderClick"
     />
   </component>
 </template>

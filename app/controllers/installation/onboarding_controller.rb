@@ -1,5 +1,6 @@
 class Installation::OnboardingController < ApplicationController
   before_action :ensure_installation_onboarding
+  before_action :disable_onboarding_caching
 
   def index; end
 
@@ -39,5 +40,12 @@ class Installation::OnboardingController < ApplicationController
 
   def ensure_installation_onboarding
     redirect_to '/' unless ::Redis::Alfred.get(::Redis::Alfred::CHATWOOT_INSTALLATION_ONBOARDING)
+  end
+
+  def disable_onboarding_caching
+    expires_now
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Surrogate-Control'] = 'no-store'
   end
 end

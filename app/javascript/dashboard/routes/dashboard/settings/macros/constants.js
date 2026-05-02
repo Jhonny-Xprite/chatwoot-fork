@@ -74,4 +74,9 @@ export const MACRO_ACTION_TYPES = [
     label: 'SEND_WEBHOOK_EVENT',
     inputType: 'url',
   },
+  {
+    key: 'move_to_pipeline_stage',
+    label: 'MOVE_TO_PIPELINE_STAGE',
+    inputType: 'search_select',
+  },
 ];

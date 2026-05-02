@@ -1,0 +1,152 @@
+services:
+  a2-postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secure_2024
+    volumes:
+      - a2-postgres-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  a2-redis:
+    image: valkey/valkey:7.2.5-alpine
+    command: valkey-server --appendonly yes
+    volumes:
+      - a2-redis-data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  a2-chatwoot:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🔴 OBRIGATÓRIAS - SEM ESSAS NÃO FUNCIONA
+      # ═══════════════════════════════════════════════════════════════════════════════
+
+      DATABASE_URL: postgresql://postgres:postgres_secure_2024@a2-postgres:5432/chatwoot
+      REDIS_URL: redis://a2-redis:6379
+      SECRET_KEY_BASE: change_me_with_random_64_chars_minimum_CHANGE_THIS_IN_PRODUCTION
+      RAILS_ENV: production
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟡 RECOMENDADAS - Melhor deixar como está
+      # ═══════════════════════════════════════════════════════════════════════════════
+
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_SERVE_STATIC_FILES: "true"
+      FRONTEND_URL: http://localhost:3000
+      RAILS_MAX_THREADS: "4"
+      RAILS_MIN_THREADS: "2"
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟢 OPCIONAIS - CRM Features (seu projeto)
+      # ═══════════════════════════════════════════════════════════════════════════════
+
+      FEATURE_CRM_ENABLED: "true"
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🔵 OPCIONAIS - Email/Mailer (SMTP)
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # Descomente se quiser enviar emails
+
+      # SMTP_ADDRESS: smtp.gmail.com
+      # SMTP_PORT: 587
+      # SMTP_USERNAME: seu_email@gmail.com
+      # SMTP_PASSWORD: sua_senha_de_app
+      # SMTP_AUTHENTICATION: plain
+      # SMTP_ENABLE_STARTTLS_AUTO: "true"
+      # SUPPORT_EMAIL: suporte@sua-empresa.com
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟣 OPCIONAIS - Storage S3/Cloud (para uploads)
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # Descomente se quiser usar S3 ao invés de filesystem
+
+      # ACTIVE_STORAGE_SERVICE: amazon
+      # AWS_ACCESS_KEY_ID: sua_chave
+      # AWS_SECRET_ACCESS_KEY: sua_senha
+      # AWS_REGION: us-east-1
+      # AWS_BUCKET: seu_bucket
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟣 OPCIONAIS - OAuth (Google, GitHub, etc)
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # Descomente se quiser login social
+
+      # GOOGLE_OAUTH_CLIENT_ID: seu_id
+      # GOOGLE_OAUTH_CLIENT_SECRET: seu_secret
+      # GITHUB_OAUTH_CLIENT_ID: seu_id
+      # GITHUB_OAUTH_CLIENT_SECRET: seu_secret
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟣 OPCIONAIS - Integrações (Slack, Twilio, etc)
+      # ═══════════════════════════════════════════════════════════════════════════════
+
+      # SLACK_CLIENT_ID: seu_id
+      # SLACK_CLIENT_SECRET: seu_secret
+      # TWILIO_ACCOUNT_SID: seu_id
+      # TWILIO_AUTH_TOKEN: seu_token
+
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟣 OPCIONAIS - Habilitar Signup
+      # ═══════════════════════════════════════════════════════════════════════════════
+
+      # ENABLE_ACCOUNT_SIGNUP: "true"
+
+    depends_on:
+      a2-postgres:
+        condition: service_healthy
+      a2-redis:
+        condition: service_healthy
+    volumes:
+      - a2-chatwoot-storage:/app/storage
+      - a2-chatwoot-logs:/app/log
+    restart: always
+    command: >
+      sh -c "bundle exec rails db:chatwoot_prepare &&
+             bundle exec rails s -p 3000 -b 0.0.0.0"
+
+  a2-sidekiq:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres_secure_2024@a2-postgres:5432/chatwoot
+      REDIS_URL: redis://a2-redis:6379
+      SECRET_KEY_BASE: change_me_with_random_64_chars_minimum_CHANGE_THIS_IN_PRODUCTION
+      RAILS_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      FEATURE_CRM_ENABLED: "true"
+
+      # Mesmos opcionais do a2-chatwoot acima se necessário
+      # SMTP_ADDRESS: ...
+      # AWS_ACCESS_KEY_ID: ...
+      # etc
+
+    depends_on:
+      - a2-postgres
+      - a2-redis
+      - a2-chatwoot
+    volumes:
+      - a2-chatwoot-storage:/app/storage
+      - a2-chatwoot-logs:/app/log
+    restart: always
+    command: bundle exec sidekiq -C config/sidekiq.yml
+
+volumes:
+  a2-postgres-data:
+  a2-redis-data:
+  a2-chatwoot-storage:
+  a2-chatwoot-logs:

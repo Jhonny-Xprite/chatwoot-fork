@@ -18,7 +18,9 @@ class AsyncDispatcher < BaseDispatcher
       NotificationListener.instance,
       ParticipationListener.instance,
       ReportingEventListener.instance,
-      WebhookListener.instance
+      WebhookListener.instance,
+      CrmListener.instance,
+      LeadScoringListener.instance
     ]
   end
 end

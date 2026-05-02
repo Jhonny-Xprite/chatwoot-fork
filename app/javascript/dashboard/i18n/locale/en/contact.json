@@ -329,6 +329,35 @@
           "SUCCESS_MESSAGE": "You will be notified via email when the import is complete.",
           "ERROR_MESSAGE": "There was an error, please try again"
         },
+        "IMPORT_MAPPER": {
+          "TITLE": "Map CSV Columns",
+          "DESCRIPTION": "Associate your spreadsheet columns with Chatwoot fields.",
+          "CANCEL": "Cancel",
+          "PROCEED": "Start Import",
+          "COLUMN_HEADER": "Column in CSV",
+          "EXAMPLE_VALUE": "Example Value",
+          "CHATWOOT_FIELD": "Chatwoot Field",
+          "DO_NOT_IMPORT": "Do not import",
+          "STANDARD_FIELDS": "Standard Fields",
+          "CUSTOM_ATTRIBUTES": "Custom Attributes",
+          "CREATE_NEW_FIELD": "Create New Field",
+          "CREATE_ATTRIBUTE_DIALOG": {
+            "TITLE": "Create Custom Attribute",
+            "CONFIRM": "Create Field",
+            "FIELD_NAME": {
+              "LABEL": "Field Name",
+              "PLACEHOLDER": "e.g. Sales Tier"
+            },
+            "FIELD_TYPE": {
+              "LABEL": "Field Type",
+              "TEXT": "Text",
+              "NUMBER": "Number",
+              "DATE": "Date",
+              "LINK": "Link",
+              "CHECKBOX": "Checkbox"
+            }
+          }
+        },
         "EXPORT_CONTACT": {
           "TITLE": "Export contacts",
           "DESCRIPTION": "Quickly export a csv file with comprehensive details of your contacts",
@@ -509,7 +538,8 @@
         "ATTRIBUTES": "Attributes",
         "HISTORY": "History",
         "NOTES": "Notes",
-        "MERGE": "Merge"
+        "MERGE": "Merge",
+        "CRM": "CRM"
       },
       "HISTORY": {
         "EMPTY_STATE": "There are no previous conversations associated to this contact"

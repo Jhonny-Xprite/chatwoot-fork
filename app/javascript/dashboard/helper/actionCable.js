@@ -77,17 +77,20 @@ class ActionCableConnector extends BaseActionCableConnector {
     const { id } = payload;
     if (id) {
       this.app.$store.dispatch('updateConversation', payload);
+      this.app.$store.dispatch('crmPipeline/updateConversation', payload);
     }
     this.fetchConversationStats();
   };
 
   onConversationCreated = data => {
     this.app.$store.dispatch('addConversation', data);
+    this.app.$store.dispatch('crmPipeline/addConversation', data);
     this.fetchConversationStats();
   };
 
   onConversationRead = data => {
     this.app.$store.dispatch('updateConversation', data);
+    this.app.$store.dispatch('crmPipeline/updateConversation', data);
   };
 
   // eslint-disable-next-line class-methods-use-this
@@ -100,6 +103,7 @@ class ActionCableConnector extends BaseActionCableConnector {
     } = data;
     DashboardAudioNotificationHelper.onNewMessage(data);
     this.app.$store.dispatch('addMessage', data);
+    this.app.$store.dispatch('crmPipeline/addMessage', data);
     this.app.$store.dispatch('updateConversationLastActivity', {
       lastActivityAt,
       conversationId,
@@ -111,11 +115,13 @@ class ActionCableConnector extends BaseActionCableConnector {
 
   onStatusChange = data => {
     this.app.$store.dispatch('updateConversation', data);
+    this.app.$store.dispatch('crmPipeline/updateConversation', data);
     this.fetchConversationStats();
   };
 
   onConversationUpdated = data => {
     this.app.$store.dispatch('updateConversation', data);
+    this.app.$store.dispatch('crmPipeline/updateConversation', data);
     this.fetchConversationStats();
   };
 

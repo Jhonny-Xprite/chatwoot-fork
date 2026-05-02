@@ -63,6 +63,9 @@ class Account < ApplicationRecord
   has_many :automation_rules, dependent: :destroy_async
   has_many :macros, dependent: :destroy_async
   has_many :campaigns, dependent: :destroy_async
+  has_many :crm_pipelines, dependent: :destroy_async
+  has_many :crm_pipeline_stages, dependent: :destroy_async
+  has_many :crm_lead_scoring_rules, dependent: :destroy_async
   has_many :canned_responses, dependent: :destroy_async
   has_many :categories, dependent: :destroy_async, class_name: '::Category'
   has_many :contacts, dependent: :destroy_async
@@ -106,6 +109,7 @@ class Account < ApplicationRecord
 
   before_validation :validate_limit_keys
   after_create_commit :notify_creation
+  after_create_commit :bootstrap_default_crm_pipeline
   after_destroy :remove_account_sequences
 
   def agents
@@ -161,6 +165,12 @@ class Account < ApplicationRecord
 
   def notify_creation
     Rails.configuration.dispatcher.dispatch(ACCOUNT_CREATED, Time.zone.now, account: self)
+  end
+
+  def bootstrap_default_crm_pipeline
+    return unless feature_enabled?('crm')
+
+    Crm::PipelineBootstrapService.new(account: self).perform!
   end
 
   trigger.after(:insert).for_each(:row) do

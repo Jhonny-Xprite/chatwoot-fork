@@ -16,12 +16,18 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   before_action :fetch_contact, only: [:show, :update, :destroy, :avatar, :contactable_inboxes, :destroy_custom_attributes]
   before_action :set_include_contact_inboxes, only: [:index, :active, :search, :filter, :show, :update]
 
+  # Lista contatos com paginação e ordenação dinâmica via Sift.
+  # Etapa crucial para a visualização da tabela principal do CRM.
   def index
+    Rails.logger.info "[CRM] Listando contatos para conta #{Current.account.id}, página: #{params[:page]}"
     @contacts = fetch_contacts(resolved_contacts)
     @contacts_count = @contacts.total_count
   end
 
+  # Busca contatos por nome, email, telefone ou identificador.
+  # Utiliza ILIKE para buscas case-insensitive (PostgreSQL).
   def search
+    Rails.logger.info "[CRM] Pesquisa de contato iniciada: q=#{params[:q]}"
     render json: { error: 'Specify search string with parameter q' }, status: :unprocessable_entity if params[:q].blank? && return
 
     contacts = Current.account.contacts.where(
@@ -31,12 +37,29 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     @contacts = fetch_contacts_with_has_more(contacts)
   end
 
+  # Processa a importação massiva de contatos (Leads).
+  # 1. Valida a presença do arquivo e do mapeamento de colunas.
+  # 2. Cria um registro em DataImport e anexa o arquivo.
+  # 3. O processamento real ocorre de forma assíncrona via DataImportJob.
   def import
+    Rails.logger.info "[CRM] Importação de arquivo iniciada pela conta #{Current.account.id}"
     render json: { error: I18n.t('errors.contacts.import.failed') }, status: :unprocessable_entity and return if params[:import_file].blank?
 
+    mapping = params[:mapping]
+    # Garante que o mapping é um hash
+    mapping = JSON.parse(mapping) if mapping.is_a?(String)
+    mapping = {} if mapping.blank?
+
+    # Valida se o mapping tem pelo menos um campo mapeado
+    if mapping.is_a?(Hash) && mapping.empty?
+      Rails.logger.warn "[CRM] Importação falhou: mapeamento de colunas vazio"
+      render json: { error: 'Please map at least one column' }, status: :unprocessable_entity and return
+    end
+
     ActiveRecord::Base.transaction do
-      import = Current.account.data_imports.create!(data_type: 'contacts')
+      import = Current.account.data_imports.create!(data_type: 'contacts', mapping: mapping)
       import.import_file.attach(params[:import_file])
+      Rails.logger.info "[CRM] DataImport ##{import.id} criado e aguardando processamento com mapeamento: #{mapping.inspect}"
     end
 
     head :ok
@@ -59,15 +82,20 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
 
   def show; end
 
+  # Executa filtragem avançada de contatos baseada em atributos customizados e metadados.
+  # Delega a lógica complexa para o FilterService para garantir separação de responsabilidades.
   def filter
+    Rails.logger.info "[CRM] Aplicando filtros avançados na conta #{Current.account.id}"
     result = ::Contacts::FilterService.new(Current.account, Current.user, params.permit!).perform
     contacts = result[:contacts]
     @contacts_count = result[:count]
     @contacts = fetch_contacts(contacts)
+    Rails.logger.info "[CRM] Filtro concluído: #{@contacts_count} contatos encontrados"
   rescue CustomExceptions::CustomFilter::InvalidAttribute,
          CustomExceptions::CustomFilter::InvalidOperator,
          CustomExceptions::CustomFilter::InvalidQueryOperator,
          CustomExceptions::CustomFilter::InvalidValue => e
+    Rails.logger.error "[CRM] Erro de validação no filtro: #{e.message}"
     render_could_not_create_error(e.message)
   end
 
@@ -98,14 +126,17 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   end
 
   def destroy
+    Rails.logger.info "[CRM] Tentativa de exclusão de contato: ID #{@contact.id}"
     if ::OnlineStatusTracker.get_presence(
       @contact.account.id, 'Contact', @contact.id
     )
+      Rails.logger.warn "[CRM] Exclusão negada: contato #{@contact.id} está online"
       return render_error({ message: I18n.t('contacts.online.delete', contact_name: @contact.name.capitalize) },
                           :unprocessable_entity)
     end
 
     @contact.destroy!
+    Rails.logger.info "[CRM] Contato #{@contact.id} excluído com sucesso"
     head :ok
   end
 

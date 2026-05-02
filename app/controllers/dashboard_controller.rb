@@ -33,6 +33,7 @@ class DashboardController < ActionController::Base
   before_action :ensure_installation_onboarding, only: [:index]
   before_action :render_hc_if_custom_domain, only: [:index]
   before_action :ensure_html_format
+  before_action :disable_dashboard_caching
   layout 'vueapp'
 
   def index; end
@@ -107,5 +108,12 @@ class DashboardController < ActionController::Base
     current_path = request.path.gsub(%r{^/app}, '')
 
     sensitive_paths.include?(current_path)
+  end
+
+  def disable_dashboard_caching
+    expires_now
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0, private'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Surrogate-Control'] = 'no-store'
   end
 end

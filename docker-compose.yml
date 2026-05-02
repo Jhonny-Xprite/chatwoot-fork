@@ -1,0 +1,71 @@
+x-chatwoot-image: &chatwoot-image clientes-tools-a2-chatwoot:crm
+x-chatwoot-build: &chatwoot-build
+  context: .
+  dockerfile: ./Dockerfile
+
+services:
+  a2-postgres:
+    image: pgvector/pgvector:pg17
+    environment:
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: f28aa46c7224d75d34aeb80085912030
+    volumes:
+      - a2-postgres-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  a2-redis:
+    image: valkey/valkey:7.2.5-alpine
+    command: valkey-server --appendonly yes
+    volumes:
+      - a2-redis-data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  a2-chatwoot:
+    image: *chatwoot-image
+    build: *chatwoot-build
+    env_file:
+      - .env
+    depends_on:
+      a2-postgres:
+        condition: service_healthy
+      a2-redis:
+        condition: service_healthy
+    volumes:
+      - a2-chatwoot-storage:/app/storage
+      - a2-chatwoot-logs:/app/log
+    restart: always
+    command: >
+      sh -c "bundle exec rails db:chatwoot_prepare &&
+             bundle exec rails s -p 3000 -b 0.0.0.0"
+
+  a2-sidekiq:
+    image: *chatwoot-image
+    build: *chatwoot-build
+    env_file:
+      - .env
+    depends_on:
+      - a2-postgres
+      - a2-redis
+      - a2-chatwoot
+    volumes:
+      - a2-chatwoot-storage:/app/storage
+      - a2-chatwoot-logs:/app/log
+    restart: always
+    command: bundle exec sidekiq -C config/sidekiq.yml
+
+volumes:
+  a2-postgres-data:
+  a2-redis-data:
+  a2-chatwoot-storage:
+  a2-chatwoot-logs:

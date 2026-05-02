@@ -1,0 +1,136 @@
+{
+  "type": "object",
+  "required": [
+    "appServiceName",
+    "postgresServiceName",
+    "redisServiceName",
+    "sidekiqServiceName",
+    "postgresPassword",
+    "secretKeyBase",
+    "frontendUrl"
+  ],
+  "properties": {
+    "appServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço App",
+      "default": "a2-chatwoot",
+      "description": "Nome do container do aplicativo"
+    },
+    "postgresServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço PostgreSQL",
+      "default": "a2-postgres",
+      "description": "Nome do container do banco de dados"
+    },
+    "redisServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço Redis",
+      "default": "a2-redis",
+      "description": "Nome do container do cache"
+    },
+    "sidekiqServiceName": {
+      "type": "string",
+      "title": "Nome do Serviço Sidekiq",
+      "default": "a2-sidekiq",
+      "description": "Nome do container de jobs"
+    },
+    "postgresPassword": {
+      "type": "string",
+      "title": "Senha do PostgreSQL",
+      "default": "postgres_secure_2024",
+      "description": "Senha do banco de dados (MUDE ISTO EM PRODUÇÃO!)"
+    },
+    "secretKeyBase": {
+      "type": "string",
+      "title": "SECRET_KEY_BASE",
+      "default": "change_me_with_random_64_chars_minimum_CHANGE_THIS_IN_PRODUCTION",
+      "description": "Chave de criptografia (mínimo 64 caracteres, MUDE ISTO EM PRODUÇÃO!)"
+    },
+    "frontendUrl": {
+      "type": "string",
+      "title": "URL Frontend",
+      "default": "http://localhost:3000",
+      "description": "URL onde o Chatwoot vai rodar (ex: https://seu-dominio.com)"
+    },
+    "railsEnv": {
+      "type": "string",
+      "title": "Ambiente Rails",
+      "default": "production",
+      "enum": ["production", "staging", "development"],
+      "description": "Ambiente de execução"
+    },
+    "enableCrm": {
+      "type": "boolean",
+      "title": "Habilitar CRM Features",
+      "default": true,
+      "description": "Ativa o Kanban board com advanced filters e stage automation"
+    },
+    "enableAccountSignup": {
+      "type": "boolean",
+      "title": "Permitir Signup de Usuários",
+      "default": false,
+      "description": "Permite que novos usuários se registrem"
+    },
+    "smtpEnabled": {
+      "type": "boolean",
+      "title": "Habilitar Envio de Email?",
+      "default": false,
+      "description": "Ativa suporte a SMTP para enviar emails"
+    },
+    "smtpAddress": {
+      "type": "string",
+      "title": "SMTP Address",
+      "default": "smtp.gmail.com",
+      "description": "Servidor SMTP (ex: smtp.gmail.com)"
+    },
+    "smtpPort": {
+      "type": "string",
+      "title": "SMTP Port",
+      "default": "587",
+      "description": "Porta SMTP (geralmente 587 ou 25)"
+    },
+    "smtpUsername": {
+      "type": "string",
+      "title": "SMTP Username",
+      "description": "Email ou usuário SMTP"
+    },
+    "smtpPassword": {
+      "type": "string",
+      "title": "SMTP Password",
+      "description": "Senha ou app password SMTP"
+    },
+    "supportEmail": {
+      "type": "string",
+      "title": "Email de Suporte",
+      "default": "support@example.com",
+      "description": "Email usado como remetente nos emails"
+    },
+    "s3Enabled": {
+      "type": "boolean",
+      "title": "Usar S3 para Uploads?",
+      "default": false,
+      "description": "Se false, usa armazenamento local"
+    },
+    "awsAccessKeyId": {
+      "type": "string",
+      "title": "AWS Access Key ID",
+      "description": "Deixe em branco se não usar S3"
+    },
+    "awsSecretAccessKey": {
+      "type": "string",
+      "title": "AWS Secret Access Key",
+      "description": "Deixe em branco se não usar S3"
+    },
+    "awsRegion": {
+      "type": "string",
+      "title": "AWS Region",
+      "default": "us-east-1",
+      "description": "Região AWS"
+    },
+    "awsBucket": {
+      "type": "string",
+      "title": "AWS Bucket",
+      "description": "Nome do bucket S3"
+    }
+  }
+}

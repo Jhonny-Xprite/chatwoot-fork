@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
+import ContactImportMapper from './ContactImportMapper.vue';
 
 const emit = defineEmits(['import']);
 const { t } = useI18n();
@@ -17,6 +18,7 @@ const fileInput = ref(null);
 
 const hasSelectedFile = ref(null);
 const selectedFileName = ref('');
+const showMapper = ref(false);
 
 const csvUrl = '/downloads/import-contacts-sample.csv';
 
@@ -44,11 +46,16 @@ const handleRemoveFile = () => {
     fileInput.value.value = null;
   }
   selectedFileName.value = '';
+  showMapper.value = false;
 };
 
-const uploadFile = async () => {
+const proceedToMapping = () => {
   if (!hasSelectedFile.value) return;
-  emit('import', hasSelectedFile.value);
+  showMapper.value = true;
+};
+
+const onMapComplete = mapping => {
+  emit('import', { file: hasSelectedFile.value, mapping });
 };
 
 defineExpose({ dialogRef });
@@ -58,14 +65,13 @@ defineExpose({ dialogRef });
   <Dialog
     ref="dialogRef"
     :title="t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.TITLE')"
-    :confirm-button-label="
-      t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.IMPORT')
-    "
     :is-loading="isImportingContact"
-    :disable-confirm-button="isImportingContact"
-    @confirm="uploadFile"
+    :disable-confirm-button="isImportingContact || !hasSelectedFile"
+    :show-footer="!showMapper"
+    size="medium"
+    @confirm="proceedToMapping"
   >
-    <template #description>
+    <template v-if="!showMapper" #description>
       <p class="mb-0 text-sm text-n-slate-11">
         {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.DESCRIPTION') }}
         <a
@@ -82,7 +88,7 @@ defineExpose({ dialogRef });
       </p>
     </template>
 
-    <div class="flex flex-col gap-2">
+    <div v-if="!showMapper" class="flex flex-col gap-2 py-4">
       <div class="flex items-center gap-2">
         <label class="text-sm text-n-slate-12 whitespace-nowrap">
           {{ t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.LABEL') }}
@@ -103,7 +109,7 @@ defineExpose({ dialogRef });
             class="!w-fit"
             @click="handleFileClick"
           />
-          <div v-else class="flex items-center gap-1">
+          <div class="flex items-center gap-1">
             <Button
               :label="t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.CHANGE')"
               color="slate"
@@ -123,6 +129,14 @@ defineExpose({ dialogRef });
         </div>
       </div>
     </div>
+
+    <ContactImportMapper
+      v-if="showMapper"
+      :file="hasSelectedFile"
+      @map="onMapComplete"
+      @cancel="showMapper = false"
+    />
+
     <input
       ref="fileInput"
       type="file"

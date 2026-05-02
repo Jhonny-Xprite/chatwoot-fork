@@ -47,6 +47,10 @@ class Contact < ApplicationRecord
   include Labelable
   include LlmFormattable
 
+  # Validações de integridade do Lead:
+  # 1. Email único por conta e formato válido.
+  # 2. Identificador externo único por conta.
+  # 3. Telefone em formato E.164 (+paísDDDnúmero).
   validates :account_id, presence: true
   validates :email, allow_blank: true, uniqueness: { scope: [:account_id], case_sensitive: false },
                     format: { with: Devise.email_regexp, message: I18n.t('errors.contacts.email.invalid') }
@@ -68,6 +72,10 @@ class Contact < ApplicationRecord
   after_destroy_commit :dispatch_destroy_event
   before_save :sync_contact_attributes
 
+  # Define o estágio do contato no funil do CRM.
+  # visitor: Usuário anônimo ou sem identificação clara.
+  # lead: Contato com interesse demonstrado ou capturado.
+  # customer: Contato que já realizou conversão ou compra.
   enum contact_type: { visitor: 0, lead: 1, customer: 2 }
 
   scope :order_on_last_activity_at, lambda { |direction|
@@ -178,6 +186,9 @@ class Contact < ApplicationRecord
     }
   end
 
+  # Define o que é um contato "resolvido" (útil para o CRM).
+  # No CRM V2, apenas 'leads' são considerados.
+  # No V1, contatos com email, telefone ou identificador são considerados resolvidos.
   def self.resolved_contacts(use_crm_v2: false)
     return where(contact_type: 'lead') if use_crm_v2
 
@@ -229,20 +240,24 @@ class Contact < ApplicationRecord
   end
 
   def sync_contact_attributes
+    Rails.logger.debug "[CRM] Sincronizando atributos para o contato #{id}"
     ::Contacts::SyncAttributes.new(self).perform
   end
 
   def dispatch_create_event
+    Rails.logger.info "[CRM] Evento CONTACT_CREATED disparado para o contato #{id}"
     Rails.configuration.dispatcher.dispatch(CONTACT_CREATED, Time.zone.now, contact: self)
   end
 
   def dispatch_update_event
+    Rails.logger.info "[CRM] Evento CONTACT_UPDATED disparado para o contato #{id}. Alterações: #{previous_changes.keys}"
     Rails.configuration.dispatcher.dispatch(CONTACT_UPDATED, Time.zone.now, contact: self, changed_attributes: previous_changes)
   end
 
   def dispatch_destroy_event
     # Pass serialized data instead of ActiveRecord object to avoid DeserializationError
     # when the async EventDispatcherJob runs after the contact has been deleted
+    Rails.logger.info "[CRM] Evento CONTACT_DELETED disparado para o contato #{id}"
     Rails.configuration.dispatcher.dispatch(
       CONTACT_DELETED,
       Time.zone.now,

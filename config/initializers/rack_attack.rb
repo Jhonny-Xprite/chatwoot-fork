@@ -67,7 +67,7 @@ class Rack::Attack
   #
   # Key: "rack::attack:#{Time.now.to_i/:period}:req/ip:#{req.ip}"
 
-  throttle('req/ip', limit: ENV.fetch('RACK_ATTACK_LIMIT', '3000').to_i, period: 1.minute, &:ip)
+  throttle('req/ip', limit: ENV.fetch('RACK_ATTACK_LIMIT', '3000').to_i, period: 1.minute, &:remote_ip)
 
   ###-----------------------------------------------###
   ###-----Authentication Related Throttling---------###
@@ -75,7 +75,7 @@ class Rack::Attack
 
   ### Prevent Brute-Force Super Admin Login Attacks ###
   throttle('super_admin_login/ip', limit: 5, period: 5.minutes) do |req|
-    req.ip if req.path_without_extentions == '/super_admin/sign_in' && req.post?
+    req.remote_ip if req.path_without_extentions == '/super_admin/sign_in' && req.post?
   end
 
   throttle('super_admin_login/email', limit: 5, period: 15.minutes) do |req|
@@ -90,14 +90,14 @@ class Rack::Attack
 
   # ### Prevent Brute-Force Login Attacks ###
   # Exclude MFA verification attempts from regular login throttling
-  throttle('login/ip', limit: 5, period: 5.minutes) do |req|
+  throttle('login/ip', limit: ENV.fetch('RACK_ATTACK_LOGIN_IP_LIMIT', '15').to_i, period: 5.minutes) do |req|
     if req.path_without_extentions == '/auth/sign_in' && req.post? && req.params['mfa_token'].blank?
       # Skip if this is an MFA verification request
-      req.ip
+      req.remote_ip
     end
   end
 
-  throttle('login/email', limit: 10, period: 15.minutes) do |req|
+  throttle('login/email', limit: ENV.fetch('RACK_ATTACK_LOGIN_EMAIL_LIMIT', '25').to_i, period: 15.minutes) do |req|
     # Skip if this is an MFA verification request
     if req.path_without_extentions == '/auth/sign_in' && req.post? && req.params['mfa_token'].blank?
       # ref: https://github.com/rack/rack-attack/issues/399
@@ -110,7 +110,7 @@ class Rack::Attack
 
   ## Reset password throttling
   throttle('reset_password/ip', limit: 5, period: 30.minutes) do |req|
-    req.ip if req.path_without_extentions == '/auth/password' && req.post?
+    req.remote_ip if req.path_without_extentions == '/auth/password' && req.post?
   end
 
   throttle('reset_password/email', limit: 5, period: 1.hour) do |req|
@@ -122,7 +122,7 @@ class Rack::Attack
 
   ## Resend confirmation throttling (unauthenticated)
   throttle('resend_confirmation/ip', limit: 5, period: 30.minutes) do |req|
-    req.ip if req.path_without_extentions == '/resend_confirmation' && req.post?
+    req.remote_ip if req.path_without_extentions == '/resend_confirmation' && req.post?
   end
 
   throttle('resend_confirmation/email', limit: 5, period: 1.hour) do |req|
@@ -134,21 +134,21 @@ class Rack::Attack
 
   ## Resend confirmation throttling (authenticated)
   throttle('resend_confirmation_auth/ip', limit: 5, period: 30.minutes) do |req|
-    req.ip if req.path_without_extentions == '/api/v1/profile/resend_confirmation' && req.post?
+    req.remote_ip if req.path_without_extentions == '/api/v1/profile/resend_confirmation' && req.post?
   end
 
   ## MFA throttling - prevent brute force attacks
   throttle('mfa_verification/ip', limit: 5, period: 1.minute) do |req|
     if req.path_without_extentions == '/api/v1/profile/mfa'
-      req.ip if req.delete? # Throttle disable attempts
+      req.remote_ip if req.delete? # Throttle disable attempts
     elsif req.path_without_extentions.match?(%r{/api/v1/profile/mfa/(verify|backup_codes)})
-      req.ip if req.post? # Throttle verify and backup_codes attempts
+      req.remote_ip if req.post? # Throttle verify and backup_codes attempts
     end
   end
 
   # Separate rate limiting for MFA verification attempts
   throttle('mfa_login/ip', limit: 10, period: 1.minute) do |req|
-    req.ip if req.path_without_extentions == '/auth/sign_in' && req.post? && req.params['mfa_token'].present?
+    req.remote_ip if req.path_without_extentions == '/auth/sign_in' && req.post? && req.params['mfa_token'].present?
   end
 
   throttle('mfa_login/token', limit: 10, period: 1.minute) do |req|
@@ -161,7 +161,7 @@ class Rack::Attack
 
   ## Prevent Brute-Force Signup Attacks ###
   throttle('accounts/ip', limit: 5, period: 30.minutes) do |req|
-    req.ip if req.path_without_extentions == '/api/v1/accounts' && req.post?
+    req.remote_ip if req.path_without_extentions == '/api/v1/accounts' && req.post?
   end
 
   ##-----------------------------------------------##
@@ -176,17 +176,17 @@ class Rack::Attack
   if ActiveModel::Type::Boolean.new.cast(ENV.fetch('ENABLE_RACK_ATTACK_WIDGET_API', true))
     ## Prevent Conversation Bombing on Widget APIs ###
     throttle('api/v1/widget/conversations', limit: 6, period: 12.hours) do |req|
-      req.ip if req.path_without_extentions == '/api/v1/widget/conversations' && req.post?
+      req.remote_ip if req.path_without_extentions == '/api/v1/widget/conversations' && req.post?
     end
 
     ## Prevent Contact update Bombing in Widget API ###
     throttle('api/v1/widget/contacts', limit: 60, period: 1.hour) do |req|
-      req.ip if req.path_without_extentions == '/api/v1/widget/contacts' && (req.patch? || req.put?)
+      req.remote_ip if req.path_without_extentions == '/api/v1/widget/contacts' && (req.patch? || req.put?)
     end
 
     ## Prevent Conversation Bombing through multiple sessions
     throttle('widget?website_token={website_token}&cw_conversation={x-auth-token}', limit: 5, period: 1.hour) do |req|
-      req.ip if req.path_without_extentions == '/widget' && ActionDispatch::Request.new(req.env).params['cw_conversation'].blank?
+      req.remote_ip if req.path_without_extentions == '/widget' && ActionDispatch::Request.new(req.env).params['cw_conversation'].blank?
     end
   end
 
@@ -248,6 +248,21 @@ class Rack::Attack
   end
 
   ## ----------------------------------------------- ##
+end
+
+Rack::Attack.throttled_responder = lambda do |request|
+  match_data = request.env['rack.attack.match_data'] || {}
+  retry_after = match_data[:period].to_i.positive? ? match_data[:period].to_i : 60
+  error_key = request.path_without_extentions == '/auth/sign_in' ? 'errors.messages.login_rate_limited' : 'errors.messages.rate_limited'
+
+  [
+    429,
+    {
+      'Content-Type' => 'application/json',
+      'Retry-After' => retry_after.to_s
+    },
+    [{ error: I18n.t(error_key, seconds: retry_after) }.to_json]
+  ]
 end
 
 # Log blocked events

@@ -58,6 +58,9 @@ class Conversation < ApplicationRecord
   include AutoAssignmentHandler
   include ActivityMessageHandler
   include UrlHelper
+
+  belongs_to :pipeline, class_name: 'CrmPipeline', optional: true
+  belongs_to :pipeline_stage, class_name: 'CrmPipelineStage', counter_cache: true, optional: true
   include SortHandler
   include PushDataHelper
   include ConversationMuteHelpers
@@ -97,6 +100,15 @@ class Conversation < ApplicationRecord
     ).sort_on_last_user_message_at
   }
 
+  scope :search_by_contact_name, lambda { |query|
+    return all if query.blank?
+
+    joins(:contact).where(
+      'conversations.display_id::text ILIKE :query OR contacts.name ILIKE :query OR contacts.email ILIKE :query OR contacts.phone_number ILIKE :query',
+      query: "%#{query}%"
+    )
+  }
+
   belongs_to :account
   belongs_to :inbox
   belongs_to :assignee, class_name: 'User', optional: true, inverse_of: :assigned_conversations
@@ -119,6 +131,7 @@ class Conversation < ApplicationRecord
   before_create :ensure_waiting_since
 
   after_update_commit :execute_after_update_commit_callbacks
+  after_create_commit :place_in_default_crm_pipeline
   after_create_commit :notify_conversation_creation
   after_create_commit :load_attributes_created_by_db_triggers
 
@@ -270,6 +283,10 @@ class Conversation < ApplicationRecord
     dispatcher_dispatch(CONVERSATION_CREATED)
   end
 
+  def place_in_default_crm_pipeline
+    Crm::ConversationPlacementService.new(conversation: self).perform!
+  end
+
   def notify_conversation_updation
     return unless previous_changes.keys.present? && allowed_keys?
 
@@ -278,7 +295,7 @@ class Conversation < ApplicationRecord
 
   def list_of_keys
     %w[team_id assignee_id assignee_agent_bot_id status snoozed_until custom_attributes label_list waiting_since
-       first_reply_created_at priority]
+       first_reply_created_at priority pipeline_id pipeline_stage_id]
   end
 
   def allowed_keys?

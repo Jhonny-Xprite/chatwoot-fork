@@ -88,6 +88,17 @@ export const clearCookiesOnLogout = () => {
 };
 
 export const parseAPIErrorResponse = error => {
+  if (error?.response?.status === 429) {
+    if (error?.response?.data?.error) {
+      return error.response.data.error;
+    }
+
+    const retryAfter = error?.response?.headers?.['retry-after'];
+    return retryAfter
+      ? `Too many requests. Please wait ${retryAfter} seconds and try again.`
+      : 'Too many requests. Please wait a moment and try again.';
+  }
+
   if (error?.response?.data?.message) {
     return error?.response?.data?.message;
   }

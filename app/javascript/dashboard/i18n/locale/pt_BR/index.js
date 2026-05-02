@@ -41,8 +41,10 @@ import teamsSettings from './teamsSettings.json';
 import webhooks from './webhooks.json';
 import whatsappTemplates from './whatsappTemplates.json';
 import yearInReview from './yearInReview.json';
+import crm from './crm.json';
 
 export default {
+  ...crm,
   ...advancedFilters,
   ...agentBots,
   ...agentMgmt,

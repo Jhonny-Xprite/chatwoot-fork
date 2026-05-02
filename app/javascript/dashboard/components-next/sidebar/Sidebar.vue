@@ -311,6 +311,27 @@ const menuItems = computed(() => {
       ],
     },
     {
+      name: 'CRM',
+      label: t('SIDEBAR.CRM'),
+      icon: 'i-lucide-layout-kanban',
+      to: accountScopedRoute('crm_pipelines'),
+      activeOn: [
+        'crm_dashboard_root',
+        'crm_pipelines',
+        'crm_pipeline_details',
+        'crm_view',
+        'crm_contact',
+        'crm_conversation',
+        'crm_settings',
+      ],
+      children: conversationCustomViews.value.map(view => ({
+        name: `crm-view-${view.id}`,
+        label: view.name,
+        to: accountScopedRoute('crm_view', { viewId: view.id }),
+      })),
+    },
+
+    {
       name: 'Captain',
       icon: 'i-woot-captain',
       label: t('SIDEBAR.CAPTAIN'),
