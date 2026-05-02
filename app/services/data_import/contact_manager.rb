@@ -85,12 +85,17 @@ class DataImport < ApplicationRecord
         next if value.blank?
 
         if Contact.column_names.include?(attribute) || ['first_name', 'last_name'].include?(attribute)
-          # Tratamento especial para telefone
+          # Tratamento especial para telefone: usa PhoneFormatter service
           if attribute == 'phone_number'
-            formatted = format_phone_number(value)
-            # Se não conseguir formatar, mantém o valor original (será validado pelo Contact)
-            # Isso permite que contatos com email válido sejam importados mesmo com telefone inválido
-            transformed[attribute.to_sym] = formatted || value
+            begin
+              formatted = PhoneFormatter.format(value)
+              transformed[attribute.to_sym] = formatted if formatted.present?
+            rescue PhoneFormatter::PhoneFormatterError => e
+              # Log o erro mas não falha - permite importação com email válido
+              Rails.logger.warn "[Import] Erro ao formatar telefone '#{value}': #{e.message}"
+              # Mantém valor original apenas se estiver vazio após formatting
+              # Isso garante validação pelo Contact model
+            end
             next
           end
           # Tratamento especial para email: trim e downcase
@@ -157,76 +162,5 @@ class DataImport < ApplicationRecord
       contact
     end
 
-    def format_phone_number(phone)
-      return nil if phone.blank?
-
-      phone = phone.to_s.strip
-
-      # Remove tudo exceto números e +
-      cleaned = phone.gsub(/[^\d+]/, '')
-      return nil if cleaned.blank?
-
-      # Se já tem +, valida formato e retorna
-      if cleaned.start_with?('+')
-        digits = cleaned[1..-1]
-        if digits.match?(/^[1-9]\d{0,14}$/)
-          normalized = "+#{digits}"
-          return normalize_for_whatsapp(normalized)
-        else
-          return nil
-        end
-      end
-
-      # Trabalha com números puros (sem +)
-      digits = cleaned.gsub(/[^\d]/, '')
-      return nil if digits.blank?
-
-      # Se começa com 0, remove (provavelmente Brasil)
-      digits = digits[1..-1] if digits.start_with?('0')
-
-      # Se tem menos de 10 dígitos, é inválido
-      return nil if digits.length < 10
-
-      # Se tem mais de 15 dígitos, é inválido
-      return nil if digits.length > 15
-
-      # Assume Brasil (55) para números nacionais
-      # Padrão brasileiro: 10-11 dígitos (DDD + número ou DDD + 9 + número)
-      if digits.length.between?(10, 11)
-        phone_with_country = "+55#{digits}"
-        return normalize_for_whatsapp(phone_with_country)
-      end
-
-      # Outros países com código válido
-      if digits.match?(/^[1-9]\d{0,14}$/)
-        return "+#{digits}"
-      end
-
-      nil
-    end
-
-    # Normaliza telefone para compatibilidade com WhatsApp (usando lógica do Chatwoot)
-    def normalize_for_whatsapp(phone_with_country)
-      return phone_with_country unless phone_with_country.start_with?('+55')
-
-      # Remove o + e código de país para processar
-      waid = phone_with_country.delete('+')
-
-      # Aplica lógica do Brazil normalizer do Chatwoot
-      # Se tem 12 dígitos (55 + DDD + 8 dígitos), adiciona 9
-      if waid.length == 12 && waid.start_with?('55')
-        ddd = waid[2, 2]
-        number = waid[4..-1]
-        return "+55#{ddd}9#{number}" # Adiciona 9 para mobile moderno
-      end
-
-      # Se já tem 13 dígitos, está correto
-      if waid.length == 13
-        return "+#{waid}"
-      end
-
-      # Se tem outros tamanhos, retorna como está
-      "+#{waid}"
-    end
   end
 end
