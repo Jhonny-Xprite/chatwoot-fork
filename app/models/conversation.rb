@@ -59,6 +59,8 @@ class Conversation < ApplicationRecord
   include ActivityMessageHandler
   include UrlHelper
 
+  CONVERSATION_CREATED = 'conversation.created'.freeze
+
   belongs_to :pipeline, class_name: 'CrmPipeline', optional: true
   belongs_to :pipeline_stage, class_name: 'CrmPipelineStage', counter_cache: true, optional: true
   include SortHandler
