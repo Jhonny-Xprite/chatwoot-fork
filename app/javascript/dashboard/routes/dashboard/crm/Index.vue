@@ -15,7 +15,7 @@ const tabs = computed(() => [
   {
     name: 'Pipelines',
     routeName: 'crm_pipelines',
-    icon: 'i-lucide-layout-kanban',
+    icon: 'i-lucide-kanban',
   },
   {
     name: 'Lead Scoring',

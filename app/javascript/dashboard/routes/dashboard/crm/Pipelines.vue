@@ -450,7 +450,7 @@ const createStage = async () => {
         <div
           class="w-16 h-16 bg-n-slate-2 rounded-full flex items-center justify-center mb-4 text-n-slate-10 shadow-inner"
         >
-          <i class="i-lucide-layout-kanban w-8 h-8" />
+          <i class="i-lucide-kanban w-8 h-8" />
         </div>
         <h3 class="text-lg font-semibold text-n-slate-12 mb-1">
           {{ $t('CRM.NO_PIPELINES') }}
