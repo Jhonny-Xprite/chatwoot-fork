@@ -89,6 +89,7 @@ services:
 
 volumes:
   postgres-data:
+    name: chatwoot-stage-postgres-v2
   redis-data:
   chatwoot-storage:
   chatwoot-logs:
