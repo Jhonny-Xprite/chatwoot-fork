@@ -27,7 +27,7 @@ const variantBaseMap = {
   [MESSAGE_VARIANTS.USER]:
     'bg-white/70 dark:bg-n-slate-3/40 backdrop-blur-md border border-white/20 dark:border-n-slate-2/10 text-n-slate-12 shadow-sm',
   [MESSAGE_VARIANTS.ACTIVITY]:
-    'bg-n-slate-2/50 dark:bg-n-slate-1/50 text-n-slate-11 text-[11px] font-bold uppercase tracking-wider px-3 py-1',
+    'bg-n-slate-2/35 dark:bg-n-slate-1/35 text-n-slate-10 text-[10px] font-medium tracking-wide border border-n-slate-3/30 dark:border-n-slate-2/20',
   [MESSAGE_VARIANTS.BOT]:
     'bg-gradient-to-br from-n-solid-iris to-n-solid-iris-alt text-white shadow-lg shadow-n-solid-iris/10',
   [MESSAGE_VARIANTS.TEMPLATE]:
@@ -63,7 +63,7 @@ const messageClass = computed(() => {
   if (variant.value !== MESSAGE_VARIANTS.ACTIVITY) {
     classToApply.push(orientationMap[orientation.value]);
   } else {
-    classToApply.push('rounded-full mx-auto my-4');
+    classToApply.push('rounded-xl mx-auto my-2');
   }
 
   return classToApply;
@@ -82,6 +82,33 @@ const shouldShowMeta = computed(
     variant.value !== MESSAGE_VARIANTS.ACTIVITY
 );
 
+const translateAttachmentPreview = fileType => {
+  switch (fileType) {
+    case 'image':
+      return t('CHAT_LIST.ATTACHMENTS.image.CONTENT');
+    case 'audio':
+      return t('CHAT_LIST.ATTACHMENTS.audio.CONTENT');
+    case 'video':
+      return t('CHAT_LIST.ATTACHMENTS.video.CONTENT');
+    case 'file':
+      return t('CHAT_LIST.ATTACHMENTS.file.CONTENT');
+    case 'fallback':
+      return t('CHAT_LIST.ATTACHMENTS.fallback.CONTENT');
+    case 'location':
+      return t('CHAT_LIST.ATTACHMENTS.location.CONTENT');
+    case 'share':
+      return t('CHAT_LIST.ATTACHMENTS.share.CONTENT');
+    case 'story_mention':
+      return t('CHAT_LIST.ATTACHMENTS.story_mention.CONTENT');
+    case 'contact':
+      return t('CHAT_LIST.ATTACHMENTS.contact.CONTENT');
+    case 'ig_reel':
+      return t('CHAT_LIST.ATTACHMENTS.ig_reel.CONTENT');
+    default:
+      return t('CHAT_LIST.NO_CONTENT');
+  }
+};
+
 const replyToPreview = computed(() => {
   if (!inReplyTo) return '';
 
@@ -92,7 +119,7 @@ const replyToPreview = computed(() => {
     const firstAttachment = attachments[0];
     const fileType = firstAttachment.fileType ?? firstAttachment.file_type;
 
-    return t(`CHAT_LIST.ATTACHMENTS.${fileType}.CONTENT`);
+    return translateAttachmentPreview(fileType);
   }
 
   return t('CONVERSATION.REPLY_MESSAGE_NOT_FOUND');

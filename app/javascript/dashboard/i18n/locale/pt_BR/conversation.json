@@ -73,6 +73,10 @@
       "SHOW_LABELS": "Mostrar etiquetas",
       "HIDE_LABELS": "Ocultar as etiquetas"
     },
+    "ACTIVITY_LOG": {
+      "EXPAND": "Expandir atividade",
+      "COLLAPSE": "Recolher atividade"
+    },
     "VOICE_CALL": {
       "INCOMING_CALL": "Chamada recebida",
       "OUTGOING_CALL": "Chamada realizada",
