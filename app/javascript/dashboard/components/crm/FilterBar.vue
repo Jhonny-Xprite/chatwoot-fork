@@ -77,7 +77,7 @@ const clearFilters = () => {
 
 <template>
   <div
-    class="flex items-center gap-5 py-3 px-6 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md border-b border-n-slate-3/30 dark:border-n-slate-2/10 shadow-sm"
+    class="relative z-30 flex items-center gap-5 px-6 py-3 overflow-visible bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md border-b border-n-slate-3/30 dark:border-n-slate-2/10 shadow-sm"
   >
     <!-- Search -->
     <div class="relative min-w-[240px] group">
@@ -95,7 +95,7 @@ const clearFilters = () => {
     <div class="h-6 w-px bg-n-slate-3/30 dark:bg-n-slate-2/20 mx-1" />
 
     <!-- Assignee Filter -->
-    <div class="flex items-center gap-3 min-w-fit">
+    <div class="relative z-40 flex items-center gap-3 min-w-fit">
       <span
         class="text-[10px] font-black text-n-slate-10 uppercase tracking-widest"
       >
@@ -105,12 +105,12 @@ const clearFilters = () => {
         v-model="selectedAssigneeId"
         :options="assigneeOptions"
         variant="faded"
-        class="min-w-[160px] !rounded-xl !bg-n-slate-2/50 !border-n-slate-3/50"
+        class="relative z-50 min-w-[160px] !rounded-xl !bg-n-slate-2/50 !border-n-slate-3/50"
       />
     </div>
 
     <!-- Labels Filter -->
-    <div class="flex items-center gap-3 min-w-fit">
+    <div class="relative z-40 flex items-center gap-3 min-w-fit">
       <span
         class="text-[10px] font-black text-n-slate-10 uppercase tracking-widest"
       >
@@ -121,7 +121,7 @@ const clearFilters = () => {
         :menu-items="labelMenuItems"
         :placeholder="$t('CRM.LABELS_PLACEHOLDER')"
         show-dropdown
-        class="w-72 rounded-xl border border-n-slate-3/50 dark:border-n-slate-2/20 bg-n-slate-2/50 dark:bg-n-slate-2/20 px-3 py-1.5 focus-within:border-n-brand-primary focus-within:ring-4 focus-within:ring-n-brand-primary/10 transition-all shadow-sm"
+        class="relative z-50 w-72 rounded-xl border border-n-slate-3/50 dark:border-n-slate-2/20 bg-n-slate-2/50 dark:bg-n-slate-2/20 px-3 py-1.5 focus-within:border-n-brand-primary focus-within:ring-4 focus-within:ring-n-brand-primary/10 transition-all shadow-sm"
       />
     </div>
 

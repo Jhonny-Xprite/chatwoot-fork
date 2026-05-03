@@ -218,6 +218,16 @@ const labelMenuItems = computed(() => {
   return labels.value.map(l => ({ label: l.title, value: l.title }));
 });
 
+const ruleValuesText = computed({
+  get: () => newRule.value.values.join(', '),
+  set: value => {
+    newRule.value.values = String(value || '')
+      .split(',')
+      .map(item => item.trim())
+      .filter(Boolean);
+  },
+});
+
 const getRuleIcon = model => {
   if (model === 'contact_attribute') return 'i-lucide-user';
   if (model === 'conversation_attribute') return 'i-lucide-message-square';
@@ -451,16 +461,9 @@ const getRuleIcon = model => {
               </div>
               <div v-else>
                 <Input
-                  :value="newRule.values.join(', ')"
+                  v-model="ruleValuesText"
                   :placeholder="t('CRM.SCORING.MODAL.VALUES_PLACEHOLDER')"
                   class="!rounded-xl"
-                  @input="
-                    e =>
-                      (newRule.values = (e?.target?.value || '')
-                        .split(',')
-                        .map(v => v.trim())
-                        .filter(v => v.length > 0))
-                  "
                 />
               </div>
             </div>
