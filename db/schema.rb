@@ -719,7 +719,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_02_000000) do
     t.index ["account_id", "display_id"], name: "index_conversations_on_account_id_and_display_id", unique: true
     t.index ["account_id", "id"], name: "index_conversations_on_id_and_account_id"
     t.index ["account_id", "inbox_id", "status", "assignee_id"], name: "conv_acid_inbid_stat_asgnid_idx"
-    t.index ["account_id", "pipeline_stage_id", "last_activity_at"], name: "index_conversations_on_crm_pipeline_lookup", order: { last_activity_at: :desc }
+    t.index ["account_id", "pipeline_stage_id", "last_activity_at"], name: "index_conversations_on_crm_pipeline_lookup", order: { last_activity_at: "DESC" }
     t.index ["account_id"], name: "index_conversations_on_account_id"
     t.index ["assignee_id", "account_id"], name: "index_conversations_on_assignee_id_and_account_id"
     t.index ["campaign_id"], name: "index_conversations_on_campaign_id"
