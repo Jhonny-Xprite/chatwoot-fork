@@ -24,6 +24,7 @@ const assigneeOptions = computed(() => [
   ...agents.value.map(agent => ({
     label: agent.name,
     value: agent.id,
+    thumbnail: agent.thumbnail,
   })),
 ]);
 

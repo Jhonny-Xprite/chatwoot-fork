@@ -47,8 +47,8 @@ class DataImportJob < ApplicationJob
       csv_reader(file).each do |row|
         # Normaliza os dados do row: limpa espaços nas chaves para sincronizar com o mapping
         normalized_row = row.to_h.each_with_object({}) do |(key, value), normalized|
-          normalized_key = key&.strip.to_s
-          normalized[normalized_key] = value
+          normalized_key = key.to_s.strip
+          normalized[normalized_key] = value.to_s.strip
         end
         normalized_row.default_proc = proc { |h, k| h[k.to_s] if k.is_a?(Symbol) }
 
@@ -73,7 +73,7 @@ class DataImportJob < ApplicationJob
     detailed_errors = error_messages.map do |msg|
       if msg.include?('Phone number')
         # Mostra qual era o telefone que foi rejeitado
-        provided = row['phone_number'] || row['telefone'] || 'vazio'
+        provided = row['phone_number'] || row['telefone'] || row['LeadPhone'] || 'vazio'
         "TELEFONE INVÁLIDO: '#{provided}' - #{msg} (necessário para WhatsApp)"
       elsif msg.include?('email')
         "Email: '#{contact.email}' - #{msg}"
@@ -85,7 +85,7 @@ class DataImportJob < ApplicationJob
     end
 
     row['csv_line_number'] = line_number
-    row['original_phone'] = row['phone_number'] || row['telefone'] || ''
+    row['original_phone'] = row['phone_number'] || row['telefone'] || row['LeadPhone'] || ''
     row['errors'] = detailed_errors.join(' | ')
     rejected_contacts << row
 
@@ -98,30 +98,33 @@ class DataImportJob < ApplicationJob
   end
 
   # Executa a inserção/atualização massiva (Upsert).
-  # conflict_target: [:account_id, :email] garante que não duplicamos contatos na mesma conta.
   # validate: false é usado aqui porque já validamos individualmente no parse_csv.
   def import_contacts(contacts)
     return if contacts.blank?
 
     Rails.logger.info "[DataImport] Processing #{contacts.length} contacts..."
-    contacts.each_with_index do |contact, idx|
-      Rails.logger.debug "[DataImport] Contact #{idx + 1}: email=#{contact.email.inspect}, phone=#{contact.phone_number.inspect}, name=#{contact.name.inspect}"
+
+    # Se houverem muitos contatos sem email, o conflict_target [:account_id, :email] falha.
+    # Vamos processar em batches menores para garantir que erros de banco sejam capturados.
+    contacts.each_slice(100) do |batch|
+      Contact.import(
+        batch,
+        synchronize: batch,
+        on_duplicate_key_update: {
+          conflict_target: [:account_id, :email],
+          columns: [:phone_number, :name, :additional_attributes, :custom_attributes, :contact_type, :updated_at]
+        },
+        validate: false
+      )
+    rescue StandardError => e
+      Rails.logger.error "[DataImport] Erro no batch import: #{e.message}. Tentando salvamento individual como fallback..."
+      # Fallback individual para não perder o batch inteiro por causa de um erro de unicidade
+      batch.each do |contact|
+        contact.save!
+      rescue StandardError => contact_error
+        Rails.logger.error "[DataImport] Falha ao salvar contato individual (#{contact.email || contact.phone_number}): #{contact_error.message}"
+      end
     end
-
-    result = Contact.import(
-      contacts,
-      synchronize: contacts,
-      on_duplicate_key_update: {
-        conflict_target: [:account_id, :email],
-        columns: [:phone_number, :name, :additional_attributes, :custom_attributes, :contact_type, :updated_at]
-      },
-      track_validation_failures: true,
-      validate: false,
-      batch_size: 1000
-    )
-    Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Failed: #{result.failed_instances.size}"
-
-    Rails.logger.error "[DataImport] Failed instances: #{result.failed_instances.inspect}" if result.failed_instances.any?
   end
 
   def update_data_import_status(processed_records, rejected_records)

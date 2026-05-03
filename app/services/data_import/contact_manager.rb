@@ -140,19 +140,28 @@ class DataImport::ContactManager
 
   # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def find_existing_contact(params)
+    # Busca contato existente para evitar duplicidade baseado no que foi fornecido
     return nil if params[:email].blank? && params[:phone_number].blank? && params[:identifier].blank?
 
-    # Busca exata e segura
+    # 1. Busca por Email (prioridade 1)
     if params[:email].present?
       email = params[:email].to_s.strip.downcase
       contact = @account.contacts.find_by('LOWER(email) = ?', email)
       return contact if contact
     end
 
-    contact = @account.contacts.find_by(phone_number: params[:phone_number]) if params[:phone_number].present?
-    return contact if contact
+    # 2. Busca por Telefone (prioridade 2)
+    if params[:phone_number].present?
+      contact = @account.contacts.find_by(phone_number: params[:phone_number])
+      return contact if contact
+    end
 
-    contact = @account.contacts.find_by(identifier: params[:identifier]) if params[:identifier].present?
-    contact
+    # 3. Busca por Identificador Externo (prioridade 3)
+    if params[:identifier].present?
+      contact = @account.contacts.find_by(identifier: params[:identifier])
+      return contact if contact
+    end
+
+    nil
   end
 end

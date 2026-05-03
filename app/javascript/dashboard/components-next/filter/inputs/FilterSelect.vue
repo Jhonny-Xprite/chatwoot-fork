@@ -7,8 +7,10 @@ import DropdownBody from 'next/dropdown-menu/base/DropdownBody.vue';
 import DropdownItem from 'next/dropdown-menu/base/DropdownItem.vue';
 
 import Button from 'next/button/Button.vue';
+import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
+import Icon from 'dashboard/components-next/icon/Icon.vue';
 
-// [{label, icon, value}]
+// [{label, icon, thumbnail, value}]
 const props = defineProps({
   options: {
     type: Array,
@@ -50,6 +52,7 @@ const selectedOption = computed(() => {
 
 const iconToRender = computed(() => {
   if (props.hideIcon) return null;
+  if (selectedOption.value.thumbnail) return null;
   return selectedOption.value.icon || 'i-lucide-chevron-down';
 });
 
@@ -79,10 +82,21 @@ const updateSelected = newValue => {
           slate
           :variant
           :icon="iconToRender"
-          :trailing-icon="selectedOption.icon ? false : true"
+          :trailing-icon="
+            selectedOption.icon || selectedOption.thumbnail ? false : true
+          "
           :label="label || (hideLabel ? null : selectedOption.label)"
           @click="toggle"
-        />
+        >
+          <template v-if="selectedOption.thumbnail" #icon>
+            <Avatar
+              :src="selectedOption.thumbnail"
+              :name="selectedOption.label"
+              :size="16"
+              class="mr-1"
+            />
+          </template>
+        </Button>
       </slot>
     </template>
     <DropdownBody
@@ -99,12 +113,27 @@ const updateSelected = newValue => {
           >
             {{ option.label }}
           </li>
-          <DropdownItem
-            v-else
-            :label="option.label"
-            :icon="option.icon"
-            @click="updateSelected(option.value)"
-          />
+          <DropdownItem v-else @click="updateSelected(option.value)">
+            <div class="flex items-center gap-2 w-full">
+              <Avatar
+                v-if="option.thumbnail"
+                :src="option.thumbnail"
+                :name="option.label"
+                :size="18"
+              />
+              <Icon
+                v-else-if="option.icon"
+                :icon="option.icon"
+                class="size-4 text-n-slate-11"
+              />
+              <span class="truncate flex-1">{{ option.label }}</span>
+              <Icon
+                v-if="option.value === selected"
+                icon="i-lucide-check"
+                class="size-3 text-n-brand"
+              />
+            </div>
+          </DropdownItem>
         </template>
       </DropdownSection>
     </DropdownBody>

@@ -124,6 +124,13 @@ const leadScore = computed(() => contact.value.lead_score || 0);
 const isHotLead = computed(() => leadScore.value >= 70);
 
 const agents = computed(() => store.getters['agents/getAgents']);
+const activeAgent = computed(() => {
+  if (!assignee.value.id) return null;
+  return (
+    agents.value.find(agent => agent.id === assignee.value.id) || assignee.value
+  );
+});
+
 const agentOptions = computed(() =>
   agents.value.map(agent => ({
     label: agent.name,
@@ -467,9 +474,9 @@ const onAttributeUpdate = async (attr, newValue) => {
                 @click.stop
               >
                 <Avatar
-                  v-if="assignee.id"
-                  :src="assignee.thumbnail"
-                  :name="assignee.name"
+                  v-if="activeAgent"
+                  :src="activeAgent.thumbnail"
+                  :name="activeAgent.name"
                   :size="18"
                   rounded-full
                 />
@@ -480,7 +487,7 @@ const onAttributeUpdate = async (attr, newValue) => {
                   <i class="i-lucide-user text-[10px] text-n-slate-10" />
                 </div>
                 <span class="truncate text-[10px] font-bold text-n-slate-11">
-                  {{ assignee.name || t('CRM.UNASSIGNED') }}
+                  {{ activeAgent?.name || t('CRM.UNASSIGNED') }}
                 </span>
               </div>
             </template>
@@ -488,7 +495,7 @@ const onAttributeUpdate = async (attr, newValue) => {
               <div @click.stop>
                 <SelectMenu
                   :options="agentOptions"
-                  :value="assignee.id"
+                  :value="activeAgent?.id"
                   @select="onAssigneeChange"
                 />
               </div>

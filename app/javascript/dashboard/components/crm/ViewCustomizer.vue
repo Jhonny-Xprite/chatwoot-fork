@@ -100,7 +100,7 @@ const densityOptions = [
           class="flex flex-1 items-center justify-center gap-1.5 rounded-md py-1.5 text-xs font-medium transition-all"
           :class="
             viewPrefs.density === option.value
-              ? 'bg-n-white text-n-brand-primary shadow-sm dark:bg-n-slate-2'
+              ? 'bg-n-white text-n-brand shadow-sm dark:bg-n-slate-2'
               : 'text-n-slate-11 hover:bg-n-alpha-1 hover:text-n-slate-12'
           "
           @click="updatePref('density', option.value)"
@@ -122,16 +122,14 @@ const densityOptions = [
         @click="togglePref('showLabels')"
       >
         <div class="flex items-center gap-2">
-          <span
-            class="i-lucide-tag text-n-slate-10 group-hover:text-n-brand-primary"
-          />
+          <span class="i-lucide-tag text-n-slate-10 group-hover:text-n-brand" />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_LABELS') }}
           </span>
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="viewPrefs.showLabels ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
+          :class="viewPrefs.showLabels ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
@@ -146,7 +144,7 @@ const densityOptions = [
       >
         <div class="flex items-center gap-2">
           <span
-            class="i-lucide-clock text-n-slate-10 group-hover:text-n-brand-primary"
+            class="i-lucide-clock text-n-slate-10 group-hover:text-n-brand"
           />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_SLA') }}
@@ -154,7 +152,7 @@ const densityOptions = [
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="viewPrefs.showSla ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
+          :class="viewPrefs.showSla ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
@@ -169,7 +167,7 @@ const densityOptions = [
       >
         <div class="flex items-center gap-2">
           <span
-            class="i-lucide-alert-circle text-n-slate-10 group-hover:text-n-brand-primary"
+            class="i-lucide-alert-circle text-n-slate-10 group-hover:text-n-brand"
           />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_PRIORITY') }}
@@ -177,9 +175,7 @@ const densityOptions = [
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="
-            viewPrefs.showPriority ? 'bg-n-brand-primary' : 'bg-n-slate-3'
-          "
+          :class="viewPrefs.showPriority ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
@@ -194,7 +190,7 @@ const densityOptions = [
       >
         <div class="flex items-center gap-2">
           <span
-            class="i-lucide-message-square text-n-slate-10 group-hover:text-n-brand-primary"
+            class="i-lucide-message-square text-n-slate-10 group-hover:text-n-brand"
           />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_LAST_MESSAGE') }}
@@ -202,9 +198,7 @@ const densityOptions = [
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="
-            viewPrefs.showLastMessage ? 'bg-n-brand-primary' : 'bg-n-slate-3'
-          "
+          :class="viewPrefs.showLastMessage ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
@@ -219,7 +213,7 @@ const densityOptions = [
       >
         <div class="flex items-center gap-2">
           <span
-            class="i-lucide-user text-n-slate-10 group-hover:text-n-brand-primary"
+            class="i-lucide-user text-n-slate-10 group-hover:text-n-brand"
           />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_ASSIGNEE') }}
@@ -227,9 +221,7 @@ const densityOptions = [
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="
-            viewPrefs.showAssignee ? 'bg-n-brand-primary' : 'bg-n-slate-3'
-          "
+          :class="viewPrefs.showAssignee ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
@@ -244,7 +236,7 @@ const densityOptions = [
       >
         <div class="flex items-center gap-2">
           <span
-            class="i-lucide-building text-n-slate-10 group-hover:text-n-brand-primary"
+            class="i-lucide-building text-n-slate-10 group-hover:text-n-brand"
           />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_COMPANY') }}
@@ -252,9 +244,7 @@ const densityOptions = [
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="
-            viewPrefs.showCompanyName ? 'bg-n-brand-primary' : 'bg-n-slate-3'
-          "
+          :class="viewPrefs.showCompanyName ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
@@ -269,7 +259,7 @@ const densityOptions = [
       >
         <div class="flex items-center gap-2">
           <span
-            class="i-lucide-hash text-n-slate-10 group-hover:text-n-brand-primary"
+            class="i-lucide-hash text-n-slate-10 group-hover:text-n-brand"
           />
           <span class="text-xs font-medium text-n-slate-12">
             {{ t('CRM.SETTINGS.FIELD_CHANNEL') }}
@@ -277,7 +267,7 @@ const densityOptions = [
         </div>
         <div
           class="relative h-4 w-8 rounded-full transition-colors"
-          :class="viewPrefs.showChannel ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
+          :class="viewPrefs.showChannel ? 'bg-n-brand' : 'bg-n-slate-3'"
         >
           <div
             class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
