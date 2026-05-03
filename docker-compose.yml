@@ -1,23 +1,20 @@
-# Configurações reutilizáveis (Anchors) para evitar repetição de código
-x-chatwoot-image: &chatwoot-image clientes-tools-chatwoot:crm
-x-chatwoot-build: &chatwoot-build
-  context: .
-  dockerfile: ./Dockerfile
+# --- CHATWOOT AUTO-CONFIG (EASYPANEL) ---
+# Este arquivo é otimizado para o fluxo "Create from Schema" do EasyPanel.
+# As variáveis ${...} são preenchidas automaticamente pelo formulário do Schema.
 
 services:
   # --- Banco de Dados PostgreSQL ---
   postgres:
-    # container_name removido para evitar conflitos em deploys paralelos (staging/prod)
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_DB: ${POSTGRES_DATABASE:-chatwoot_production}
-      POSTGRES_USER: ${POSTGRES_USERNAME:-chatwoot_prod}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chatwoot_prod}
+      POSTGRES_DB: ${postgresDatabase:-chatwoot_production}
+      POSTGRES_USER: ${postgresUser:-chatwoot_prod}
+      POSTGRES_PASSWORD: ${postgresPassword}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-chatwoot_prod} -d ${POSTGRES_DATABASE:-chatwoot_production}"]
+      test: ["CMD-SHELL", "pg_isready -U ${postgresUser:-chatwoot_prod} -d ${postgresDatabase:-chatwoot_production}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -37,24 +34,39 @@ services:
 
   # --- Servidor Principal do Chatwoot (Web) ---
   chatwoot:
-    image: *chatwoot-image
-    build: *chatwoot-build
-    env_file:
-      - .env
+    image: clientes-tools-chatwoot:crm
+    build:
+      context: .
+      dockerfile: ./Dockerfile
     environment:
       - RAILS_ENV=production
       - NODE_ENV=production
-      - INSTALLATION_OWNER_EMAIL=${INSTALLATION_OWNER_EMAIL:-contato@aiox.com.br}
-      - INSTALLATION_OWNER_PASSWORD=${INSTALLATION_OWNER_PASSWORD:-Chatwoot123!}
-      - INSTALLATION_OWNER_NAME=${INSTALLATION_OWNER_NAME:-Admin AIOX}
+      - INSTALLATION_ENV=docker
+      
+      # URLs e Segurança (Puxados do Schema)
+      - FRONTEND_URL=${frontendUrl}
+      - SECRET_KEY_BASE=${secretKeyBase}
+      
+      # Banco de Dados (Puxados do Schema)
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DATABASE=${postgresDatabase:-chatwoot_production}
+      - POSTGRES_USERNAME=${postgresUser:-chatwoot_prod}
+      - POSTGRES_PASSWORD=${postgresPassword}
+      
+      # Redis
+      - REDIS_URL=redis://redis:6379
+      
+      # IAs (Puxados do Schema)
+      - OPENAI_API_KEY=${openaiApiKey}
+      - ANTHROPIC_API_KEY=${anthropicApiKey}
+      - GEMINI_API_KEY=${geminiApiKey}
+      
+      # Outros
+      - RAILS_LOG_TO_STDOUT=true
+      - RAILS_SERVE_STATIC_FILES=true
       - DEFAULT_LOCALE=pt_BR
       - ENABLE_ACCOUNT_SIGNUP=false
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE:-840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d}
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
-      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
-      - REDIS_URL=redis://redis:6379
+      
     depends_on:
       postgres:
         condition: service_healthy
@@ -74,19 +86,19 @@ services:
 
   # --- Processador de Fundo (Sidekiq) ---
   sidekiq:
-    image: *chatwoot-image
-    build: *chatwoot-build
-    env_file:
-      - .env
+    image: clientes-tools-chatwoot:crm
     environment:
       - RAILS_ENV=production
       - NODE_ENV=production
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE:-840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d}
+      - SECRET_KEY_BASE=${secretKeyBase}
       - POSTGRES_HOST=postgres
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
-      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
+      - POSTGRES_DATABASE=${postgresDatabase:-chatwoot_production}
+      - POSTGRES_USERNAME=${postgresUser:-chatwoot_prod}
+      - POSTGRES_PASSWORD=${postgresPassword}
       - REDIS_URL=redis://redis:6379
+      - OPENAI_API_KEY=${openaiApiKey}
+      - ANTHROPIC_API_KEY=${anthropicApiKey}
+      - GEMINI_API_KEY=${geminiApiKey}
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,7 +112,6 @@ services:
     restart: always
     command: bundle exec sidekiq -C config/sidekiq.yml
 
-# Definição dos Volumes de Dados
 volumes:
   postgres-data:
   redis-data:
