@@ -781,6 +781,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_02_000000) do
     t.integer "conversations_count", default: 0
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["account_id", "pipeline_id", "name"], name: "uniq_name_per_pipeline_account", unique: true
     t.index ["account_id"], name: "index_crm_pipeline_stages_on_account_id"
     t.index ["pipeline_id", "position"], name: "index_crm_pipeline_stages_on_pipeline_id_and_position"
     t.index ["pipeline_id"], name: "index_crm_pipeline_stages_on_pipeline_id"
@@ -795,6 +796,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_05_02_000000) do
     t.datetime "updated_at", null: false
     t.boolean "is_default", default: false, null: false
     t.index ["account_id", "is_default"], name: "index_crm_pipelines_on_account_id_and_is_default"
+    t.index ["account_id", "name"], name: "uniq_name_per_account_pipeline", unique: true
     t.index ["account_id", "position"], name: "index_crm_pipelines_on_account_id_and_position"
     t.index ["account_id"], name: "index_crm_pipelines_on_account_id"
   end

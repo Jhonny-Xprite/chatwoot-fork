@@ -3,9 +3,9 @@
 # Script para inspeccionar como os contatos são armazenados no Chatwoot
 # Use: rails runner inspect_contact.rb
 
-puts "=" * 80
-puts "INSPECTING CONTACT STRUCTURE IN CHATWOOT"
-puts "=" * 80
+puts '=' * 80
+puts 'INSPECTING CONTACT STRUCTURE IN CHATWOOT'
+puts '=' * 80
 
 # Verificar uma conta
 account = Account.first
@@ -36,9 +36,9 @@ end
 
 # Exibir estrutura de cada contato
 contacts.each_with_index do |contact, idx|
-  puts "\n" + "-" * 80
+  puts "\n" + ('-' * 80)
   puts "CONTACT #{idx + 1} (ID: #{contact.id})"
-  puts "-" * 80
+  puts '-' * 80
 
   # Campos principais
   puts "\n📋 MAIN FIELDS:"
@@ -80,6 +80,6 @@ contacts.each_with_index do |contact, idx|
   puts "  • last_activity_at:  #{contact.last_activity_at.inspect}"
 end
 
-puts "\n" + "=" * 80
+puts "\n" + ('=' * 80)
 puts "IMPORTANT: Check how 'name', 'first_name', 'last_name' are being used"
-puts "=" * 80
+puts '=' * 80

@@ -42,6 +42,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   # 1. Valida a presença do arquivo e do mapeamento de colunas.
   # 2. Cria um registro em DataImport e anexa o arquivo.
   # 3. O processamento real ocorre de forma assíncrona via DataImportJob.
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity
   def import
     Rails.logger.info "[CRM] Importação de arquivo iniciada pela conta #{Current.account.id}"
     render json: { error: I18n.t('errors.contacts.import.failed') }, status: :unprocessable_entity and return if params[:import_file].blank?

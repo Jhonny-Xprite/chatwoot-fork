@@ -64,6 +64,7 @@ class DataImportJob < ApplicationJob
     [contacts, rejected_contacts]
   end
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
   def append_rejected_contact(row, contact, rejected_contacts)
     line_number = rejected_contacts.length + 2 # +2 porque 1 é header, +1 para display
     error_messages = contact.errors.full_messages

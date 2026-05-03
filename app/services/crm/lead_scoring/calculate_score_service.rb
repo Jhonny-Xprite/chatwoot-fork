@@ -37,6 +37,7 @@ class Crm::LeadScoring::CalculateScoreService
     end
   end
 
+  # rubocop:disable Metrics/CyclomaticComplexity
   def evaluate_attribute(rule, custom_attributes)
     return false unless custom_attributes.present?
 

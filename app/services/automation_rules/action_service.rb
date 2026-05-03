@@ -70,7 +70,8 @@ class AutomationRules::ActionService < ActionService
     stage = CrmPipelineStage.find_by(id: stage_id, account_id: @account.id)
     return unless stage
 
-    Rails.logger.info "[CRM] Automação ##{@rule.id} movendo conversa ##{@conversation.display_id} para o estágio ##{stage.id} no pipeline ##{stage.pipeline_id}"
+    Rails.logger.info "[CRM] Automação ##{@rule.id} movendo conversa ##{@conversation.display_id} " \
+                      "para o estágio ##{stage.id} no pipeline ##{stage.pipeline_id}"
     @conversation.update!(pipeline_id: stage.pipeline_id, pipeline_stage_id: stage.id)
   end
 end

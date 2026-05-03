@@ -26,11 +26,11 @@ describe 'Contacts Import API', type: :request do
 
         file = fixture_file_upload(StringIO.new(csv_content), 'text/csv')
 
-        expect {
+        expect do
           post "/api/v1/accounts/#{account.id}/contacts/import",
                params: { file: file, mapping: mapping.to_json },
                headers: { 'Content-Type': 'multipart/form-data' }
-        }.to change { DataImport.count }.by(1)
+        end.to change { DataImport.count }.by(1)
 
         expect(response).to have_http_status(:success)
       end
@@ -78,10 +78,10 @@ describe 'Contacts Import API', type: :request do
 
         file = fixture_file_upload(StringIO.new(csv_content), 'text/csv')
 
-        expect {
+        expect do
           post "/api/v1/accounts/#{account.id}/contacts/import",
                params: { file: file, mapping: mapping.to_json }
-        }.to have_enqueued_job(DataImportJob)
+        end.to have_enqueued_job(DataImportJob)
       end
 
       it 'processes the import asynchronously' do

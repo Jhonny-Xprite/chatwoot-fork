@@ -28,9 +28,9 @@ describe DataImportJob do
       end
 
       it 'processes import successfully' do
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.not_to raise_error
+        end.not_to raise_error
 
         data_import.reload
         expect(data_import.status).to eq('completed')
@@ -130,9 +130,9 @@ describe DataImportJob do
       end
 
       it 'marks import as failed on CSV error' do
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.to raise_error(CSV::MalformedCSVError)
+        end.to raise_error(CSV::MalformedCSVError)
 
         data_import.reload
         expect(data_import.status).to eq('failed')
@@ -143,9 +143,9 @@ describe DataImportJob do
           .to receive_message_chain(:with, :contact_import_failed, :deliver_later)
           .once
 
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.to raise_error(CSV::MalformedCSVError)
+        end.to raise_error(CSV::MalformedCSVError)
       end
     end
   end
@@ -270,9 +270,9 @@ describe DataImportJob do
       end
 
       it 'updates existing contact instead of creating duplicate' do
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.not_to change { Contact.where(account: account).count }
+        end.not_to(change { Contact.where(account: account).count })
 
         updated = Contact.find_by(account: account, email: 'existing@example.com')
         expect(updated.name).to eq('Updated Name')
@@ -416,9 +416,9 @@ describe DataImportJob do
       it 'handles ActiveStorage::FileNotFoundError with retry' do
         allow(data_import.import_file).to receive(:open).and_raise(ActiveStorage::FileNotFoundError)
 
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.to raise_error(ActiveStorage::FileNotFoundError)
+        end.to raise_error(ActiveStorage::FileNotFoundError)
       end
     end
   end
@@ -473,15 +473,15 @@ describe DataImportJob do
         expect(mailer_double).to receive(:contact_import_failed).and_return(mailer_double)
         expect(mailer_double).to receive(:deliver_later)
 
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.to raise_error(CSV::MalformedCSVError)
+        end.to raise_error(CSV::MalformedCSVError)
       end
 
       it 'sets status to failed' do
-        expect {
+        expect do
           DataImportJob.perform_now(data_import)
-        }.to raise_error(CSV::MalformedCSVError)
+        end.to raise_error(CSV::MalformedCSVError)
 
         data_import.reload
         expect(data_import.status).to eq('failed')
@@ -496,7 +496,7 @@ describe DataImportJob do
       csv_content = CSV.generate(headers: true) do |csv|
         csv << ['Email Address', 'Full Name', 'Phone Number']
         csv << ['valid@example.com', 'Valid User', '+5511987654321']
-        csv << ['invalid', 'Invalid', 'bad_phone']
+        csv << %w[invalid Invalid bad_phone]
       end
       data_import.import_file.attach(
         io: StringIO.new(csv_content),
@@ -525,9 +525,9 @@ describe DataImportJob do
         content_type: 'text/csv'
       )
 
-      expect {
+      expect do
         DataImportJob.perform_now(data_import)
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it '3. Row Processing - builds contacts using ContactManager' do
