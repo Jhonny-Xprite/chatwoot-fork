@@ -55,8 +55,8 @@ class Conversations::EventDataPresenter < SimpleDelegator
       timestamp: last_activity_at.to_i,
       created_at: created_at.to_i,
       updated_at: updated_at.to_f,
-      pipeline_id: pipeline_id,
-      pipeline_stage_id: pipeline_stage_id
+      pipeline_id: __getobj__.pipeline_id,
+      pipeline_stage_id: __getobj__.pipeline_stage_id
     }
   end
 end
