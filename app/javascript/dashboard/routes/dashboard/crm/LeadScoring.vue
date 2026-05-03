@@ -1,6 +1,5 @@
 <script setup>
-// Importação de utilitários do Vue e Chatwoot
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useStore, useMapGetter } from 'dashboard/composables/store';
 import { useI18n } from 'vue-i18n';
 import { useAlert } from 'dashboard/composables';
@@ -38,47 +37,42 @@ const newRule = ref({
 });
 
 // Opções de operadores para o seletor da UI
-const operators = [
+const operators = computed(() => [
   {
-    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.EQUAL_TO') || 'Igual a',
+    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.EQUAL_TO'),
     value: 'equal_to',
   },
   {
-    label:
-      t('CRM.SCORING.MODAL.CONDITION_LABELS.NOT_EQUAL_TO') || 'Diferente de',
+    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.NOT_EQUAL_TO'),
     value: 'not_equal_to',
   },
   {
-    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.CONTAINS') || 'Contém',
+    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.CONTAINS'),
     value: 'contains',
   },
   {
-    label:
-      t('CRM.SCORING.MODAL.CONDITION_LABELS.DOES_NOT_CONTAIN') || 'Não contém',
+    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.DOES_NOT_CONTAIN'),
     value: 'does_not_contain',
   },
   {
-    label:
-      t('CRM.SCORING.MODAL.CONDITION_LABELS.IS_PRESENT') || 'Está presente',
+    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.IS_PRESENT'),
     value: 'is_present',
   },
   {
-    label:
-      t('CRM.SCORING.MODAL.CONDITION_LABELS.IS_NOT_PRESENT') ||
-      'Não está presente',
+    label: t('CRM.SCORING.MODAL.CONDITION_LABELS.IS_NOT_PRESENT'),
     value: 'is_not_present',
   },
-];
+]);
 
 // Modelos de dados suportados pelo motor de scoring
-const attributeModels = [
+const attributeModels = computed(() => [
   { label: t('CRM.SCORING.MODELS.CONTACT'), value: 'contact_attribute' },
   {
     label: t('CRM.SCORING.MODELS.CONVERSATION'),
     value: 'conversation_attribute',
   },
   { label: t('CRM.SCORING.MODELS.LABEL'), value: 'label' },
-];
+]);
 
 // Filtra os atributos baseados na origem selecionada
 const availableAttributes = computed(() => {
@@ -96,6 +90,20 @@ const availableAttributes = computed(() => {
   }
   return [{ label: t('CRM.LABELS'), value: 'labels' }];
 });
+
+// Watch para resetar a chave do atributo quando o modelo muda
+// eslint-disable-next-line no-unused-vars
+watch(
+  () => newRule.value.attribute_model,
+  newModel => {
+    if (newModel === 'label') {
+      newRule.value.attribute_key = 'labels';
+    } else {
+      newRule.value.attribute_key = '';
+    }
+    newRule.value.values = [];
+  }
+);
 
 // Busca as regras existentes no backend
 const fetchRules = async () => {
@@ -176,9 +184,9 @@ const deleteRule = async id => {
 
 // Helpers para exibir labels amigáveis na tabela
 const getModelLabel = value =>
-  attributeModels.find(m => m.value === value)?.label || value;
+  attributeModels.value.find(m => m.value === value)?.label || value;
 const getOperatorLabel = value =>
-  operators.find(o => o.value === value)?.label || value;
+  operators.value.find(o => o.value === value)?.label || value;
 
 // Formata as etiquetas para o componente TagInput
 const labelMenuItems = computed(() => {
