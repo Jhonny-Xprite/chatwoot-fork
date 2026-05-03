@@ -43,18 +43,18 @@ const dragOptions = computed(() => ({
   animation: 250,
   group: 'conversations',
   disabled: false,
-  ghostClass: 'sortable-ghost opacity-50',
+  ghostClass: 'sortable-ghost',
   dragClass: 'sortable-drag',
   chosenClass: 'sortable-chosen',
-  fallbackOnBody: false,
-  forceFallback: false,
+  fallbackOnBody: true,
+  forceFallback: true,
   emptyInsertThreshold: 100,
   scrollSensitivity: 80,
   scrollSpeed: 15,
   swapThreshold: 0.5,
   preventOnFilter: false,
   delayOnTouchOnly: true,
-  delay: 200,
+  delay: 0,
 }));
 
 const onDragChange = event => {
@@ -72,7 +72,14 @@ const onDragChange = event => {
 <template>
   <div
     class="flex flex-col h-full bg-n-slate-2/40 dark:bg-n-slate-2/10 rounded-3xl border border-n-slate-3 dark:border-n-slate-2/50 min-w-0 w-[340px] flex-shrink-0 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-n-brand-primary/5 hover:border-n-brand-primary/20"
+    :class="{ 'ring-2 ring-n-brand-primary/20 shadow-2xl': isDragging }"
   >
+    <!-- Stage Color Banner -->
+    <div
+      class="h-1.5 w-full shrink-0 opacity-80"
+      :style="{ backgroundColor: stage.color || 'var(--n-slate-4)' }"
+    />
+
     <!-- Column Header: Floating Glass Style -->
     <div
       class="flex items-center justify-between px-5 py-4 shrink-0 border-b border-n-slate-3/50 dark:border-n-slate-2/30 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md"
@@ -102,6 +109,7 @@ const onDragChange = event => {
         v-model="conversations"
         v-bind="dragOptions"
         class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar scroll-smooth"
+        :class="{ 'dragging-active': isDragging }"
         item-key="id"
         tag="div"
         @start="isDragging = true"
@@ -111,6 +119,7 @@ const onDragChange = event => {
         <template #item="{ element: conversation }">
           <DealCard
             :conversation="conversation"
+            :is-dragging="isDragging"
             @select="$emit('select', $event)"
             @select-contact="$emit('selectContact', $event)"
           />
@@ -183,7 +192,6 @@ const onDragChange = event => {
   box-shadow: var(--shadow-floating) !important;
   cursor: grabbing !important;
   opacity: 1 !important;
-  pointer-events: none;
   /* CRITICAL: Disable all transitions while dragging to prevent lag */
   transition: none !important;
 }

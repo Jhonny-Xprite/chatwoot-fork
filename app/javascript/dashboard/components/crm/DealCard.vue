@@ -3,7 +3,6 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
-import CardLabels from 'dashboard/components-next/Conversation/ConversationCard/CardLabelsV5.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
 import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
@@ -17,6 +16,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  isDragging: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['select', 'selectContact']);
@@ -29,7 +32,16 @@ const allAttributes = computed(() => store.getters['attributes/getAttributes']);
 const contact = computed(() => props.conversation.meta?.sender || {});
 const assignee = computed(() => props.conversation.meta?.assignee || {});
 const unreadCount = computed(() => props.conversation.unread_count || 0);
-const conversationLabels = computed(() => props.conversation.labels || []);
+const accountLabels = computed(() => store.getters['labels/getLabels']);
+const conversationLabels = computed(() => {
+  const labels = props.conversation.labels || [];
+  return labels.map(label => (typeof label === 'string' ? label : label.title));
+});
+const activeLabels = computed(() => {
+  return accountLabels.value.filter(label =>
+    conversationLabels.value.includes(label.title)
+  );
+});
 const hasSlaPolicyId = computed(() => props.conversation?.sla_policy_id);
 const companyName = computed(
   () => contact.value.additional_attributes?.company_name || ''
@@ -164,12 +176,13 @@ const dynamicAttributes = computed(() => {
   <div
     role="button"
     tabindex="0"
-    class="group relative flex flex-col gap-3 cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:border-n-brand-primary/40 hover:shadow-2xl hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1 overflow-hidden"
+    class="group relative flex flex-col gap-3 cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:border-n-brand-primary/40 hover:shadow-2xl hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1 overflow-hidden"
     :class="[
       isHotLead
         ? 'ring-1 ring-n-brand-primary/20 bg-gradient-to-br from-white to-n-brand-primary-alpha-1/10'
         : '',
       showReplyNeeded ? 'border-n-brand-primary/30' : '',
+      isDragging ? 'is-dragging' : 'hover:-translate-y-1.5',
     ]"
     @click="emit('select', conversation)"
   >
@@ -299,11 +312,22 @@ const dynamicAttributes = computed(() => {
     </div>
 
     <!-- Tags / Labels -->
-    <div
-      v-if="conversationLabels.length && viewPrefs.showLabels"
-      class="flex flex-wrap gap-1.5 relative z-10"
-    >
-      <CardLabels :labels="conversationLabels" />
+    <div v-if="activeLabels.length" class="flex flex-wrap gap-1 relative z-10">
+      <div
+        v-for="label in activeLabels"
+        :key="label.id"
+        class="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-n-alpha-1 border border-n-strong/20"
+      >
+        <div
+          class="size-1.5 rounded-full"
+          :style="{ backgroundColor: label.color }"
+        />
+        <span
+          class="text-[10px] font-bold text-n-slate-11 uppercase tracking-tighter"
+        >
+          {{ label.title }}
+        </span>
+      </div>
     </div>
 
     <!-- Premium Message Preview (Glass Style) -->
