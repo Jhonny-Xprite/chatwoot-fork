@@ -21,15 +21,15 @@ Source Type:
   ○ Docker Compose ← CLIQUE AQUI
 ```
 
-### **PASSO 3: Cole o docker-compose.yml**
+### **PASSO 3: Cole o docker-compose.easypanel.yml**
 
-**Abra arquivo:** `docker-compose.yml` (na raiz do repo)
+**Abra arquivo:** `docker-compose.easypanel.yml` (na raiz do repo)
 
 **Copie TUDO** e **cole** no campo de Docker Compose no EasyPanel.
 
 ---
 
-## 🎯 O Arquivo docker-compose.yml Já Tem:
+## 🎯 O Arquivo docker-compose.easypanel.yml Já Tem:
 
 ✅ PostgreSQL configurado  
 ✅ Redis configurado  
@@ -39,7 +39,13 @@ Source Type:
 ✅ Volumes para persistência  
 ✅ Health checks  
 
-**NÃO PRECISA PREENCHER NADA!**
+Você só precisa definir os valores reais de:
+
+- `SECRET_KEY_BASE`
+- `FRONTEND_URL`
+- `POSTGRES_PASSWORD`
+
+O restante já possui defaults seguros para subir o ambiente.
 
 ---
 

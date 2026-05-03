@@ -1,71 +1,39 @@
-# 🚀 Deploy no EasyPanel com Dockerfile (SIMPLES)
+# Deploy no EasyPanel com Dockerfile
 
-## ✅ Solução FÁCIL em 2 Passos
+Use esta abordagem apenas se voce for subir um unico container da aplicacao.
 
-Se EasyPanel tem opção "Dockerfile", use isso! **Sem DockerHub, sem complicação.**
+Para um deploy completo do Chatwoot com `chatwoot` + `sidekiq` + `postgres` + `redis`, prefira `docker-compose.easypanel.yml`.
 
----
+## Quando usar Dockerfile
 
-## **PASSO 1: No EasyPanel Dashboard**
+- Quando o banco e o Redis ja existem fora desta aplicacao
+- Quando o worker `sidekiq` sera criado como outro servico separado
+- Quando voce quer somente gerar a imagem da aplicacao
 
-```
-Applications → New Application
-```
+## Campos no EasyPanel
 
----
-
-## **PASSO 2: Selecione "Dockerfile"**
-
-```
-Source Type:
-  ○ Git
-  ○ Upload
-  ○ Dockerfile ← CLIQUE AQUI
-```
-
----
-
-## **PASSO 3: Aponte para seu repositório**
-
-**Repository URL:**
-```
+Repository URL:
+```text
 https://github.com/Jhonny-Xprite/chatwoot-fork
 ```
 
-**Branch:**
-```
+Branch:
+```text
 feat/crm-advanced-filters-automation
 ```
 
-**Dockerfile path:**
-```
+Dockerfile path:
+```text
 ./Dockerfile
 ```
 
-**Build context:**
-```
+Build context:
+```text
 ./
 ```
 
----
+## Importante
 
-## 🎯 O que vai acontecer:
+Se o objetivo for subir tudo de uma vez no EasyPanel, nao use a opcao "Dockerfile" para este projeto.
 
-1. EasyPanel clona seu repositório
-2. EasyPanel faz build do Dockerfile **direto lá**
-3. EasyPanel roda o container com docker-compose.yml
-4. **Pronto! Sem DockerHub, sem token, sem complicação**
-
----
-
-## 📝 Deploy
-
-1. Preenche os campos acima
-2. Clica "Validate" (opcional)
-3. Clica "Deploy" ou "Create"
-4. **Aguarda 10-15 minutos** enquanto faz build
-5. **Pronto!** 🎉
-
----
-
-**É isso. Só isso.**
+Nesse caso, use a opcao "Docker Compose" e cole o conteudo de `docker-compose.easypanel.yml`.
