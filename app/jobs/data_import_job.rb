@@ -5,12 +5,13 @@ class DataImportJob < ApplicationJob
   queue_as :low
   retry_on ActiveStorage::FileNotFoundError, wait: 1.minute, attempts: 3
 
-  # Ponto de entrada do Job de importação.
-  # 1. Inicializa o ContactManager com o mapeamento fornecido pelo usuário.
+  # Ponto de entrada do Job de importacao.
+  # 1. Inicializa o ContactManager com o mapeamento fornecido pelo usuario.
   # 2. Inicia o processamento do arquivo e notifica o admin ao concluir.
   def perform(data_import)
     @data_import = data_import
     @contact_manager = DataImport::ContactManager.new(@data_import.account, @data_import.mapping)
+
     begin
       process_import_file
       send_import_notification_to_admin
@@ -29,23 +30,26 @@ class DataImportJob < ApplicationJob
   def process_import_file
     Rails.logger.info "[CRM] Iniciando processamento do DataImport ##{@data_import.id}"
     @data_import.update!(status: :processing)
-    contacts, rejected_contacts = parse_csv_and_build_contacts
 
-    import_contacts(contacts)
-    update_data_import_status(contacts.length, rejected_contacts.length)
+    importable_contacts, rejected_contacts = parse_csv_and_build_contacts
+    processed_records = persist_contacts(importable_contacts, rejected_contacts)
+
+    update_data_import_status(processed_records, rejected_contacts.length)
     save_failed_records_csv(rejected_contacts)
-    Rails.logger.info "[CRM] Finalizado DataImport ##{@data_import.id}: #{contacts.length} sucessos, #{rejected_contacts.length} rejeições"
+
+    Rails.logger.info "[CRM] Finalizado DataImport ##{@data_import.id}: #{processed_records} sucessos, #{rejected_contacts.length} rejeicoes"
   end
 
-  # Lê o CSV e constrói objetos Contact sem salvar no DB ainda.
-  # Normalização: Remove espaços em branco das chaves para bater com o mapping do frontend.
+  # Le o CSV e constroi objetos Contact sem salvar no DB ainda.
+  # Normalizacao: remove espacos em branco das chaves para bater com o mapping do frontend.
   def parse_csv_and_build_contacts
-    contacts = []
+    importable_contacts = []
     rejected_contacts = []
 
     with_import_file do |file|
-      csv_reader(file).each do |row|
-        # Normaliza os dados do row: limpa espaços nas chaves para sincronizar com o mapping
+      csv_reader(file).each_with_index do |row, index|
+        line_number = index + 2
+
         normalized_row = row.to_h.each_with_object({}) do |(key, value), normalized|
           normalized_key = key&.strip.to_s
           normalized[normalized_key] = value
@@ -54,26 +58,23 @@ class DataImportJob < ApplicationJob
 
         current_contact = @contact_manager.build_contact(normalized_row.with_indifferent_access)
         if current_contact.valid?
-          contacts << current_contact
+          importable_contacts << { contact: current_contact, row: row.to_h, line_number: line_number }
         else
-          append_rejected_contact(row, current_contact, rejected_contacts)
+          append_rejected_contact(row.to_h, current_contact, rejected_contacts, line_number)
         end
       end
     end
 
-    [contacts, rejected_contacts]
+    [importable_contacts, rejected_contacts]
   end
 
-  def append_rejected_contact(row, contact, rejected_contacts)
-    line_number = rejected_contacts.length + 2 # +2 porque 1 é header, +1 para display
+  def append_rejected_contact(row, contact, rejected_contacts, line_number)
     error_messages = contact.errors.full_messages
 
-    # FOCO NO TELEFONE: Enriquece mensagens com detalhes específicos
     detailed_errors = error_messages.map do |msg|
       if msg.include?('Phone number')
-        # Mostra qual era o telefone que foi rejeitado
-        provided = row['phone_number'] || row['telefone'] || 'vazio'
-        "TELEFONE INVÁLIDO: '#{provided}' - #{msg} (necessário para WhatsApp)"
+        provided = row['phone_number'] || row['telefone'] || contact.phone_number || 'vazio'
+        "TELEFONE INVALIDO: '#{provided}' - #{msg} (necessario para WhatsApp)"
       elsif msg.include?('email')
         "Email: '#{contact.email}' - #{msg}"
       elsif msg.include?('identifier')
@@ -84,45 +85,37 @@ class DataImportJob < ApplicationJob
     end
 
     row['csv_line_number'] = line_number
-    row['original_phone'] = row['phone_number'] || row['telefone'] || ''
+    row['original_phone'] = row['phone_number'] || row['telefone'] || contact.phone_number || ''
     row['errors'] = detailed_errors.join(' | ')
     rejected_contacts << row
 
-    # Log detalhado para debug de telefone
-    if error_messages.any? { |m| m.include?('Phone number') }
+    if error_messages.any? { |message| message.include?('Phone number') }
       Rails.logger.warn "[DataImport] Line #{line_number} REJECTED - INVALID PHONE: '#{row['original_phone']}'"
     else
       Rails.logger.warn "[DataImport] Line #{line_number} rejected: #{row['errors']}"
     end
   end
 
-  # Executa a inserção/atualização massiva (Upsert).
-  # conflict_target: [:account_id, :email] garante que não duplicamos contatos na mesma conta.
-  # validate: false é usado aqui porque já validamos individualmente no parse_csv.
-  def import_contacts(contacts)
-    return if contacts.blank?
+  # Persiste cada contato pelo fluxo real do Chatwoot para disparar callbacks e eventos.
+  def persist_contacts(importable_contacts, rejected_contacts)
+    return 0 if importable_contacts.blank?
 
-    Rails.logger.info "[DataImport] Processing #{contacts.length} contacts..."
-    contacts.each_with_index do |contact, idx|
-      Rails.logger.debug "[DataImport] Contact #{idx + 1}: email=#{contact.email.inspect}, phone=#{contact.phone_number.inspect}, name=#{contact.name.inspect}"
+    processed_records = 0
+    Rails.logger.info "[DataImport] Processing #{importable_contacts.length} contacts..."
+
+    importable_contacts.each_with_index do |payload, index|
+      contact = payload[:contact]
+      Rails.logger.debug "[DataImport] Contact #{index + 1}: email=#{contact.email.inspect}, phone=#{contact.phone_number.inspect}, name=#{contact.name.inspect}"
+
+      if contact.save
+        processed_records += 1
+      else
+        append_rejected_contact(payload[:row], contact, rejected_contacts, payload[:line_number])
+      end
     end
 
-    result = Contact.import(
-      contacts,
-      synchronize: contacts,
-      on_duplicate_key_update: {
-        conflict_target: [:account_id, :email],
-        columns: [:phone_number, :name, :additional_attributes, :custom_attributes, :contact_type, :updated_at]
-      },
-      track_validation_failures: true,
-      validate: false,
-      batch_size: 1000
-    )
-    Rails.logger.info "[DataImport] Completed - Inserted: #{result.num_inserts}, Failed: #{result.failed_instances.size}"
-
-    if result.failed_instances.any?
-      Rails.logger.error "[DataImport] Failed instances: #{result.failed_instances.inspect}"
-    end
+    Rails.logger.info "[DataImport] Completed - Persisted: #{processed_records}, Failed: #{rejected_contacts.length}"
+    processed_records
   end
 
   def update_data_import_status(processed_records, rejected_records)
@@ -133,8 +126,11 @@ class DataImportJob < ApplicationJob
     csv_data = generate_csv_data(rejected_contacts)
     return if csv_data.blank?
 
-    @data_import.failed_records.attach(io: StringIO.new(csv_data), filename: "#{Time.zone.today.strftime('%Y%m%d')}_contacts.csv",
-                                       content_type: 'text/csv')
+    @data_import.failed_records.attach(
+      io: StringIO.new(csv_data),
+      filename: "#{Time.zone.today.strftime('%Y%m%d')}_contacts.csv",
+      content_type: 'text/csv'
+    )
   end
 
   def generate_csv_data(rejected_contacts)
@@ -150,7 +146,7 @@ class DataImportJob < ApplicationJob
     end
   end
 
-  def handle_csv_error(error) # rubocop:disable Lint/UnusedMethodArgument
+  def handle_csv_error(_error)
     @data_import.update!(status: :failed)
     send_import_failed_notification_to_admin
   end
@@ -175,7 +171,11 @@ class DataImportJob < ApplicationJob
     file.rewind
     raw_data = file.read
     utf8_data = raw_data.force_encoding('UTF-8')
-    clean_data = utf8_data.valid_encoding? ? utf8_data : utf8_data.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8')
+    clean_data = if utf8_data.valid_encoding?
+                   utf8_data
+                 else
+                   utf8_data.encode('UTF-16le', invalid: :replace, replace: '').encode('UTF-8')
+                 end
     clean_data = clean_data.delete_prefix("\xEF\xBB\xBF")
 
     CSV.new(StringIO.new(clean_data), headers: true)
