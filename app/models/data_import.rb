@@ -31,6 +31,6 @@ class DataImport < ApplicationRecord
   private
 
   def process_data_import
-    DataImportJob.perform_later(self)
+    DataImportJob.perform_now(self)
   end
 end
