@@ -45,6 +45,7 @@
     "ADD_DEAL": "Add Deal",
     "NO_DEALS": "No deals here",
     "SHOW_GROUPS": "Show groups",
+    "TIME_NOW": "Now",
     "LEAD_SCORE_BADGE": "Score",
     "CONTACTS_COLUMN": {
       "TITLE": "Contacts",
@@ -101,6 +102,7 @@
       "VISIBLE_FIELDS": "Visible Fields",
       "FIELD_LABELS": "Labels",
       "FIELD_CONTACTS_COLUMN": "Contacts column",
+      "FIELD_STARTED_CONTACTS": "Contacts with started conversation",
       "FIELD_SLA": "SLA Status",
       "FIELD_PRIORITY": "Priority",
       "FIELD_LAST_MESSAGE": "Last Message",

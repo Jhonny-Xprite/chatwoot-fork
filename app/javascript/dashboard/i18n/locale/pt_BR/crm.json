@@ -45,6 +45,7 @@
     "ADD_DEAL": "Adicionar Negócio",
     "NO_DEALS": "Nenhum negócio aqui",
     "SHOW_GROUPS": "Mostrar grupos",
+    "TIME_NOW": "Agora",
     "LEAD_SCORE_BADGE": "Score",
     "CONTACTS_COLUMN": {
       "TITLE": "Contatos",
@@ -87,6 +88,7 @@
       "DENSITY_COMFORTABLE": "Confortável",
       "VISIBLE_FIELDS": "Campos Visíveis",
       "FIELD_CONTACTS_COLUMN": "Coluna de contatos",
+      "FIELD_STARTED_CONTACTS": "Contatos com conversa iniciada",
       "FIELD_LABELS": "Etiquetas",
       "FIELD_SLA": "Status SLA",
       "FIELD_PRIORITY": "Prioridade",

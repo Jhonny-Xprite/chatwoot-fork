@@ -42,7 +42,7 @@ const scoreClasses = computed(() => {
     return 'bg-n-amber-9/10 text-n-amber-11 border-n-amber-9/20';
   }
 
-  return 'bg-n-teal-9/10 text-n-teal-11 border-n-teal-9/20';
+  return 'bg-n-blue-9/10 text-n-blue-11 border-n-blue-9/20';
 });
 
 const openContact = () => {

@@ -76,7 +76,6 @@ const lastMessageSenderLabel = computed(() => {
 const leadScore = computed(
   () => contact.value.lead_score ?? contact.value.leadScore ?? 0
 );
-const isHotLead = computed(() => leadScore.value >= 70);
 const leadScoreClasses = computed(() => {
   if (leadScore.value >= 70) {
     return 'border-n-ruby-9/20 bg-n-ruby-9/10 text-n-ruby-11';
@@ -86,7 +85,7 @@ const leadScoreClasses = computed(() => {
     return 'border-n-amber-9/20 bg-n-amber-9/10 text-n-amber-11';
   }
 
-  return 'border-n-teal-9/20 bg-n-teal-9/10 text-n-teal-11';
+  return 'border-n-blue-9/20 bg-n-blue-9/10 text-n-blue-11';
 });
 
 const showReplyNeeded = computed(
@@ -191,9 +190,6 @@ const dynamicAttributes = computed(() => {
     tabindex="0"
     class="group relative flex flex-shrink-0 flex-col gap-3 cursor-pointer select-none overflow-hidden rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-200 hover:border-n-brand-primary/30 hover:shadow-lg hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
     :class="[
-      isHotLead
-        ? 'ring-1 ring-n-brand-primary/20 bg-gradient-to-br from-white to-n-brand-primary-alpha-1/10'
-        : '',
       showReplyNeeded ? 'border-n-brand-primary/30' : '',
       isDragging ? 'is-dragging' : '',
     ]"

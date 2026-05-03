@@ -85,6 +85,9 @@ const showContactsColumn = computed(
 const showGroupsInPipeline = computed(
   () => viewPreferences.value.showGroupsInPipeline !== false
 );
+const showStartedContacts = computed(
+  () => viewPreferences.value.showStartedContacts === true
+);
 const boardHasVisibleColumns = computed(
   () => showContactsColumn.value || currentPipelineStages.value.length > 0
 );
@@ -99,6 +102,10 @@ const filteredBoardContacts = computed(() => {
 
   if (!showGroupsInPipeline.value) {
     contacts = contacts.filter(contact => !isGroupEntity(contact.name));
+  }
+
+  if (!showStartedContacts.value) {
+    contacts = contacts.filter(contact => !contact.lastActivityAt);
   }
 
   if (!scoreBand) {

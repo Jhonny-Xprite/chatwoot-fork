@@ -2,10 +2,11 @@
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { getLastMessage } from 'dashboard/helper/conversationHelper';
+import { dynamicTime, shortTimestamp } from 'shared/helpers/timeHelper';
+import { useMapGetter } from 'dashboard/composables/store';
 import Avatar from 'next/avatar/Avatar.vue';
 import MessagePreview from './MessagePreview.vue';
 import InboxName from '../InboxName.vue';
-import TimeAgo from 'dashboard/components/ui/TimeAgo.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
 import UnreadBadge from 'dashboard/components-next/Conversation/ConversationCard/UnreadBadge.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
@@ -34,10 +35,14 @@ const emit = defineEmits([
 const { t } = useI18n();
 
 const hovered = ref(false);
+const accountLabels = useMapGetter('labels/getLabels');
 
 const unreadCount = computed(() => props.chat.unread_count);
 const hasUnread = computed(() => unreadCount.value > 0);
 const lastMessageInChat = computed(() => getLastMessage(props.chat));
+const leadScore = computed(
+  () => props.currentContact.lead_score ?? props.currentContact.leadScore ?? 0
+);
 
 const voiceCallData = computed(() => ({
   status: props.chat.additional_attributes?.call_status,
@@ -45,15 +50,23 @@ const voiceCallData = computed(() => ({
 }));
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
+const conversationLabelTitles = computed(() => {
+  return (props.chat.labels || []).map(label =>
+    typeof label === 'string' ? label : label.title
+  );
+});
 
 const activeLabels = computed(() => {
-  const labels = props.chat.labels || [];
-  return labels.slice(0, 2);
+  return accountLabels.value
+    .filter(({ title }) => conversationLabelTitles.value.includes(title))
+    .slice(0, 2);
 });
 
 const hiddenLabelsCount = computed(() => {
-  const labels = props.chat.labels || [];
-  return Math.max(labels.length - activeLabels.value.length, 0);
+  return Math.max(
+    conversationLabelTitles.value.length - activeLabels.value.length,
+    0
+  );
 });
 
 const showMetaRow = computed(() => {
@@ -90,6 +103,24 @@ const lastMessageMetaLabel = computed(() => {
   return lastMessageInChat.value.message_type === 1
     ? t('CRM.MESSAGE_SENDER.TEAM')
     : t('CRM.MESSAGE_SENDER.LEAD');
+});
+
+const leadScoreClasses = computed(() => {
+  if (leadScore.value >= 70) {
+    return 'border-n-ruby-9/20 bg-n-ruby-9/10 text-n-ruby-11';
+  }
+
+  if (leadScore.value >= 40) {
+    return 'border-n-amber-9/20 bg-n-amber-9/10 text-n-amber-11';
+  }
+
+  return 'border-n-blue-9/20 bg-n-blue-9/10 text-n-blue-11';
+});
+
+const compactTime = computed(() => {
+  const timeValue = props.chat.timestamp || props.chat.created_at;
+  const shortTime = shortTimestamp(dynamicTime(timeValue));
+  return shortTime === 'now' ? t('CRM.TIME_NOW') : shortTime;
 });
 
 const onThumbnailHover = () => {
@@ -171,7 +202,7 @@ watch(
       <!-- Main Content -->
       <div class="flex-1 min-w-0 flex flex-col gap-1">
         <!-- Top Metadata Row -->
-        <div class="flex items-center justify-between gap-2 h-5">
+        <div class="flex items-center justify-between gap-2 min-h-5">
           <div class="flex items-center gap-2 overflow-hidden">
             <div
               v-if="chat.pipeline_stage"
@@ -196,6 +227,13 @@ watch(
               :inbox="inbox"
               class="scale-90 origin-left"
             />
+            <span
+              class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[9px] font-black"
+              :class="leadScoreClasses"
+            >
+              <i class="i-lucide-flame h-3 w-3" />
+              <span>{{ leadScore }}</span>
+            </span>
           </div>
           <div class="flex items-center gap-1.5">
             <CardPriorityIcon
@@ -204,13 +242,9 @@ watch(
               class="!size-3.5 opacity-80"
             />
             <span
-              class="text-[10px] font-bold text-n-slate-10 tracking-tight uppercase group-hover:text-n-slate-12 transition-colors"
+              class="text-[10px] font-bold text-n-slate-10 tracking-tight group-hover:text-n-slate-12 transition-colors"
             >
-              <TimeAgo
-                :last-activity-timestamp="chat.timestamp"
-                :created-at-timestamp="chat.created_at"
-                :conversation-id="chat.id"
-              />
+              {{ compactTime }}
             </span>
           </div>
         </div>
@@ -227,6 +261,55 @@ watch(
             :count="unreadCount"
             class="shadow-sm shadow-n-brand-primary/10 scale-90"
           />
+        </div>
+
+        <!-- Meta Row: Labels -->
+        <div
+          v-if="showMetaRow"
+          class="mt-1 flex items-center justify-between gap-2"
+        >
+          <div class="flex min-w-0 flex-wrap items-center gap-1.5">
+            <SLACardLabel v-if="hasSlaPolicyId" :chat="chat" />
+            <span
+              v-for="label in activeLabels"
+              :key="label.id"
+              class="inline-flex max-w-[96px] items-center rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider"
+              :class="
+                label.color
+                  ? ''
+                  : 'border-n-slate-3/40 bg-n-slate-2/70 text-n-slate-11'
+              "
+              :style="
+                label.color
+                  ? {
+                      borderColor: `${label.color}33`,
+                      backgroundColor: `${label.color}18`,
+                      color: label.color,
+                    }
+                  : {}
+              "
+              :title="label.title"
+            >
+              <span class="truncate">{{ label.title }}</span>
+            </span>
+            <span
+              v-if="hiddenLabelsCount > 0"
+              class="inline-flex items-center rounded-full bg-n-brand-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-n-brand-primary"
+            >
+              {{ `+${hiddenLabelsCount}` }}
+            </span>
+          </div>
+          <UnreadBadge
+            v-if="hasUnread"
+            :count="unreadCount"
+            class="scale-90 shadow-sm shadow-n-brand-primary/10"
+          />
+          <span
+            v-else-if="showAssignee && assignee.name"
+            class="truncate text-[9px] font-black uppercase tracking-wider text-n-slate-9"
+          >
+            {{ assignee.name }}
+          </span>
         </div>
 
         <!-- Message Preview Row -->
@@ -258,40 +341,6 @@ watch(
               :class="messagePreviewClass"
             />
           </template>
-        </div>
-
-        <!-- Bottom Row: Tags/SLA -->
-        <div
-          v-if="showMetaRow"
-          class="mt-1 flex items-center justify-between gap-2"
-        >
-          <div class="flex min-w-0 flex-wrap items-center gap-1.5">
-            <SLACardLabel v-if="hasSlaPolicyId" :chat="chat" />
-            <span
-              v-for="label in activeLabels"
-              :key="label"
-              class="inline-flex max-w-[88px] items-center rounded-full bg-n-slate-2/70 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-n-slate-11"
-              :title="label"
-            >
-              <span class="truncate">{{ label }}</span>
-            </span>
-            <span
-              v-if="hiddenLabelsCount > 0"
-              class="inline-flex items-center rounded-full bg-n-brand-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-n-brand-primary"
-            >
-              {{ `+${hiddenLabelsCount}` }}
-            </span>
-          </div>
-          <div
-            v-if="showAssignee && assignee.name"
-            class="flex items-center gap-1 bg-n-slate-3/50 dark:bg-n-slate-2/30 px-1.5 py-0.5 rounded-lg border border-n-slate-3/20"
-          >
-            <span
-              class="text-[9px] font-bold text-n-slate-11 uppercase tracking-wider"
-            >
-              {{ assignee.name }}
-            </span>
-          </div>
         </div>
       </div>
     </div>
