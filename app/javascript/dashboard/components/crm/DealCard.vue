@@ -271,13 +271,6 @@ const dynamicAttributes = computed(() => {
           >
             {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
           </h4>
-          <button
-            v-tooltip.top="t('CONVERSATION.NEW_MESSAGE')"
-            class="p-1 rounded-md hover:bg-n-brand-primary/10 text-n-slate-8 hover:text-n-brand-primary transition-all active:scale-90"
-            @click.stop="onStartConversation"
-          >
-            <i class="i-lucide-message-square size-3.5" />
-          </button>
         </div>
         <div class="flex items-center gap-1.5 text-n-slate-10">
           <span class="truncate text-[11px] font-semibold opacity-80">
@@ -405,13 +398,24 @@ const dynamicAttributes = computed(() => {
           <i class="i-lucide-user text-base" />
         </Button>
         <Button
+          v-tooltip.top="t('CONVERSATION.NEW_MESSAGE')"
+          variant="ghost"
+          color="brand"
+          size="xs"
+          class="!h-8 !w-8 !p-0 rounded-xl opacity-0 group-hover:opacity-100 transition-all hover:bg-n-brand-primary/10"
+          @click.stop="onStartConversation"
+        >
+          <i class="i-lucide-message-square text-base" />
+        </Button>
+        <Button
+          v-tooltip.top="t('CRM.OPEN')"
           variant="solid"
           color="brand"
           size="xs"
           class="!h-8 px-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-n-brand-primary/20 translate-x-2 group-hover:translate-x-0"
           @click.stop="emit('select', conversation)"
         >
-          <i class="i-lucide-message-square text-sm ltr:mr-1.5 rtl:ml-1.5" />
+          <i class="i-lucide-external-link text-sm ltr:mr-1.5 rtl:ml-1.5" />
           <span class="text-[10px] font-black uppercase tracking-tighter">{{
             t('CRM.OPEN')
           }}</span>
