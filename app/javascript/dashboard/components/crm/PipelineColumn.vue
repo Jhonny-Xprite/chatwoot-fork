@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
+import { useColorStyle } from 'dashboard/composables/useColorStyle';
 import DealCard from './DealCard.vue';
 import DealCardSkeleton from './DealCardSkeleton.vue';
 
@@ -17,6 +18,11 @@ defineEmits(['select', 'selectContact']);
 
 const store = useStore();
 const { t } = useI18n();
+const { getColorDotStyle } = useColorStyle();
+
+const stageColorStyle = computed(
+  () => getColorDotStyle(props.stage.color).value
+);
 
 const conversations = computed({
   get: () =>
@@ -76,10 +82,7 @@ const onDragChange = event => {
       class="p-4 flex items-center justify-between border-b border-n-slate-3 dark:border-n-slate-2 bg-n-alpha-2 rounded-t-2xl"
     >
       <div class="flex items-center gap-2 overflow-hidden">
-        <div
-          class="w-2 h-6 rounded-full"
-          :style="{ backgroundColor: stage.color || 'var(--n-slate-4)' }"
-        />
+        <div class="w-2 h-6 rounded-full" :style="stageColorStyle" />
         <h3 class="text-sm font-bold text-n-slate-12 truncate">
           {{ stage.name }}
         </h3>

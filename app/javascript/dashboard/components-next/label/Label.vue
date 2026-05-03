@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { useColorStyle } from 'dashboard/composables/useColorStyle';
 
 const props = defineProps({
   label: {
@@ -27,6 +28,8 @@ const COLOR_CLASSES = {
   iris: 'bg-n-iris-2 outline-n-iris-4 text-n-iris-11',
 };
 
+const { getColorDotStyle } = useColorStyle();
+
 const isStringLabel = computed(() => typeof props.label === 'string');
 
 const labelTitle = computed(() => {
@@ -40,6 +43,10 @@ const labelDescription = computed(() => {
 const labelColor = computed(() => {
   return isStringLabel.value ? null : props.label.color;
 });
+
+const labelColorStyle = computed(
+  () => getColorDotStyle(labelColor.value).value
+);
 
 const colorClasses = computed(() => COLOR_CLASSES[props.color]);
 </script>
@@ -57,7 +64,7 @@ const colorClasses = computed(() => COLOR_CLASSES[props.color]);
       v-if="labelColor"
       class="rounded-sm flex-shrink-0"
       :class="compact ? 'size-1.5' : 'size-2'"
-      :style="{ background: labelColor }"
+      :style="labelColorStyle"
     />
     <slot v-else name="icon" />
     <span

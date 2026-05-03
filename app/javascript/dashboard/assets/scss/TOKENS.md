@@ -304,6 +304,54 @@ z-index: var(--z-dropdown);
 </template>
 ```
 
+**Using Dynamic Colors (labels, stages):**
+
+For dynamic color values like `label.color` or `stage.color`, use the `useColorStyle` composable:
+
+```vue
+<script setup>
+import { useColorStyle } from 'dashboard/composables/useColorStyle';
+import { computed } from 'vue';
+
+const props = defineProps({ label: Object });
+const { getLabelStyle } = useColorStyle();
+const labelBgStyle = computed(() => getLabelStyle(props.label?.color));
+</script>
+
+<template>
+  <div :style="labelBgStyle" class="rounded-lg px-2 py-1">
+    {{ label.name }}
+  </div>
+</template>
+```
+
+Or use the color helper directly:
+
+```vue
+<script setup>
+import { getLabelBackgroundStyle, isValidCssColor } from 'dashboard/helpers/colorHelper';
+
+const colorStyle = computed(() => {
+  if (!props.label?.color || !isValidCssColor(props.label.color)) {
+    return { backgroundColor: 'var(--n-slate-3)' };
+  }
+  return getLabelBackgroundStyle(props.label.color);
+});
+</script>
+
+<template>
+  <div :style="colorStyle" class="label">Label</div>
+</template>
+```
+
+**Key Benefits of useColorStyle:**
+
+- ✅ ESLint compliant (no static inline styles)
+- ✅ Type-safe color validation
+- ✅ Computed properties for reactivity
+- ✅ Automatic contrast text color detection
+- ✅ Fallback to design tokens if color invalid
+
 ### In SCSS/CSS
 
 ```scss
