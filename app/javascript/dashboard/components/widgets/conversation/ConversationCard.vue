@@ -149,6 +149,22 @@ watch(
             'flex-1 justify-between': !showInboxName,
           }"
         >
+          <div v-if="chat.pipeline_stage" class="flex items-center gap-1">
+            <div
+              class="size-1.5 rounded-full"
+              :style="{
+                backgroundColor:
+                  chat.pipeline_stage.color || 'var(--n-slate-4)',
+              }"
+            />
+            <span
+              class="text-[10px] font-bold text-n-slate-11 uppercase tracking-tight truncate max-w-[80px]"
+              :title="`${chat.pipeline_name} › ${chat.pipeline_stage.name}`"
+            >
+              {{ chat.pipeline_stage.name }}
+            </span>
+            <span class="w-px h-2.5 bg-n-slate-3 mx-0.5" />
+          </div>
           <span
             v-if="showAssignee && assignee.name"
             class="text-n-slate-11 text-xs font-medium leading-3 py-0.5 px-0 inline-flex items-center truncate"
@@ -160,24 +176,6 @@ watch(
             :priority="chat.priority"
             class="flex-shrink-0 !size-3.5"
           />
-        </div>
-      </div>
-      <div v-if="chat.pipeline_stage" class="flex items-center gap-1 mx-2 mb-1">
-        <div
-          class="flex items-center gap-1 px-1 py-0.5 rounded bg-n-alpha-1 border border-n-strong"
-        >
-          <div
-            class="size-1 rounded-full"
-            :style="{
-              backgroundColor: chat.pipeline_stage.color || 'var(--n-slate-4)',
-            }"
-          />
-          <span
-            class="text-[9px] font-bold text-n-slate-11 uppercase tracking-tight truncate max-w-[120px]"
-            :title="`${chat.pipeline_name} › ${chat.pipeline_stage.name}`"
-          >
-            {{ chat.pipeline_stage.name }}
-          </span>
         </div>
       </div>
       <h4
