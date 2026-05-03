@@ -1461,7 +1461,7 @@ export default {
   @apply top-[unset] -bottom-10 ltr:-left-80 ltr:right-[unset] rtl:left-[unset] rtl:-right-80;
 
   &::before {
-    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.08));
+    filter: drop-shadow(0px 4px 4px rgb(var(--black-alpha-1) / 0.5));
     @apply ltr:-right-4 bottom-2 rtl:-left-4 ltr:rotate-[270deg] rtl:rotate-[90deg];
   }
 }

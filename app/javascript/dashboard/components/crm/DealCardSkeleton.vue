@@ -42,9 +42,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.05) 20%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0.05) 80%,
+    rgba(var(--white-alpha-tokens), 0.05) 20%,
+    rgba(var(--white-alpha-tokens), 0.2) 50%,
+    rgba(var(--white-alpha-tokens), 0.05) 80%,
     transparent 100%
   );
   animation: shimmer 1.5s infinite;
@@ -55,9 +55,9 @@
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.02) 20%,
-    rgba(255, 255, 255, 0.05) 50%,
-    rgba(255, 255, 255, 0.02) 80%,
+    rgba(255, 255, 255, 0.01) 20%,
+    rgba(255, 255, 255, 0.03) 50%,
+    rgba(255, 255, 255, 0.01) 80%,
     transparent 100%
   );
 }

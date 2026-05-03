@@ -163,9 +163,7 @@ const onDragChange = event => {
 .sortable-drag {
   z-index: 9999 !important;
   transform: rotate(2deg) scale(1.04) !important;
-  box-shadow:
-    0 20px 25px -5px rgba(39, 129, 246, 0.2),
-    0 10px 10px -5px rgba(39, 129, 246, 0.1) !important;
+  box-shadow: var(--shadow-floating) !important;
   cursor: grabbing !important;
   opacity: 1 !important;
   pointer-events: none;
