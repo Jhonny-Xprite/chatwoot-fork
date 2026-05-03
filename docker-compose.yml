@@ -36,6 +36,12 @@ services:
     build: *chatwoot-build
     env_file:
       - .env
+    environment:
+      - POSTGRES_HOST=a2-postgres
+      - POSTGRES_DB=chatwoot
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=f28aa46c7224d75d34aeb80085912030
+      - REDIS_URL=redis://a2-redis:6379
     depends_on:
       a2-postgres:
         condition: service_healthy
@@ -48,16 +54,30 @@ services:
     command: >
       sh -c "bundle exec rails db:chatwoot_prepare &&
              bundle exec rails s -p 3000 -b 0.0.0.0"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   a2-sidekiq:
     image: *chatwoot-image
     build: *chatwoot-build
     env_file:
       - .env
+    environment:
+      - POSTGRES_HOST=a2-postgres
+      - POSTGRES_DB=chatwoot
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=f28aa46c7224d75d34aeb80085912030
+      - REDIS_URL=redis://a2-redis:6379
     depends_on:
-      - a2-postgres
-      - a2-redis
-      - a2-chatwoot
+      a2-postgres:
+        condition: service_healthy
+      a2-redis:
+        condition: service_healthy
+      a2-chatwoot:
+        condition: service_healthy
     volumes:
       - a2-chatwoot-storage:/app/storage
       - a2-chatwoot-logs:/app/log
