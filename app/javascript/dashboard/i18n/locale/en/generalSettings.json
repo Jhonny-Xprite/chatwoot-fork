@@ -239,6 +239,7 @@
       "LIGHT_MODE": "Light",
       "DARK_MODE": "Dark",
       "SYSTEM_MODE": "System",
+      "APPLE_MODE": "Apple",
       "SNOOZE_NOTIFICATION": "Snooze Notification"
     }
   },

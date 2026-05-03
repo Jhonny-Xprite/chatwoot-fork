@@ -5,6 +5,7 @@ import {
   ICON_LIGHT_MODE,
   ICON_DARK_MODE,
   ICON_SYSTEM_MODE,
+  ICON_SETTINGS_GEAR as ICON_APPLE_MODE,
 } from 'dashboard/helper/commandbar/icons';
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
@@ -26,6 +27,11 @@ const getThemeOptions = t => [
     label: t('COMMAND_BAR.COMMANDS.SYSTEM_MODE'),
     icon: ICON_SYSTEM_MODE,
   },
+  {
+    key: 'apple',
+    label: t('COMMAND_BAR.COMMANDS.APPLE_MODE'),
+    icon: ICON_APPLE_MODE,
+  },
 ];
 
 const setAppearance = theme => {
@@ -33,7 +39,7 @@ const setAppearance = theme => {
   const isOSOnDarkMode = window.matchMedia(
     '(prefers-color-scheme: dark)'
   ).matches;
-  setColorTheme(isOSOnDarkMode);
+  setColorTheme(isOSOnDarkMode, theme);
 };
 
 export function useAppearanceHotKeys() {

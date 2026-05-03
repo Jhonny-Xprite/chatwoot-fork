@@ -1,0 +1,145 @@
+@layer base {
+  body.apple {
+    // ═══════════════════════════════════════════════════════════════════════════
+    // APPLE PREMIUM LIQUID GLASS THEME
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    // SF Pro Style fallback
+    font-family: -apple-system, "SF Pro Display", "SF Pro Text", system-ui, sans-serif !important;
+    
+    // Global Smoothness
+    transition: background-color 0.6s cubic-bezier(0.2, 0.8, 0.2, 1), color 0.4s ease;
+
+    // Liquid Background Tint
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(0, 122, 255, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(0, 122, 255, 0.02) 0px, transparent 50%);
+    background-attachment: fixed;
+
+    // --- Core Animations (Apple Spring) ---
+    --apple-spring: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    --apple-smooth: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    // --- Semantic Color Overrides ---
+    --color-primary-solid: 0 122 255; 
+    --color-primary-bg: 0 122 255;
+    --color-primary-text: 0 122 255;
+
+    // Backgrounds & Surfaces
+    --background-color: 242 242 247; 
+    --surface-1: 255 255 255;
+    --surface-2: 255 255 255;
+    --surface-active: 242 242 247;
+
+    // Borders & Glass
+    --border-strong: 0 0 0;
+    --border-weak: 0 0 0;
+    --glass-blur: blur(25px) saturate(200%);
+    --glass-background: rgba(255, 255, 255, 0.75);
+    --glass-border: 1px solid rgba(0, 0, 0, 0.05);
+    --glass-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+    // Radius
+    --border-radius-md: 14px;
+    --border-radius-lg: 18px;
+    --border-radius-xl: 28px;
+
+    // Shadows (Multi-layered Apple style)
+    --shadow-normal: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.03);
+    --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+    --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.12), 0 8px 15px rgba(0, 0, 0, 0.06);
+
+    // --- Visual Enhancements ---
+    .sidebar,
+    .top-bar,
+    .modal-content,
+    .conversation-sidebar,
+    .contact-details-sidebar,
+    .dropdown-menu {
+      backdrop-filter: var(--glass-blur);
+      background: var(--glass-background) !important;
+      border-right: var(--glass-border) !important;
+      box-shadow: var(--glass-inner-shadow);
+      transition: var(--apple-smooth);
+    }
+
+    // Spring Animations for interactive elements
+    button,
+    .card,
+    .dropdown-item,
+    .conversation-list-item {
+      transition: var(--apple-spring);
+      &:active {
+        transform: scale(0.96);
+      }
+    }
+
+    // List items hover effect
+    .conversation-list-item:hover,
+    .dropdown-item:hover {
+      background: rgba(0, 0, 0, 0.03) !important;
+      border-radius: var(--border-radius-md);
+    }
+
+    // Custom Selection & Focus
+    ::selection {
+      background-color: rgba(var(--color-primary-solid), 0.25);
+    }
+    
+    input:focus,
+    textarea:focus,
+    select:focus {
+       box-shadow: 0 0 0 4px rgba(var(--color-primary-solid), 0.15) !important;
+       border-color: rgba(var(--color-primary-solid), 0.4) !important;
+       transition: var(--apple-smooth);
+    }
+
+    // Scrollbar refinement
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+      border-radius: 10px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+  }
+
+  // --- Dark Mode Variations (Apple Dark) ---
+  body.apple.dark {
+    --color-primary-solid: 10 132 255; 
+    --background-color: 0 0 0;
+    --surface-1: 28 28 30; 
+    --surface-2: 44 44 46;
+    --surface-active: 58 58 60;
+
+    --glass-background: rgba(28, 28, 30, 0.75);
+    --glass-border: 1px solid rgba(255, 255, 255, 0.1);
+    --glass-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+    --text-primary: 255 255 255;
+    --text-secondary: 235 235 245;
+
+    // Dark Mode Liquid Vibrancy
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(10, 132, 255, 0.08) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.05) 0px, transparent 50%);
+
+    ::selection {
+      background-color: rgba(var(--color-primary-solid), 0.4);
+    }
+
+    .sidebar,
+    .top-bar,
+    .modal-content,
+    .dropdown-menu {
+      background: var(--glass-background) !important;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+    }
+  }
+}

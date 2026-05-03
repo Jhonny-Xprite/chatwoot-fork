@@ -1,9 +1,17 @@
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 
-export const setColorTheme = isOSOnDarkMode => {
+export const setColorTheme = (isOSOnDarkMode, colorScheme) => {
   const selectedColorScheme =
-    LocalStorage.get(LOCAL_STORAGE_KEYS.COLOR_SCHEME) || 'auto';
+    colorScheme || LocalStorage.get(LOCAL_STORAGE_KEYS.COLOR_SCHEME) || 'auto';
+
+  // Apply Apple Theme
+  if (selectedColorScheme === 'apple') {
+    document.body.classList.add('apple');
+  } else {
+    document.body.classList.remove('apple');
+  }
+
   if (
     (selectedColorScheme === 'auto' && isOSOnDarkMode) ||
     selectedColorScheme === 'dark'
