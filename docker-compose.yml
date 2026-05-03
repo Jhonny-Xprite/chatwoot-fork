@@ -37,6 +37,14 @@ services:
     env_file:
       - .env
     environment:
+      - RAILS_ENV=production
+      - NODE_ENV=production
+      - INSTALLATION_OWNER_EMAIL=contato@aiox.com.br
+      - INSTALLATION_OWNER_PASSWORD=Chatwoot123!
+      - INSTALLATION_OWNER_NAME=Admin AIOX
+      - DEFAULT_LOCALE=pt_BR
+      - ENABLE_ACCOUNT_SIGNUP=false
+      - SECRET_KEY_BASE=f28aa46c7224d75d34aeb80085912030f28aa46c7224d75d34aeb80085912030
       - POSTGRES_HOST=a2-postgres
       - POSTGRES_DB=chatwoot
       - POSTGRES_USER=postgres
@@ -66,6 +74,14 @@ services:
     env_file:
       - .env
     environment:
+      - RAILS_ENV=production
+      - NODE_ENV=production
+      - INSTALLATION_OWNER_EMAIL=contato@aiox.com.br
+      - INSTALLATION_OWNER_PASSWORD=Chatwoot123!
+      - INSTALLATION_OWNER_NAME=Admin AIOX
+      - DEFAULT_LOCALE=pt_BR
+      - ENABLE_ACCOUNT_SIGNUP=false
+      - SECRET_KEY_BASE=f28aa46c7224d75d34aeb80085912030f28aa46c7224d75d34aeb80085912030
       - POSTGRES_HOST=a2-postgres
       - POSTGRES_DB=chatwoot
       - POSTGRES_USER=postgres
