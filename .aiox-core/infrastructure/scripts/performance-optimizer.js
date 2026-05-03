@@ -1,6 +1,6 @@
 /**
  * AIOX Performance Optimizer
- * 
+ *
  * Analyzes code for performance bottlenecks and suggests optimizations
  * to improve runtime performance, memory usage, and scalability.
  */
@@ -28,7 +28,7 @@ class PerformanceOptimizer extends EventEmitter {
       complexityThreshold: options.complexityThreshold || 10,
       ...options,
     };
-    
+
     this.initializeOptimizationPatterns();
   }
 
@@ -146,7 +146,7 @@ class PerformanceOptimizer extends EventEmitter {
 
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       // Parse the code
       const ast = parser.parse(content, {
         sourceType: 'module',
@@ -156,28 +156,28 @@ class PerformanceOptimizer extends EventEmitter {
 
       // Run static analysis
       await this.performStaticAnalysis(ast, analysis, content);
-      
+
       // Run pattern detection
       const patterns = options.patterns || Array.from(this.optimizationPatterns.keys());
-      
+
       for (const patternName of patterns) {
         const pattern = this.optimizationPatterns.get(patternName);
         if (!pattern) continue;
-        
+
         try {
           const issues = await pattern.detector(ast, content, filePath);
-          
+
           if (issues && issues.length > 0) {
             for (const issue of issues) {
               const suggestion = await pattern.optimizer(issue, ast, content);
-              
+
               analysis.issues.push({
                 pattern: patternName,
                 category: pattern.category,
                 impact: pattern.impact,
                 ...issue,
               });
-              
+
               if (suggestion) {
                 analysis.suggestions.push({
                   pattern: patternName,
@@ -256,7 +256,7 @@ class PerformanceOptimizer extends EventEmitter {
         metrics.asyncOperations++;
       },
       BinaryExpression(path) {
-        if (path.node.operator === '+' && 
+        if (path.node.operator === '+' &&
             (t.isStringLiteral(path.node.left) || t.isStringLiteral(path.node.right))) {
           metrics.stringOperations++;
         }
@@ -272,12 +272,12 @@ class PerformanceOptimizer extends EventEmitter {
       },
       CallExpression(path) {
         const callee = path.node.callee;
-        
+
         // Check for DOM operations
         if (t.isMemberExpression(callee)) {
           const object = callee.object;
           const property = callee.property;
-          
+
           if (t.isIdentifier(object, { name: 'document' }) ||
               (t.isIdentifier(property) && ['querySelector', 'getElementById', 'getElementsBy'].some(m => property.name.startsWith(m)))) {
             metrics.domOperations++;
@@ -290,7 +290,7 @@ class PerformanceOptimizer extends EventEmitter {
 
     function calculateCyclomaticComplexity(node) {
       let complexity = 1;
-      
+
       traverse(node, {
         'IfStatement|ConditionalExpression|SwitchCase|WhileStatement|DoWhileStatement|ForStatement': {
           enter() {
@@ -303,7 +303,7 @@ class PerformanceOptimizer extends EventEmitter {
           }
         },
       }, null, { noScope: true });
-      
+
       return complexity;
     }
   }
@@ -320,7 +320,7 @@ class PerformanceOptimizer extends EventEmitter {
 
     function checkFunction(path) {
       const complexity = calculateTimeComplexity(path.node);
-      
+
       if (complexity.score > self.options.complexityThreshold) {
         issues.push({
           type: 'high_complexity',
@@ -341,13 +341,13 @@ class PerformanceOptimizer extends EventEmitter {
       let maxLoopDepth = 0;
       let recursiveCall = false;
       let exponentialPatterns = 0;
-      
+
       traverse(node, {
         'ForStatement|WhileStatement|DoWhileStatement|ForInStatement|ForOfStatement': {
           enter(path) {
             loopDepth++;
             maxLoopDepth = Math.max(maxLoopDepth, loopDepth);
-            
+
             // Check for exponential patterns
             if (loopDepth > 1 && isNestedLoopOverSameData(path)) {
               exponentialPatterns++;
@@ -359,15 +359,15 @@ class PerformanceOptimizer extends EventEmitter {
         },
         CallExpression(path) {
           // Check for recursive calls
-          if (t.isIdentifier(path.node.callee) && 
+          if (t.isIdentifier(path.node.callee) &&
               path.node.callee.name === node.id?.name) {
             recursiveCall = true;
           }
-          
+
           // Check for expensive operations
           if (t.isMemberExpression(path.node.callee)) {
             const property = path.node.callee.property;
-            if (t.isIdentifier(property) && 
+            if (t.isIdentifier(property) &&
                 ['sort', 'reverse', 'includes', 'indexOf'].includes(property.name)) {
               // These can be expensive in loops
               if (loopDepth > 0) exponentialPatterns++;
@@ -375,11 +375,11 @@ class PerformanceOptimizer extends EventEmitter {
           }
         },
       }, null, { noScope: true });
-      
+
       // Calculate complexity score and notation
       let score = maxLoopDepth * 5;
       let notation = 'O(1)';
-      
+
       if (recursiveCall) {
         score += 10;
         notation = exponentialPatterns > 0 ? 'O(2^n)' : 'O(n)';
@@ -390,11 +390,11 @@ class PerformanceOptimizer extends EventEmitter {
       } else if (maxLoopDepth >= 3) {
         notation = `O(n^${maxLoopDepth})`;
       }
-      
+
       if (exponentialPatterns > 0) {
         score += exponentialPatterns * 5;
       }
-      
+
       return { score, notation, loopDepth: maxLoopDepth, hasRecursion: recursiveCall };
     }
 
@@ -408,7 +408,7 @@ class PerformanceOptimizer extends EventEmitter {
 
   async suggestAlgorithmOptimizations(issue, ast, content) {
     const suggestions = [];
-    
+
     if (issue.complexity.loopDepth >= 2) {
       suggestions.push({
         type: 'algorithm_optimization',
@@ -422,7 +422,7 @@ class PerformanceOptimizer extends EventEmitter {
         example: this.generateOptimizationExample(issue.complexity),
       });
     }
-    
+
     if (issue.complexity.hasRecursion) {
       suggestions.push({
         type: 'recursion_optimization',
@@ -435,7 +435,7 @@ class PerformanceOptimizer extends EventEmitter {
         ],
       });
     }
-    
+
     return {
       optimizations: suggestions,
       estimatedImprovement: this.estimatePerformanceImprovement(issue),
@@ -445,17 +445,17 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectIneffientLoops(ast, content) {
     const issues = [];
-    
+
     traverse(ast, {
       'ForStatement|WhileStatement|DoWhileStatement|ForInStatement|ForOfStatement'(path) {
         // Check for array operations in loops
         const loopIssues = [];
-        
+
         path.traverse({
           CallExpression(innerPath) {
             if (t.isMemberExpression(innerPath.node.callee)) {
               const property = innerPath.node.callee.property;
-              
+
               // Check for inefficient array methods in loops
               if (t.isIdentifier(property)) {
                 if (['push', 'unshift'].includes(property.name)) {
@@ -465,7 +465,7 @@ class PerformanceOptimizer extends EventEmitter {
                     description: 'Growing array in loop can cause performance issues',
                   });
                 }
-                
+
                 if (['concat', 'slice'].includes(property.name)) {
                   loopIssues.push({
                     type: 'array_copy_in_loop',
@@ -473,13 +473,13 @@ class PerformanceOptimizer extends EventEmitter {
                     description: 'Creating array copies in loop is inefficient',
                   });
                 }
-                
+
                 if (['find', 'filter', 'map', 'reduce'].includes(property.name)) {
                   // Check if this is nested iteration
-                  const parentLoop = innerPath.findParent(p => 
+                  const parentLoop = innerPath.findParent(p =>
                     p.isForStatement() || p.isWhileStatement() || p.isDoWhileStatement(),
                   );
-                  
+
                   if (parentLoop && parentLoop !== path) {
                     loopIssues.push({
                       type: 'nested_iteration',
@@ -493,7 +493,7 @@ class PerformanceOptimizer extends EventEmitter {
           },
           BinaryExpression(innerPath) {
             // Check for string concatenation in loops
-            if (innerPath.node.operator === '+' && 
+            if (innerPath.node.operator === '+' &&
                 innerPath.isAncestor(path) &&
                 (t.isStringLiteral(innerPath.node.left) || t.isStringLiteral(innerPath.node.right))) {
               loopIssues.push({
@@ -503,7 +503,7 @@ class PerformanceOptimizer extends EventEmitter {
             }
           },
         });
-        
+
         if (loopIssues.length > 0) {
           issues.push({
             type: 'inefficient_loop',
@@ -517,13 +517,13 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     return issues;
   }
 
   async suggestLoopOptimizations(issue) {
     const optimizations = [];
-    
+
     for (const problem of issue.problems) {
       switch (problem.type) {
         case 'array_growth_in_loop':
@@ -534,7 +534,7 @@ class PerformanceOptimizer extends EventEmitter {
             improvement: 'Avoids dynamic array resizing',
           });
           break;
-          
+
         case 'array_copy_in_loop':
           optimizations.push({
             type: 'avoid_copies',
@@ -542,7 +542,7 @@ class PerformanceOptimizer extends EventEmitter {
             improvement: 'Reduces memory allocation and copying',
           });
           break;
-          
+
         case 'nested_iteration':
           optimizations.push({
             type: 'use_lookup',
@@ -551,7 +551,7 @@ class PerformanceOptimizer extends EventEmitter {
             improvement: 'Reduces complexity from O(n²) to O(n)',
           });
           break;
-          
+
         case 'string_concatenation_in_loop':
           optimizations.push({
             type: 'use_array_join',
@@ -562,7 +562,7 @@ class PerformanceOptimizer extends EventEmitter {
           break;
       }
     }
-    
+
     return {
       optimizations,
       priority: issue.problems.some(p => p.type === 'nested_iteration') ? 'high' : 'medium',
@@ -571,15 +571,15 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectMemoryIssues(ast, content) {
     const issues = [];
-    
+
     traverse(ast, {
       VariableDeclarator(path) {
         // Check for potential memory leaks
         if (t.isIdentifier(path.node.id)) {
           const binding = path.scope.getBinding(path.node.id.name);
-          
+
           // Check if variable holds large data
-          if (t.isArrayExpression(path.node.init) && 
+          if (t.isArrayExpression(path.node.init) &&
               path.node.init.elements.length > 1000) {
             issues.push({
               type: 'large_array',
@@ -589,7 +589,7 @@ class PerformanceOptimizer extends EventEmitter {
               description: 'Large array allocation',
             });
           }
-          
+
           // Check for potential closures holding references
           if (binding && !binding.referenced) {
             path.traverse({
@@ -612,7 +612,7 @@ class PerformanceOptimizer extends EventEmitter {
         if (t.isMemberExpression(path.node.callee)) {
           const object = path.node.callee.object;
           const property = path.node.callee.property;
-          
+
           // Check for potential memory issues
           if (t.isIdentifier(property)) {
             if (property.name === 'slice' && path.node.arguments.length === 0) {
@@ -623,7 +623,7 @@ class PerformanceOptimizer extends EventEmitter {
                 description: 'Creating unnecessary array copy',
               });
             }
-            
+
             if (property.name === 'concat' && isInLoop(path)) {
               issues.push({
                 type: 'concat_in_loop',
@@ -635,19 +635,19 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     function isInLoop(path) {
-      return path.findParent(p => 
+      return path.findParent(p =>
         p.isForStatement() || p.isWhileStatement() || p.isDoWhileStatement(),
       );
     }
-    
+
     return issues;
   }
 
   async suggestMemoryOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'large_array':
         optimizations.push({
@@ -662,7 +662,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'More memory efficient for numbers',
         });
         break;
-        
+
       case 'potential_closure_leak':
         optimizations.push({
           type: 'cleanup_references',
@@ -671,7 +671,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Allows garbage collection',
         });
         break;
-        
+
       case 'unnecessary_copy':
         optimizations.push({
           type: 'avoid_copy',
@@ -679,7 +679,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Saves memory and copying time',
         });
         break;
-        
+
       case 'concat_in_loop':
         optimizations.push({
           type: 'use_push_spread',
@@ -689,7 +689,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       estimatedMemorySaving: this.estimateMemorySaving(issue),
@@ -698,20 +698,20 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectAsyncIssues(ast, content) {
     const issues = [];
-    
+
     traverse(ast, {
       AwaitExpression(path) {
         // Check for sequential awaits that could be parallelized
         const parent = path.getFunctionParent();
         if (!parent) return;
-        
+
         const awaits = [];
         parent.traverse({
           AwaitExpression(innerPath) {
             awaits.push(innerPath);
           },
         });
-        
+
         // Check for sequential independent awaits
         if (awaits.length > 1) {
           const sequentialAwaits = this.findSequentialAwaits(awaits);
@@ -729,7 +729,7 @@ class PerformanceOptimizer extends EventEmitter {
         // Check for Promise anti-patterns
         if (t.isMemberExpression(path.node.callee)) {
           const property = path.node.callee.property;
-          
+
           if (t.isIdentifier(property, { name: 'forEach' })) {
             // Check if forEach contains async operations
             const callback = path.node.arguments[0];
@@ -742,20 +742,20 @@ class PerformanceOptimizer extends EventEmitter {
             }
           }
         }
-        
+
         // Check for Promise constructor anti-pattern
-        if (t.isNewExpression(path.node) && 
+        if (t.isNewExpression(path.node) &&
             t.isIdentifier(path.node.callee, { name: 'Promise' })) {
           const executor = path.node.arguments[0];
           if (t.isFunctionExpression(executor) || t.isArrowFunctionExpression(executor)) {
             let hasAsyncOperation = false;
-            
+
             path.traverse({
               AwaitExpression() {
                 hasAsyncOperation = true;
               },
             });
-            
+
             if (hasAsyncOperation) {
               issues.push({
                 type: 'promise_constructor_antipattern',
@@ -767,18 +767,18 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     return issues;
   }
 
   findSequentialAwaits(awaits) {
     // Simplified check - would need data flow analysis for accuracy
     const sequential = [];
-    
+
     for (let i = 0; i < awaits.length - 1; i++) {
       const current = awaits[i];
       const next = awaits[i + 1];
-      
+
       // Check if they're in the same block and sequential
       if (current.parent === next.parent) {
         sequential.push(current);
@@ -787,13 +787,13 @@ class PerformanceOptimizer extends EventEmitter {
         }
       }
     }
-    
+
     return sequential;
   }
 
   async suggestAsyncOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'sequential_awaits':
         optimizations.push({
@@ -803,7 +803,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: `Execute ${issue.count} operations in parallel`,
         });
         break;
-        
+
       case 'async_foreach':
         optimizations.push({
           type: 'use_for_of',
@@ -816,7 +816,7 @@ class PerformanceOptimizer extends EventEmitter {
           code: 'await Promise.all(items.map(item => processItem(item)));',
         });
         break;
-        
+
       case 'promise_constructor_antipattern':
         optimizations.push({
           type: 'use_async_function',
@@ -825,7 +825,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       priority: issue.type === 'sequential_awaits' ? 'high' : 'medium',
@@ -835,7 +835,7 @@ class PerformanceOptimizer extends EventEmitter {
   async detectCachingOpportunities(ast, content) {
     const issues = [];
     const functionCalls = new Map();
-    
+
     traverse(ast, {
       CallExpression(path) {
         // Track repeated function calls
@@ -846,11 +846,11 @@ class PerformanceOptimizer extends EventEmitter {
           }
           functionCalls.get(callSignature).push(path);
         }
-        
+
         // Check for expensive operations without caching
         if (t.isMemberExpression(path.node.callee)) {
           const property = path.node.callee.property;
-          
+
           if (t.isIdentifier(property)) {
             // Check for repeated expensive operations
             if (['filter', 'map', 'reduce', 'sort'].includes(property.name)) {
@@ -865,7 +865,7 @@ class PerformanceOptimizer extends EventEmitter {
                     }
                   },
                 });
-                
+
                 if (count > 1) {
                   issues.push({
                     type: 'repeated_computation',
@@ -896,7 +896,7 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     // Check for repeated function calls
     for (const [signature, calls] of functionCalls) {
       if (calls.length > 2) {
@@ -909,7 +909,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
       }
     }
-    
+
     return issues;
   }
 
@@ -919,7 +919,7 @@ class PerformanceOptimizer extends EventEmitter {
     } else if (t.isMemberExpression(node.callee)) {
       const object = node.callee.object;
       const property = node.callee.property;
-      
+
       if (t.isIdentifier(object) && t.isIdentifier(property)) {
         return `${object.name}.${property.name}`;
       }
@@ -935,7 +935,7 @@ class PerformanceOptimizer extends EventEmitter {
   isPureFunction(path) {
     const isPure = true;
     let hasSideEffects = false;
-    
+
     path.traverse({
       AssignmentExpression(innerPath) {
         // Check if assignment is to external variable
@@ -951,7 +951,7 @@ class PerformanceOptimizer extends EventEmitter {
         const callee = innerPath.node.callee;
         if (t.isMemberExpression(callee)) {
           const object = callee.object;
-          if (t.isIdentifier(object) && 
+          if (t.isIdentifier(object) &&
               ['console', 'document', 'window'].includes(object.name)) {
             hasSideEffects = true;
           }
@@ -961,13 +961,13 @@ class PerformanceOptimizer extends EventEmitter {
         hasSideEffects = true;
       },
     });
-    
+
     return !hasSideEffects;
   }
 
   calculateComplexity(node) {
     let complexity = 1;
-    
+
     traverse(node, {
       'IfStatement|ConditionalExpression|SwitchCase': {
         enter() {
@@ -983,13 +983,13 @@ class PerformanceOptimizer extends EventEmitter {
         complexity++;
       },
     }, null, { noScope: true });
-    
+
     return complexity;
   }
 
   async suggestCachingStrategies(issue) {
     const strategies = [];
-    
+
     switch (issue.type) {
       case 'repeated_computation':
         strategies.push({
@@ -999,7 +999,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: `Avoid ${issue.count - 1} redundant computations`,
         });
         break;
-        
+
       case 'memoization_candidate':
         strategies.push({
           type: 'add_memoization',
@@ -1008,7 +1008,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Cache results for repeated calls with same arguments',
         });
         break;
-        
+
       case 'repeated_calls':
         strategies.push({
           type: 'cache_calls',
@@ -1018,7 +1018,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       strategies,
       estimatedImprovement: this.estimateCachingImprovement(issue),
@@ -1027,26 +1027,26 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectDatabaseIssues(ast, content) {
     const issues = [];
-    
+
     traverse(ast, {
       CallExpression(path) {
         // Look for database query patterns
         const callee = path.node.callee;
-        
+
         // Check for ORM/database methods
         if (t.isMemberExpression(callee)) {
           const property = callee.property;
-          
+
           if (t.isIdentifier(property)) {
             // Check for N+1 query patterns
             if (['find', 'findOne', 'findById', 'query', 'get'].includes(property.name)) {
-              const inLoop = path.findParent(p => 
-                p.isForStatement() || p.isWhileStatement() || 
-                p.isDoWhileStatement() || 
-                (p.isCallExpression() && t.isMemberExpression(p.node.callee) && 
+              const inLoop = path.findParent(p =>
+                p.isForStatement() || p.isWhileStatement() ||
+                p.isDoWhileStatement() ||
+                (p.isCallExpression() && t.isMemberExpression(p.node.callee) &&
                  ['forEach', 'map', 'filter'].includes(p.node.callee.property?.name)),
               );
-              
+
               if (inLoop) {
                 issues.push({
                   type: 'n_plus_one',
@@ -1056,15 +1056,15 @@ class PerformanceOptimizer extends EventEmitter {
                 });
               }
             }
-            
+
             // Check for missing indexes
             if (property.name === 'find' || property.name === 'findOne') {
               const args = path.node.arguments;
               if (args.length > 0 && t.isObjectExpression(args[0])) {
-                const fields = args[0].properties.map(p => 
+                const fields = args[0].properties.map(p =>
                   t.isIdentifier(p.key) ? p.key.name : null,
                 ).filter(Boolean);
-                
+
                 if (fields.length > 0) {
                   issues.push({
                     type: 'potential_missing_index',
@@ -1077,7 +1077,7 @@ class PerformanceOptimizer extends EventEmitter {
             }
           }
         }
-        
+
         // Check for inefficient query patterns
         if (t.isIdentifier(callee) || t.isMemberExpression(callee)) {
           // Look for multiple sequential queries
@@ -1091,7 +1091,7 @@ class PerformanceOptimizer extends EventEmitter {
                 }
               },
             });
-            
+
             if (queries.length > 3) {
               issues.push({
                 type: 'multiple_queries',
@@ -1104,7 +1104,7 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     return issues;
   }
 
@@ -1122,7 +1122,7 @@ class PerformanceOptimizer extends EventEmitter {
 
   async suggestDatabaseOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'n_plus_one':
         optimizations.push({
@@ -1138,7 +1138,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Single query instead of N queries',
         });
         break;
-        
+
       case 'potential_missing_index':
         optimizations.push({
           type: 'add_index',
@@ -1147,7 +1147,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Faster query execution',
         });
         break;
-        
+
       case 'multiple_queries':
         optimizations.push({
           type: 'aggregate_queries',
@@ -1161,7 +1161,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       priority: issue.type === 'n_plus_one' ? 'critical' : 'high',
@@ -1171,20 +1171,20 @@ class PerformanceOptimizer extends EventEmitter {
   async detectBundleSizeIssues(ast, content) {
     const issues = [];
     const imports = new Map();
-    
+
     traverse(ast, {
       ImportDeclaration(path) {
         const source = path.node.source.value;
-        
+
         // Track imports
         if (!imports.has(source)) {
           imports.set(source, []);
         }
-        
+
         // Check for large library imports
         if (this.isLargeLibrary(source)) {
           const specifiers = path.node.specifiers;
-          
+
           if (specifiers.some(s => t.isImportNamespaceSpecifier(s))) {
             issues.push({
               type: 'namespace_import',
@@ -1201,7 +1201,7 @@ class PerformanceOptimizer extends EventEmitter {
             });
           }
         }
-        
+
         // Check for duplicate imports
         imports.get(source).push(path.node);
       },
@@ -1214,7 +1214,7 @@ class PerformanceOptimizer extends EventEmitter {
             description: 'Dynamic import found - ensure it\'s necessary',
           });
         }
-        
+
         // Check for require() in browser code
         if (t.isIdentifier(path.node.callee, { name: 'require' })) {
           issues.push({
@@ -1225,7 +1225,7 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     // Check for duplicate imports
     for (const [source, importNodes] of imports) {
       if (importNodes.length > 1) {
@@ -1237,7 +1237,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
       }
     }
-    
+
     return issues;
   }
 
@@ -1252,13 +1252,13 @@ class PerformanceOptimizer extends EventEmitter {
       'material-ui',
       '@material-ui/core',
     ];
-    
+
     return largeLibraries.some(lib => source.includes(lib));
   }
 
   async suggestBundleOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'namespace_import':
         optimizations.push({
@@ -1268,7 +1268,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Enable tree-shaking to reduce bundle size',
         });
         break;
-        
+
       case 'default_import':
         if (issue.library.includes('lodash')) {
           optimizations.push({
@@ -1279,7 +1279,7 @@ class PerformanceOptimizer extends EventEmitter {
           });
         }
         break;
-        
+
       case 'duplicate_imports':
         optimizations.push({
           type: 'consolidate_imports',
@@ -1288,7 +1288,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Cleaner code and potential optimization',
         });
         break;
-        
+
       case 'commonjs_require':
         optimizations.push({
           type: 'use_esm',
@@ -1298,7 +1298,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       estimatedSizeReduction: this.estimateBundleSizeReduction(issue),
@@ -1307,22 +1307,22 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectReactIssues(ast, content) {
     const issues = [];
-    
+
     // Only run React checks if React is imported
     const hasReact = content.includes('react') || content.includes('React');
     if (!hasReact) return issues;
-    
+
     traverse(ast, {
       CallExpression(path) {
         // Check for setState in loops
-        if (t.isMemberExpression(path.node.callee) && 
+        if (t.isMemberExpression(path.node.callee) &&
             t.isThisExpression(path.node.callee.object) &&
             t.isIdentifier(path.node.callee.property, { name: 'setState' })) {
-          
-          const inLoop = path.findParent(p => 
+
+          const inLoop = path.findParent(p =>
             p.isForStatement() || p.isWhileStatement() || p.isDoWhileStatement(),
           );
-          
+
           if (inLoop) {
             issues.push({
               type: 'setState_in_loop',
@@ -1331,16 +1331,16 @@ class PerformanceOptimizer extends EventEmitter {
             });
           }
         }
-        
+
         // Check for missing React.memo
         if (t.isIdentifier(path.node.callee) || t.isMemberExpression(path.node.callee)) {
           const funcParent = path.getFunctionParent();
           if (funcParent && this.isReactComponent(funcParent)) {
             const componentName = this.getComponentName(funcParent);
-            
+
             // Check if component is wrapped in React.memo
             const hasReactMemo = funcParent.parent?.callee?.property?.name === 'memo';
-            
+
             if (!hasReactMemo && this.shouldMemoize(funcParent)) {
               issues.push({
                 type: 'missing_memo',
@@ -1355,11 +1355,11 @@ class PerformanceOptimizer extends EventEmitter {
       JSXElement(path) {
         // Check for inline function props
         const openingElement = path.node.openingElement;
-        
+
         for (const attr of openingElement.attributes) {
           if (t.isJSXAttribute(attr) && t.isJSXExpressionContainer(attr.value)) {
             const expression = attr.value.expression;
-            
+
             if (t.isArrowFunctionExpression(expression) || t.isFunctionExpression(expression)) {
               issues.push({
                 type: 'inline_function_prop',
@@ -1372,31 +1372,31 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     return issues;
   }
 
   isReactComponent(path) {
     // Check if it's a React component
     const node = path.node;
-    
+
     // Function component
     if (t.isFunctionDeclaration(node) || t.isArrowFunctionExpression(node)) {
       // Check if returns JSX
       let returnsJSX = false;
-      
+
       path.traverse({
         ReturnStatement(returnPath) {
-          if (t.isJSXElement(returnPath.node.argument) || 
+          if (t.isJSXElement(returnPath.node.argument) ||
               t.isJSXFragment(returnPath.node.argument)) {
             returnsJSX = true;
           }
         },
       });
-      
+
       return returnsJSX;
     }
-    
+
     return false;
   }
 
@@ -1413,33 +1413,33 @@ class PerformanceOptimizer extends EventEmitter {
     // Simple heuristic - component with props and no side effects
     let hasProps = false;
     let hasSideEffects = false;
-    
+
     // Check for props parameter
     const params = componentPath.node.params;
     if (params.length > 0) {
       hasProps = true;
     }
-    
+
     // Check for side effects
     componentPath.traverse({
       CallExpression(path) {
         const callee = path.node.callee;
         if (t.isMemberExpression(callee)) {
           const object = callee.object;
-          if (t.isIdentifier(object) && 
+          if (t.isIdentifier(object) &&
               ['console', 'document', 'window'].includes(object.name)) {
             hasSideEffects = true;
           }
         }
       },
     });
-    
+
     return hasProps && !hasSideEffects;
   }
 
   async suggestReactOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'setState_in_loop':
         optimizations.push({
@@ -1449,7 +1449,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Single re-render instead of multiple',
         });
         break;
-        
+
       case 'missing_memo':
         optimizations.push({
           type: 'add_react_memo',
@@ -1458,7 +1458,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Prevent unnecessary re-renders',
         });
         break;
-        
+
       case 'inline_function_prop':
         optimizations.push({
           type: 'use_callback',
@@ -1468,7 +1468,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       priority: 'medium',
@@ -1477,15 +1477,15 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectStringIssues(ast, content) {
     const issues = [];
-    
+
     traverse(ast, {
       BinaryExpression(path) {
         // Check for string concatenation in loops
         if (path.node.operator === '+') {
-          const inLoop = path.findParent(p => 
+          const inLoop = path.findParent(p =>
             p.isForStatement() || p.isWhileStatement() || p.isDoWhileStatement(),
           );
-          
+
           if (inLoop && (t.isStringLiteral(path.node.left) || t.isStringLiteral(path.node.right))) {
             issues.push({
               type: 'string_concat_in_loop',
@@ -1498,7 +1498,7 @@ class PerformanceOptimizer extends EventEmitter {
       CallExpression(path) {
         if (t.isMemberExpression(path.node.callee)) {
           const property = path.node.callee.property;
-          
+
           if (t.isIdentifier(property)) {
             // Check for repeated string operations
             if (['split', 'replace', 'substring', 'substr'].includes(property.name)) {
@@ -1514,7 +1514,7 @@ class PerformanceOptimizer extends EventEmitter {
                     }
                   },
                 });
-                
+
                 if (count > 2) {
                   issues.push({
                     type: 'repeated_string_operation',
@@ -1530,13 +1530,13 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     return issues;
   }
 
   async suggestStringOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'string_concat_in_loop':
         optimizations.push({
@@ -1546,7 +1546,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'More efficient string concatenation',
         });
         break;
-        
+
       case 'repeated_string_operation':
         optimizations.push({
           type: 'cache_result',
@@ -1556,7 +1556,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       priority: 'low',
@@ -1565,7 +1565,7 @@ class PerformanceOptimizer extends EventEmitter {
 
   async detectObjectIssues(ast, content) {
     const issues = [];
-    
+
     traverse(ast, {
       ObjectExpression(path) {
         // Check for large object literals
@@ -1582,12 +1582,12 @@ class PerformanceOptimizer extends EventEmitter {
         // Check for deep property access
         let depth = 0;
         let current = path.node;
-        
+
         while (t.isMemberExpression(current)) {
           depth++;
           current = current.object;
         }
-        
+
         if (depth > 3) {
           issues.push({
             type: 'deep_property_access',
@@ -1602,15 +1602,15 @@ class PerformanceOptimizer extends EventEmitter {
         if (t.isMemberExpression(path.node.callee)) {
           const object = path.node.callee.object;
           const property = path.node.callee.property;
-          
+
           if (t.isIdentifier(object, { name: 'Object' }) &&
               t.isIdentifier(property) &&
               ['keys', 'values', 'entries'].includes(property.name)) {
-            
-            const inLoop = path.findParent(p => 
+
+            const inLoop = path.findParent(p =>
               p.isForStatement() || p.isWhileStatement() || p.isDoWhileStatement(),
             );
-            
+
             if (inLoop) {
               issues.push({
                 type: 'object_iteration_in_loop',
@@ -1623,13 +1623,13 @@ class PerformanceOptimizer extends EventEmitter {
         }
       },
     });
-    
+
     return issues;
   }
 
   async suggestObjectOptimizations(issue) {
     const optimizations = [];
-    
+
     switch (issue.type) {
       case 'large_object_literal':
         optimizations.push({
@@ -1639,7 +1639,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Better performance for frequent updates',
         });
         break;
-        
+
       case 'deep_property_access':
         optimizations.push({
           type: 'cache_reference',
@@ -1653,7 +1653,7 @@ class PerformanceOptimizer extends EventEmitter {
           improvement: 'Simpler and faster access',
         });
         break;
-        
+
       case 'object_iteration_in_loop':
         optimizations.push({
           type: 'cache_iteration',
@@ -1663,7 +1663,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
         break;
     }
-    
+
     return {
       optimizations,
       priority: issue.type === 'large_object_literal' ? 'medium' : 'low',
@@ -1685,11 +1685,11 @@ class PerformanceOptimizer extends EventEmitter {
         'O(2^n)': 'Exponential improvement',
       },
     };
-    
+
     if (issue.type === 'high_complexity' && issue.complexity.notation) {
       return improvements.high_complexity[issue.complexity.notation] || 'Significant improvement';
     }
-    
+
     return 'Performance improvement depends on data size';
   }
 
@@ -1699,7 +1699,7 @@ class PerformanceOptimizer extends EventEmitter {
       concat_in_loop: 'Reduces intermediate array allocations',
       unnecessary_copy: 'Saves memory equal to array size',
     };
-    
+
     return savings[issue.type] || 'Memory savings depend on data size';
   }
 
@@ -1721,17 +1721,17 @@ class PerformanceOptimizer extends EventEmitter {
         lodash: '~70KB to ~5KB per function',
       },
     };
-    
+
     if (reductions[issue.type]?.[issue.library]) {
       return reductions[issue.type][issue.library];
     }
-    
+
     return 'Size reduction depends on usage';
   }
 
   calculatePerformanceScore(analysis) {
     let score = 100;
-    
+
     // Deduct points for issues based on impact
     for (const issue of analysis.issues) {
       switch (issue.impact) {
@@ -1749,7 +1749,7 @@ class PerformanceOptimizer extends EventEmitter {
           break;
       }
     }
-    
+
     // Factor in static metrics
     const metrics = analysis.metrics.static;
     if (metrics) {
@@ -1757,7 +1757,7 @@ class PerformanceOptimizer extends EventEmitter {
       if (metrics.loopDepth > 3) score -= 15;
       if (metrics.fileSize > 50000) score -= 5;
     }
-    
+
     return Math.max(0, Math.min(100, score));
   }
 
@@ -1783,30 +1783,30 @@ class PerformanceOptimizer extends EventEmitter {
       changes: [],
       error: null,
     };
-    
+
     try {
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       // Parse and transform based on optimization type
       // This would involve AST transformation
-      
+
       result.success = true;
       result.changes.push({
         type: optimization.type,
         description: optimization.description,
       });
-      
+
       this.optimizationHistory.push({
         filePath,
         optimization,
         timestamp: new Date().toISOString(),
         result,
       });
-      
+
     } catch (error) {
       result.error = error.message;
     }
-    
+
     return result;
   }
 
@@ -1823,12 +1823,12 @@ class PerformanceOptimizer extends EventEmitter {
       topIssues: [],
       recommendations: [],
     };
-    
+
     // Aggregate metrics
     for (const [file, metrics] of this.performanceMetrics) {
       report.summary.totalIssues += metrics.issues.length;
       report.summary.criticalIssues += metrics.issues.filter(i => i.severity === 'critical').length;
-      
+
       // Group by category
       for (const issue of metrics.issues) {
         const category = issue.category || 'other';
@@ -1845,7 +1845,7 @@ class PerformanceOptimizer extends EventEmitter {
         });
       }
     }
-    
+
     // Top issues
     const allIssues = [];
     for (const [file, metrics] of this.performanceMetrics) {
@@ -1854,23 +1854,23 @@ class PerformanceOptimizer extends EventEmitter {
         ...i,
       })));
     }
-    
+
     report.topIssues = allIssues
       .sort((a, b) => {
         const impactScore = { critical: 3, high: 2, medium: 1, low: 0 };
         return (impactScore[b.impact] || 0) - (impactScore[a.impact] || 0);
       })
       .slice(0, 10);
-    
+
     // General recommendations
     report.recommendations = this.generateRecommendations(report);
-    
+
     return report;
   }
 
   generateRecommendations(report) {
     const recommendations = [];
-    
+
     if (report.byCategory.algorithm?.count > 5) {
       recommendations.push({
         category: 'algorithm',
@@ -1878,7 +1878,7 @@ class PerformanceOptimizer extends EventEmitter {
         priority: 'high',
       });
     }
-    
+
     if (report.byCategory.async?.count > 10) {
       recommendations.push({
         category: 'async',
@@ -1886,7 +1886,7 @@ class PerformanceOptimizer extends EventEmitter {
         priority: 'medium',
       });
     }
-    
+
     if (report.byCategory.memory?.count > 0) {
       recommendations.push({
         category: 'memory',
@@ -1894,7 +1894,7 @@ class PerformanceOptimizer extends EventEmitter {
         priority: 'medium',
       });
     }
-    
+
     return recommendations;
   }
 }

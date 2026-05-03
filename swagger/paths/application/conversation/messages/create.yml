@@ -4,14 +4,14 @@ operationId: create-a-new-message-in-a-conversation
 summary: Create New Message
 description: |
   Create a new message in the conversation.
-  
+
   ## WhatsApp Template Messages
-  
-  For WhatsApp channels, you can send structured template messages using the `template_params` field. 
+
+  For WhatsApp channels, you can send structured template messages using the `template_params` field.
   Templates must be pre-approved in WhatsApp Business Manager.
-  
+
   ### Example Templates
-  
+
   **Text with Image Header:**
   ```json
   {
@@ -32,7 +32,7 @@ description: |
     }
   }
   ```
-  
+
   **Text with Copy Code Button:**
   ```json
   {

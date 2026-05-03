@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-ruby '3.4.4'
+ruby '3.4.9'
 
 ##-- base gems for rails --##
 gem 'rack-cors', '2.0.0', require: 'rack/cors'
@@ -231,7 +231,7 @@ group :development do
 
   # profiling
   gem 'rack-mini-profiler', '>= 3.2.0', require: false
-  gem 'stackprof'
+  # gem 'stackprof'
   # Should install the associated chrome extension to view query logs
   gem 'meta_request', '>= 0.8.3'
 

@@ -1,4 +1,4 @@
-# rubocop:disable Layout/LineLength
+# rubocop:disable Layout/LineLength, Metrics/ClassLength
 
 # == Schema Information
 #
@@ -240,7 +240,7 @@ class Contact < ApplicationRecord
   end
 
   def sync_contact_attributes
-    Rails.logger.debug "[CRM] Sincronizando atributos para o contato #{id}"
+    Rails.logger.debug { "[CRM] Sincronizando atributos para o contato #{id}" }
     ::Contacts::SyncAttributes.new(self).perform
   end
 

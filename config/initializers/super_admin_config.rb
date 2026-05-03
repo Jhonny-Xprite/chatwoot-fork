@@ -1,4 +1,4 @@
-# Este inicializador garante que o usuário definido no .env como EASYPANEL_USER 
+# Este inicializador garante que o usuário definido no .env como EASYPANEL_USER
 # seja automaticamente promovido a SuperAdmin no Chatwoot.
 # Isso resolve o problema de acesso sem necessidade de comandos manuais.
 

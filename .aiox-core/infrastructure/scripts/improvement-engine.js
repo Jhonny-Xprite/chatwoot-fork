@@ -535,21 +535,21 @@ class ImprovementEngine {
    */
   generateActionPlan(categories) {
     const allImprovements = Object.values(categories).flat();
-    
+
     // Sort by priority and impact
     const sortedImprovements = allImprovements.sort((a, b) => {
       const aPriority = this.priorityWeights[a.priority] || 0;
       const bPriority = this.priorityWeights[b.priority] || 0;
-      
+
       if (aPriority !== bPriority) {
         return bPriority - aPriority;
       }
-      
+
       // Secondary sort by impact
       const impactWeights = { critical: 4, high: 3, medium: 2, low: 1 };
       const aImpact = impactWeights[a.impact] || 0;
       const bImpact = impactWeights[b.impact] || 0;
-      
+
       return bImpact - aImpact;
     });
 
@@ -568,7 +568,7 @@ class ImprovementEngine {
    */
   identifyQuickWins(categories) {
     const allImprovements = Object.values(categories).flat();
-    
+
     return allImprovements
       .filter(imp => imp.effort === 'low' && (imp.impact === 'high' || imp.impact === 'medium'))
       .sort((a, b) => this.priorityWeights[b.priority] - this.priorityWeights[a.priority])
@@ -586,7 +586,7 @@ class ImprovementEngine {
    */
   identifyLongTermInitiatives(categories) {
     const allImprovements = Object.values(categories).flat();
-    
+
     return allImprovements
       .filter(imp => imp.effort === 'high' && (imp.impact === 'high' || imp.impact === 'critical'))
       .sort((a, b) => this.priorityWeights[b.priority] - this.priorityWeights[a.priority])
@@ -695,7 +695,7 @@ class ImprovementEngine {
   calculateOverallPriority(categories) {
     const allImprovements = Object.values(categories).flat();
     const priorities = allImprovements.map(imp => imp.priority);
-    
+
     if (priorities.includes('critical')) return 'critical';
     if (priorities.filter(p => p === 'high').length > allImprovements.length * 0.3) return 'high';
     if (priorities.filter(p => p === 'medium').length > allImprovements.length * 0.5) return 'medium';
@@ -712,11 +712,11 @@ class ImprovementEngine {
   calculateTotalImpact(categories) {
     const allImprovements = Object.values(categories).flat();
     const impactWeights = { critical: 4, high: 3, medium: 2, low: 1 };
-    
+
     const totalImpact = allImprovements.reduce((sum, imp) => {
       return sum + (impactWeights[imp.impact] || 1);
     }, 0);
-    
+
     return Math.round(totalImpact / allImprovements.length * 10) / 10;
   }
 

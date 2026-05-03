@@ -2,13 +2,13 @@
 
 /**
  * Task Migration Helper - V1.0 to V2.0
- * 
+ *
  * Semi-automated migration helper that adds missing V2.0 sections to tasks.
  * Requires manual review and content filling.
- * 
+ *
  * Usage:
  *   node migrate-task-to-v2.js <task-file>     # Migrate single task
- * 
+ *
  * Process:
  *   1. Reads existing task
  *   2. Identifies missing V2.0 sections
@@ -234,12 +234,12 @@ function analyzeMissingSections(content) {
  */
 function migrateTask(filePath) {
   const fileName = path.basename(filePath);
-  
+
   console.log(`${colors.cyan}📝 Migrating: ${fileName}${colors.reset}\n`);
 
   // Read original file
   const content = fs.readFileSync(filePath, 'utf8');
-  
+
   // Analyze missing sections
   const missing = analyzeMissingSections(content);
   const missingSections = Object.keys(missing).filter(k => missing[k]);
@@ -265,7 +265,7 @@ function migrateTask(filePath) {
 
   // Find insertion point (usually after Purpose or first major section)
   const purposeIndex = content.indexOf('## Purpose');
-  const insertionPoint = purposeIndex !== -1 
+  const insertionPoint = purposeIndex !== -1
     ? content.indexOf('\n---\n', purposeIndex) + 5
     : content.indexOf('\n##', 100); // Fallback: after first heading
 
@@ -275,50 +275,50 @@ function migrateTask(filePath) {
 
   // Add missing sections
   let sectionsToAdd = '\n';
-  
+
   if (missing.executionModes) {
     sectionsToAdd += sectionTemplates.executionModes + '\n';
   }
-  
+
   if (missing.taskDefinition || missing.entrada || missing.saida) {
     sectionsToAdd += sectionTemplates.taskDefinition + '\n';
   }
-  
+
   if (missing.preConditions) {
     sectionsToAdd += sectionTemplates.preConditions + '\n';
   }
-  
+
   if (missing.postConditions) {
     sectionsToAdd += sectionTemplates.postConditions + '\n';
   }
-  
+
   if (missing.acceptanceCriteria) {
     sectionsToAdd += sectionTemplates.acceptanceCriteria + '\n';
   }
-  
+
   if (missing.tools) {
     sectionsToAdd += sectionTemplates.tools + '\n';
   }
-  
+
   if (missing.scripts) {
     sectionsToAdd += sectionTemplates.scripts + '\n';
   }
-  
+
   if (missing.errorHandling) {
     sectionsToAdd += sectionTemplates.errorHandling + '\n';
   }
-  
+
   if (missing.performance) {
     sectionsToAdd += sectionTemplates.performance + '\n';
   }
-  
+
   if (missing.metadata) {
     sectionsToAdd += sectionTemplates.metadata + '\n';
   }
 
   // Insert sections
   if (insertionPoint > 0) {
-    migratedContent = 
+    migratedContent =
       content.substring(0, insertionPoint) +
       sectionsToAdd +
       content.substring(insertionPoint);
@@ -335,7 +335,7 @@ function migrateTask(filePath) {
   console.log(`${colors.cyan}🔍 Validating migrated task...${colors.reset}`);
   const validatePath = path.join(__dirname, 'validate-task-v2.js');
   const { execSync } = require('child_process');
-  
+
   try {
     execSync(`node "${validatePath}" "${filePath}"`, { stdio: 'inherit' });
   } catch (_error) {
@@ -359,7 +359,7 @@ function main() {
   }
 
   const taskFile = args[0];
-  
+
   if (!fs.existsSync(taskFile)) {
     console.error(`${colors.yellow}✗ File not found: ${taskFile}${colors.reset}`);
     process.exit(2);

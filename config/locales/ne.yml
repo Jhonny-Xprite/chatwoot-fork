@@ -394,7 +394,7 @@ ne:
     hero:
       sub_title: यहाँ लेखहरू खोज्नुहोस् वा तलका श्रेणीहरू हेर्नुहोस्।.
     common:
-      home: गृहपृष्ठ
+      home: गृहपृष्�
       last_updated_on: Last updated on %{last_updated_on}
       view_all_articles: View all
       article: लेख

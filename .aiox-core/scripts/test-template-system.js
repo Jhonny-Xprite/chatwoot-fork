@@ -45,7 +45,7 @@ class TestTemplateSystem {
    */
   async getTemplate(componentType, testType, framework = 'jest', options = {}) {
     const templateKey = `${_framework}-${componentType}-${testType}`;
-    
+
     // Check cache first
     if (this.templateCache.has(templateKey)) {
       return this.templateCache.get(templateKey);
@@ -53,14 +53,14 @@ class TestTemplateSystem {
 
     // Load template from file or generate from base template
     let template = await this.loadTemplateFromFile(templateKey);
-    
+
     if (!template) {
       template = await this.generateTemplate(componentType, testType, _framework, options);
     }
 
     // Cache the template
     this.templateCache.set(templateKey, template);
-    
+
     return template;
   }
 
@@ -98,7 +98,7 @@ class TestTemplateSystem {
    */
   async createCustomTemplate(templateName, templateContent, options = {}) {
     const templatePath = path.join(this.templatesDir, 'custom', `${templateName}.template.js`);
-    
+
     const templateWrapper = {
       name: templateName,
       type: options.type || 'custom',
@@ -114,10 +114,10 @@ class TestTemplateSystem {
     try {
       await fs.mkdir(path.dirname(templatePath), { recursive: true });
       await fs.writeFile(templatePath, JSON.stringify(templateWrapper, null, 2));
-      
+
       // Add to cache
       this.templateCache.set(templateName, templateWrapper);
-      
+
       console.log(chalk.green(`✅ Custom template created: ${templateName}`));
       return templateWrapper;
 
@@ -132,7 +132,7 @@ class TestTemplateSystem {
    */
   async loadTemplateFromFile(templateKey) {
     const templatePath = path.join(this.templatesDir, `${templateKey}.template.js`);
-    
+
     try {
       const content = await fs.readFile(templatePath, 'utf-8');
       return JSON.parse(content);
@@ -224,7 +224,7 @@ class TestTemplateSystem {
 
 describe('{{component.name}}', () => {
   {{testCases}}
-  
+
   {{teardown}}
 });
 
@@ -259,9 +259,9 @@ describe('{{component.name}}', () => {
 
 describe('{{component.name}}', function() {
   this.timeout(5000);
-  
+
   {{testCases}}
-  
+
   {{teardown}}
 });
 
@@ -296,7 +296,7 @@ describe('{{component.name}}', function() {
 
 describe('{{component.name}}', () => {
   {{testCases}}
-  
+
   {{teardown}}
 });
 
@@ -508,7 +508,7 @@ describe('{{component.name}}', () => {
   generateImports(componentType, testType, _framework, options) {
     const _frameworkConfig = this.frameworks[framework];
     const componentTemplate = this.componentTemplates[componentType];
-    
+
     const imports = [
       frameworkConfig.imports.testFramework,
       frameworkConfig.imports.assertions,
@@ -700,7 +700,7 @@ describe('{{component.name}}', () => {
 
   renderSetup(setup, data) {
     let content = '';
-    
+
     if (setup.variables.length > 0) {
       content += setup.variables.join('\n') + '\n\n';
     }
@@ -727,17 +727,17 @@ describe('{{component.name}}', () => {
   renderTestCases(testCases, data) {
     return testCases.map(testCase => {
       let caseContent = `  it('${testCase.name}', async () => {\n`;
-      
+
       if (testCase.setup) {
         caseContent += `    ${testCase.setup}\n\n`;
       }
-      
+
       if (testCase.assertions) {
         caseContent += testCase.assertions.map(assertion => `    ${assertion}`).join('\n');
       }
-      
+
       caseContent += '\n  });';
-      
+
       return caseContent;
     }).join('\n\n');
   }
@@ -776,7 +776,7 @@ afterAll(async () => {
   renderUtilities(utilities, data) {
     if (utilities.length === 0) return '';
 
-    return '\n// Test Utilities\n' + 
+    return '\n// Test Utilities\n' +
            utilities.map(util => util.implementation).join('\n\n');
   }
 
@@ -793,7 +793,7 @@ afterAll(async () => {
    */
   replaceTemplateVariables(content, sections) {
     let result = content;
-    
+
     Object.entries(sections).forEach(([key, value]) => {
       const placeholder = `{{${key}}}`;
       result = result.replace(new RegExp(placeholder, 'g'), value || '');
@@ -813,13 +813,13 @@ afterAll(async () => {
   formatGeneratedCode(content, framework) {
     // Remove excessive blank lines
     content = content.replace(/\n{3,}/g, '\n\n');
-    
+
     // Ensure proper spacing around blocks
     content = content.replace(/}\n{/g, '}\n\n{');
-    
+
     // Clean up any template artifacts
     content = content.replace(/\{\{[^}]+\}\}/g, '');
-    
+
     return content.trim();
   }
 
@@ -829,13 +829,13 @@ afterAll(async () => {
   async loadTemplates() {
     try {
       const templateFiles = await this.findTemplateFiles();
-      
+
       for (const templateFile of templateFiles) {
         try {
           const content = await fs.readFile(templateFile, 'utf-8');
           const template = JSON.parse(content);
           const templateKey = path.basename(templateFile, '.template.js');
-          
+
           this.templateCache.set(templateKey, template);
         } catch (error) {
           console.warn(chalk.yellow(`Failed to load template ${templateFile}: ${error.message}`));
@@ -854,15 +854,15 @@ afterAll(async () => {
    */
   async findTemplateFiles() {
     const templateFiles = [];
-    
+
     try {
       const entries = await fs.readdir(this.templatesDir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         if (entry.isDirectory()) {
           const subDir = path.join(this.templatesDir, entry.name);
           const subFiles = await fs.readdir(subDir);
-          
+
           for (const subFile of subFiles) {
             if (subFile.endsWith('.template.js')) {
               templateFiles.push(path.join(subDir, subFile));
@@ -905,13 +905,13 @@ afterAll(async () => {
    */
   getAvailableTemplates() {
     const templates = {};
-    
+
     for (const [key, template] of this.templateCache.entries()) {
       const [framework, componentType, testType] = key.split('-');
-      
+
       if (!templates[framework]) templates[framework] = {};
       if (!templates[framework][componentType]) templates[framework][componentType] = [];
-      
+
       templates[framework][componentType].push(_testType);
     }
 
@@ -923,7 +923,7 @@ afterAll(async () => {
    */
   validateTemplate(_template) {
     const required = ['name', 'type', 'framework', 'componentType'];
-    
+
     for (const field of required) {
       if (!template[field]) {
         throw new Error(`Template missing required field: ${field}`);

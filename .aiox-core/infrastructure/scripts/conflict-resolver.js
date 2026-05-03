@@ -28,7 +28,7 @@ class ConflictResolver {
   async detectConflicts() {
     try {
       const conflicts = await this.git.getConflicts();
-      
+
       if (conflicts.length === 0) {
         return {
           hasConflicts: false,
@@ -42,7 +42,7 @@ class ConflictResolver {
           path.join(this.rootPath, file),
           'utf-8',
         );
-        
+
         const conflictInfo = this.parseConflictMarkers(content);
         conflictDetails.push({
           file,
@@ -79,7 +79,7 @@ class ConflictResolver {
 
     for (const line of lines) {
       lineNumber++;
-      
+
       if (line.startsWith('<<<<<<<')) {
         inConflict = true;
         currentConflict = {
@@ -157,7 +157,7 @@ class ConflictResolver {
    */
   async resolveConflicts(strategy = 'interactive', options = {}) {
     const conflictInfo = await this.detectConflicts();
-    
+
     if (!conflictInfo.hasConflicts) {
       console.log(chalk.green('✅ No conflicts detected'));
       return { success: true, resolved: 0 };
@@ -182,7 +182,7 @@ class ConflictResolver {
       try {
         console.log(chalk.blue(`\nResolving conflicts in: ${fileInfo.file}`));
         const resolved = await resolver(fileInfo, options);
-        
+
         if (resolved.success) {
           results.resolved += resolved.conflictsResolved;
           results.files.push({
@@ -219,7 +219,7 @@ class ConflictResolver {
     try {
       await this.git.execGit(`checkout --ours "${fileInfo.file}"`);
       await this.git.execGit(`add "${fileInfo.file}"`);
-      
+
       return {
         success: true,
         conflictsResolved: fileInfo.conflictCount,
@@ -241,7 +241,7 @@ class ConflictResolver {
     try {
       await this.git.execGit(`checkout --theirs "${fileInfo.file}"`);
       await this.git.execGit(`add "${fileInfo.file}"`);
-      
+
       return {
         success: true,
         conflictsResolved: fileInfo.conflictCount,
@@ -262,14 +262,14 @@ class ConflictResolver {
   async resolveManual(fileInfo) {
     const filePath = path.join(this.rootPath, fileInfo.file);
     const content = await fs.readFile(filePath, 'utf-8');
-    
+
     console.log(chalk.yellow(
       `Manual resolution required for ${fileInfo.file}`,
     ));
     console.log(chalk.gray(
       'Edit the file to resolve conflicts, then mark as resolved',
     ));
-    
+
     // In a real implementation, this would open an editor
     // For now, we'll return a message
     return {
@@ -286,7 +286,7 @@ class ConflictResolver {
   async resolveAuto(fileInfo) {
     const filePath = path.join(this.rootPath, fileInfo.file);
     const content = await fs.readFile(filePath, 'utf-8');
-    
+
     let resolved = content;
     let resolvedCount = 0;
 
@@ -296,25 +296,25 @@ class ConflictResolver {
         resolved = await this.autoResolveWhitespace(content, fileInfo);
         resolvedCount = fileInfo.conflictCount;
         break;
-        
+
       case 'imports':
         // For import conflicts, merge both
         resolved = await this.autoResolveImports(content, fileInfo);
         resolvedCount = fileInfo.conflictCount;
         break;
-        
+
       case 'version':
         // For version conflicts, keep higher version
         resolved = await this.autoResolveVersion(content, fileInfo);
         resolvedCount = fileInfo.conflictCount;
         break;
-        
+
       case 'json':
         // For JSON conflicts, attempt to merge
         resolved = await this.autoResolveJSON(content, fileInfo);
         resolvedCount = fileInfo.conflictCount;
         break;
-        
+
       default:
         // Can't auto-resolve
         return {
@@ -342,7 +342,7 @@ class ConflictResolver {
     const filePath = path.join(this.rootPath, fileInfo.file);
     const content = await fs.readFile(filePath, 'utf-8');
     const conflicts = this.parseConflictMarkers(content).conflicts;
-    
+
     let resolvedContent = content;
     let resolvedCount = 0;
 
@@ -351,12 +351,12 @@ class ConflictResolver {
     for (let i = 0; i < conflicts.length; i++) {
       const conflict = conflicts[i];
       console.log(chalk.yellow(`\nConflict ${i + 1}/${conflicts.length}:`));
-      
+
       // Show conflict preview
       console.log(chalk.red('<<<< OURS:'));
       console.log(conflict.ours.slice(0, 5).join('\n'));
       if (conflict.ours.length > 5) console.log(chalk.gray('...'));
-      
+
       console.log(chalk.green('\n>>>> THEIRS:'));
       console.log(conflict.theirs.slice(0, 5).join('\n'));
       if (conflict.theirs.length > 5) console.log(chalk.gray('...'));
@@ -408,7 +408,7 @@ class ConflictResolver {
 
     for (let i = 0; i < lines.length; i++) {
       if (skipUntil && i < skipUntil) continue;
-      
+
       if (i === conflict.startLine - 1) {
         switch (resolution) {
           case 'ours':
@@ -451,7 +451,7 @@ class ConflictResolver {
   async autoResolveWhitespace(content, fileInfo) {
     // Remove conflict markers and keep theirs (usually has correct formatting)
     let resolved = content;
-    
+
     for (const conflict of fileInfo.conflicts) {
       const pattern = new RegExp(
         '<<<<<<<[^\\n]*\\n[\\s\\S]*?=======\\n([\\s\\S]*?)>>>>>>>[^\\n]*\\n',
@@ -459,7 +459,7 @@ class ConflictResolver {
       );
       resolved = resolved.replace(pattern, '$1');
     }
-    
+
     return resolved;
   }
 
@@ -470,21 +470,21 @@ class ConflictResolver {
   async autoResolveImports(content, fileInfo) {
     // Merge imports from both sides, removing duplicates
     const imports = new Set();
-    
+
     for (const conflict of fileInfo.conflicts) {
       // Extract imports from both sides
       const oursImports = conflict.ours
         .filter(line => line.includes('import') || line.includes('require'))
         .map(line => line.trim());
-      
+
       const theirsImports = conflict.theirs
         .filter(line => line.includes('import') || line.includes('require'))
         .map(line => line.trim());
-      
+
       // Add all unique imports
       [...oursImports, ...theirsImports].forEach(imp => imports.add(imp));
     }
-    
+
     // Replace conflicts with merged imports
     let resolved = content;
     for (const conflict of fileInfo.conflicts) {
@@ -494,7 +494,7 @@ class ConflictResolver {
       );
       resolved = resolved.replace(pattern, Array.from(imports).join('\n') + '\n');
     }
-    
+
     return resolved;
   }
 
@@ -504,16 +504,16 @@ class ConflictResolver {
    */
   async autoResolveVersion(content, fileInfo) {
     let resolved = content;
-    
+
     for (const conflict of fileInfo.conflicts) {
       const oursVersion = conflict.ours.join('').match(/(\d+)\.(\d+)\.(\d+)/);
       const theirsVersion = conflict.theirs.join('').match(/(\d+)\.(\d+)\.(\d+)/);
-      
+
       if (oursVersion && theirsVersion) {
         // Compare versions and keep higher
         const ours = oursVersion.slice(1, 4).map(Number);
         const theirs = theirsVersion.slice(1, 4).map(Number);
-        
+
         let useTheirs = false;
         for (let i = 0; i < 3; i++) {
           if (theirs[i] > ours[i]) {
@@ -523,11 +523,11 @@ class ConflictResolver {
             break;
           }
         }
-        
+
         const pattern = new RegExp(
           '<<<<<<<[^\\n]*\\n[\\s\\S]*?=======\\n([\\s\\S]*?)>>>>>>>[^\\n]*\\n',
         );
-        
+
         if (useTheirs) {
           resolved = resolved.replace(pattern, '$1');
         } else {
@@ -535,7 +535,7 @@ class ConflictResolver {
         }
       }
     }
-    
+
     return resolved;
   }
 
@@ -548,21 +548,21 @@ class ConflictResolver {
       // Try to parse and merge JSON objects
       const oursMatch = content.match(/<<<<<<<[^{]*({[\s\S]*?})[\s\S]*?=======/);
       const theirsMatch = content.match(/=======[\s\S]*?({[\s\S]*?})[\s\S]*?>>>>>>>/);
-      
+
       if (oursMatch && theirsMatch) {
         const oursObj = JSON.parse(oursMatch[1]);
         const theirsObj = JSON.parse(theirsMatch[1]);
-        
+
         // Deep merge objects
         const merged = this.deepMerge(oursObj, theirsObj);
-        
+
         // Replace entire file with merged JSON
         return JSON.stringify(merged, null, 2);
       }
     } catch (error) {
       console.error(chalk.red('Failed to auto-resolve JSON:', error.message));
     }
-    
+
     // Fallback to manual resolution
     return content;
   }
@@ -573,10 +573,10 @@ class ConflictResolver {
    */
   deepMerge(obj1, obj2) {
     const result = { ...obj1 };
-    
+
     for (const key in obj2) {
       if (obj2.hasOwnProperty(key)) {
-        if (typeof obj2[key] === 'object' && !Array.isArray(obj2[key]) && 
+        if (typeof obj2[key] === 'object' && !Array.isArray(obj2[key]) &&
             obj1[key] && typeof obj1[key] === 'object') {
           result[key] = this.deepMerge(obj1[key], obj2[key]);
         } else {
@@ -584,7 +584,7 @@ class ConflictResolver {
         }
       }
     }
-    
+
     return result;
   }
 
@@ -594,7 +594,7 @@ class ConflictResolver {
    */
   async generateConflictReport() {
     const conflictInfo = await this.detectConflicts();
-    
+
     if (!conflictInfo.hasConflicts) {
       return {
         summary: 'No conflicts detected',
@@ -628,7 +628,7 @@ class ConflictResolver {
   generateRecommendations(conflictInfo) {
     const recommendations = [];
     const types = {};
-    
+
     // Count conflict types
     conflictInfo.files.forEach(file => {
       types[file.type] = (types[file.type] || 0) + file.conflictCount;

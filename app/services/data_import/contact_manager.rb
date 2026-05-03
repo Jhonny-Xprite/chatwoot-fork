@@ -1,11 +1,12 @@
-class DataImport < ApplicationRecord
-  class ContactManager
+class DataImport::ContactManager
     def initialize(account, mapping)
       @account = account
       # Normaliza o mapping: garante que todas as chaves são strings e valores são strings
       @mapping = normalize_mapping(mapping || {})
     end
 
+    # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
+    # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
     def build_contact(row)
       params = transform_row(row)
 
@@ -23,20 +24,18 @@ class DataImport < ApplicationRecord
 
       # Lógica de Merge: Mantém dados antigos e adiciona os novos (CSV ganha em conflito)
       if contact.persisted?
-        Rails.logger.debug "[Import] Mesclando dados para contato existente ID #{contact.id} (Email: #{contact.email})"
+        Rails.logger.debug { "[Import] Mesclando dados para contato existente ID #{contact.id} (Email: #{contact.email})" }
         params[:custom_attributes] = (contact.custom_attributes || {}).merge(params[:custom_attributes] || {})
         params[:additional_attributes] = (contact.additional_attributes || {}).merge(params[:additional_attributes] || {})
       else
-        Rails.logger.debug "[Import] Criando novo Lead para a conta #{@account.id}"
+        Rails.logger.debug { "[Import] Criando novo Lead para a conta #{@account.id}" }
       end
 
       # Atribui os parâmetros
       contact.assign_attributes(params.merge(account_id: @account.id))
 
       # Fallback de Nome: Se name for vazio, usa o Email ou Telefone como nome temporário
-      if contact.name.blank?
-        contact.name = contact.email.presence || contact.phone_number.presence || "Contact #{Time.now.to_i}"
-      end
+      contact.name = contact.email.presence || contact.phone_number.presence || "Contact #{Time.now.to_i}" if contact.name.blank?
 
       # Debug logging
       unless contact.valid?
@@ -73,6 +72,7 @@ class DataImport < ApplicationRecord
       end
     end
 
+    # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
     def transform_row(row)
       transformed = { additional_attributes: {}, custom_attributes: {} }
 
@@ -84,7 +84,7 @@ class DataImport < ApplicationRecord
         value = (row[normalized_header] || row[header]).to_s.strip
         next if value.blank?
 
-        if Contact.column_names.include?(attribute) || ['first_name', 'last_name'].include?(attribute)
+        if Contact.column_names.include?(attribute) || %w[first_name last_name].include?(attribute)
           # Tratamento especial para telefone: usa PhoneFormatter service
           if attribute == 'phone_number'
             begin
@@ -99,9 +99,7 @@ class DataImport < ApplicationRecord
             next
           end
           # Tratamento especial para email: trim e downcase
-          if attribute == 'email'
-            value = value.strip.downcase
-          end
+          value = value.strip.downcase if attribute == 'email'
           transformed[attribute.to_sym] = value
         elsif attribute.start_with?('custom_attribute:')
           key = attribute.sub('custom_attribute:', '')
@@ -122,16 +120,17 @@ class DataImport < ApplicationRecord
 
       transformed
     end
+    # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/MethodLength, Metrics/PerceivedComplexity
 
     def sync_location_fields(params)
       # Chatwoot usa colunas 'location' e 'country_code' para filtros rápidos
       params[:location] = params[:city] if params[:city].present?
-      
+
       # Mapeia campos comuns de cidade/país para o JSON de atributos adicionais
-      if params[:city].present? || params[:country].present?
-        params[:additional_attributes][:city] ||= params[:city]
-        params[:additional_attributes][:country] ||= params[:country]
-      end
+      return unless params[:city].present? || params[:country].present?
+
+      params[:additional_attributes][:city] ||= params[:city]
+      params[:additional_attributes][:country] ||= params[:country]
     end
 
     def handle_name_logic(params)
@@ -140,11 +139,10 @@ class DataImport < ApplicationRecord
       fname = params.delete(:first_name)
       lname = params.delete(:last_name)
 
-      if fname.present? || lname.present?
-        params[:name] = "#{fname} #{lname}".strip
-      end
+      params[:name] = "#{fname} #{lname}".strip if fname.present? || lname.present?
     end
 
+    # rubocop:disable Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
     def find_existing_contact(params)
       return nil if params[:email].blank? && params[:phone_number].blank? && params[:identifier].blank?
 
@@ -162,5 +160,5 @@ class DataImport < ApplicationRecord
       contact
     end
 
-  end
+    end
 end

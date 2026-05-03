@@ -127,7 +127,7 @@ class ModificationValidator {
       if (originalMeta.commands && modifiedMeta.commands) {
         const removedCommands = Object.keys(originalMeta.commands)
           .filter(cmd => !modifiedMeta.commands[cmd]);
-        
+
         if (removedCommands.length > 0) {
           result.warnings.push(`Commands removed: ${removedCommands.join(', ')}`);
         }
@@ -340,7 +340,7 @@ class ModificationValidator {
       if (!Array.isArray(files)) continue;
 
       const typeDir = path.join(baseDir, type);
-      
+
       for (const file of files) {
         const filePath = path.join(typeDir, file);
         try {
@@ -396,7 +396,7 @@ class ModificationValidator {
     };
 
     const securityIssues = await this.securityChecker.checkContent(content);
-    
+
     if (securityIssues.length > 0) {
       for (const issue of securityIssues) {
         if (issue.severity === 'high') {
@@ -429,7 +429,7 @@ class ModificationValidator {
           if (originalMeta.commands && modifiedMeta.commands) {
             const removedCommands = Object.keys(originalMeta.commands)
               .filter(cmd => !modifiedMeta.commands[cmd]);
-            
+
             if (removedCommands.length > 0) {
               breakingChanges.push({
                 type: 'removed_commands',
@@ -447,7 +447,7 @@ class ModificationValidator {
         // Check for changed output format
         const originalOutput = originalContent.match(/## Output Format[\s\S]*?```[\s\S]*?```/);
         const modifiedOutput = modifiedContent.match(/## Output Format[\s\S]*?```[\s\S]*?```/);
-        
+
         if (originalOutput && modifiedOutput && originalOutput[0] !== modifiedOutput[0]) {
           breakingChanges.push({
             type: 'output_format_changed',
@@ -466,7 +466,7 @@ class ModificationValidator {
           const modifiedPhases = Object.keys(modifiedWorkflow.phases || {});
 
           const removedPhases = originalPhases.filter(p => !modifiedPhases.includes(p));
-          
+
           if (removedPhases.length > 0) {
             breakingChanges.push({
               type: 'removed_phases',
@@ -520,7 +520,7 @@ class ModificationValidator {
   validateCriteriaReferences(criteria, workflow) {
     // Simple check - could be enhanced
     const artifacts = new Set();
-    
+
     for (const phase of Object.values(workflow.phases || {})) {
       if (phase.artifacts) {
         phase.artifacts.forEach(a => artifacts.add(a));
@@ -545,7 +545,7 @@ class ModificationValidator {
     target.errors.push(...(source.errors || []));
     target.warnings.push(...(source.warnings || []));
     target.suggestions.push(...(source.suggestions || []));
-    
+
     if (source.valid === false) {
       target.valid = false;
     }

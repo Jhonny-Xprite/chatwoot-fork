@@ -111,4 +111,4 @@ properties:
         description: Availability status of the sender
       thumbnail:
         type: string
-        description: Thumbnail URL of the sender 
+        description: Thumbnail URL of the sender

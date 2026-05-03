@@ -42,7 +42,7 @@ class Crm::PipelineBootstrapService
     return unless target_stage
 
     # Fix conversations that have a pipeline assigned but no stage (orphans from deleted stages)
-    @account.conversations.where(pipeline_stage_id: nil).where.not(pipeline_id: nil).update_all(
+    @account.conversations.where(pipeline_stage_id: nil).where.not(pipeline_id: nil).update_all( # rubocop:disable Rails/SkipsModelValidations
       pipeline_stage_id: target_stage.id
     )
   end

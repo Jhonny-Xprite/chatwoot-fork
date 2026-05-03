@@ -66,4 +66,4 @@ properties:
     description: The timestamp when the rule was created
   active:
     type: boolean
-    description: Enable/disable automation rule 
+    description: Enable/disable automation rule

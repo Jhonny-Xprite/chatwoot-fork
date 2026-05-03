@@ -283,14 +283,14 @@ class FrameworkAnalyzer {
       // Extract YAML frontmatter
       const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       let metadata = {};
-      
+
       if (frontmatterMatch) {
         metadata = yaml.load(frontmatterMatch[1]) || {};
       }
 
       // Extract markdown content
       const markdownContent = content.replace(/^---\n[\s\S]*?\n---\n/, '');
-      
+
       return {
         type: 'agent',
         id: metadata.id || path.basename(filePath, '.md'),
@@ -349,7 +349,7 @@ class FrameworkAnalyzer {
   async parseWorkflowFile(filePath, content) {
     try {
       const workflow = yaml.load(content);
-      
+
       return {
         type: 'workflow',
         id: workflow.id || path.basename(filePath, '.yaml'),
@@ -377,7 +377,7 @@ class FrameworkAnalyzer {
   async parseUtilFile(filePath, content) {
     try {
       const stats = await fs.stat(filePath);
-      
+
       return {
         type: 'utility',
         id: path.basename(filePath, '.js'),
@@ -405,7 +405,7 @@ class FrameworkAnalyzer {
     try {
       const stats = await fs.stat(filePath);
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       return {
         type: 'template',
         id: path.basename(filePath),
@@ -430,7 +430,7 @@ class FrameworkAnalyzer {
     try {
       const stats = await fs.stat(filePath);
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       return {
         type: 'documentation',
         id: path.basename(filePath, '.md'),
@@ -456,7 +456,7 @@ class FrameworkAnalyzer {
     try {
       const stats = await fs.stat(filePath);
       const content = await fs.readFile(filePath, 'utf-8');
-      
+
       return {
         type: 'test',
         id: path.basename(filePath, '.js'),
@@ -511,7 +511,7 @@ class FrameworkAnalyzer {
 
     // Analyze dependencies for each component type
     const allComponents = this.flattenComponents(components);
-    
+
     for (const component of allComponents) {
       if (component.dependencies) {
         for (const dep of component.dependencies) {
@@ -526,10 +526,10 @@ class FrameworkAnalyzer {
 
     // Detect circular dependencies
     dependencies.circular = await this.detectCircularDependencies(allComponents);
-    
+
     // Find orphaned components
     dependencies.orphaned = this.findOrphanedComponents(allComponents);
-    
+
     // Find highly coupled components
     dependencies.highly_coupled = this.findHighlyCoupledComponents(allComponents);
 
@@ -549,7 +549,7 @@ class FrameworkAnalyzer {
    */
   async calculateFrameworkMetrics(components) {
     const allComponents = this.flattenComponents(components);
-    
+
     return {
       total_size: allComponents.reduce((sum, comp) => sum + (comp.size || 0), 0),
       average_complexity: this.calculateAverageComplexity(allComponents),
@@ -583,13 +583,13 @@ class FrameworkAnalyzer {
   async getFilesByExtension(dir, extensions) {
     const files = [];
     const extArray = Array.isArray(extensions) ? extensions : [extensions];
-    
+
     try {
       const entries = await fs.readdir(dir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        
+
         if (entry.isDirectory() && !this.isExcluded(entry.name)) {
           files.push(...await this.getFilesByExtension(fullPath, extensions));
         } else if (entry.isFile()) {
@@ -602,7 +602,7 @@ class FrameworkAnalyzer {
     } catch (error) {
       // Directory not accessible
     }
-    
+
     return files;
   }
 
@@ -610,27 +610,27 @@ class FrameworkAnalyzer {
     try {
       const entries = await fs.readdir(dir, { withFileTypes: true });
       result.depth = Math.max(result.depth || 0, depth);
-      
+
       for (const entry of entries) {
         if (this.isExcluded(entry.name)) continue;
-        
+
         const fullPath = path.join(dir, entry.name);
-        
+
         if (entry.isDirectory()) {
           result.total_directories = (result.total_directories || 0) + 1;
           await this.walkDirectory(fullPath, result, depth + 1);
         } else if (entry.isFile()) {
           result.total_files = (result.total_files || 0) + 1;
-          
+
           if (result.files) {
             result.files.push(fullPath);
           }
-          
+
           // Track file types
           const ext = path.extname(entry.name).toLowerCase();
           result.file_types = result.file_types || {};
           result.file_types[ext] = (result.file_types[ext] || 0) + 1;
-          
+
           // Track size distribution
           const stats = await fs.stat(fullPath);
           const sizeCategory = this.getSizeCategory(stats.size);
@@ -645,9 +645,9 @@ class FrameworkAnalyzer {
 
   // Helper methods
   isExcluded(name) {
-    return this.excludes.some(exclude => 
-      name === exclude || 
-      name.startsWith(exclude) || 
+    return this.excludes.some(exclude =>
+      name === exclude ||
+      name.startsWith(exclude) ||
       name.startsWith('.'),
     );
   }
@@ -666,17 +666,17 @@ class FrameworkAnalyzer {
     const deps = [];
     const requireMatches = content.match(/require\(['"`]([^'"`]+)['"`]\)/g) || [];
     const importMatches = content.match(/import .* from ['"`]([^'"`]+)['"`]/g) || [];
-    
+
     requireMatches.forEach(match => {
       const dep = match.match(/['"`]([^'"`]+)['"`]/)[1];
       if (!deps.includes(dep)) deps.push(dep);
     });
-    
+
     importMatches.forEach(match => {
       const dep = match.match(/from ['"`]([^'"`]+)['"`]/)[1];
       if (!deps.includes(dep)) deps.push(dep);
     });
-    
+
     return deps;
   }
 

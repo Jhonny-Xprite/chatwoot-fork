@@ -4,7 +4,7 @@
  * Performance Metrics & Error Strategy Resolver
  * Story: 6.1.7.1 - Task Content Completion
  * Purpose: Resolve performance metrics and error handling strategy TODOs
- * 
+ *
  * Tasks 1.4 & 1.5 Combined:
  * - Populate duration_expected and cost_estimated (228 TODOs)
  * - Define error handling strategies (114 TODOs)
@@ -113,26 +113,26 @@ function extractAtomicLayer(content) {
 // Main: Process single task file
 function processTaskFile(filename) {
   const filePath = path.join(TASKS_DIR, filename);
-  
+
   // Skip backup files
   if (filename.includes('backup') || filename.includes('.legacy')) {
     return { skipped: true, reason: 'backup/legacy file' };
   }
-  
+
   // Read file content
   let content = fs.readFileSync(filePath, 'utf8');
-  
+
   // Extract atomic layer
   const atomicLayer = extractAtomicLayer(content);
   if (!atomicLayer || !PERFORMANCE_BY_LAYER[atomicLayer]) {
-    return { 
-      skipped: true, 
-      reason: `atomic layer not found or invalid: ${atomicLayer}`, 
+    return {
+      skipped: true,
+      reason: `atomic layer not found or invalid: ${atomicLayer}`,
     };
   }
-  
+
   let modified = false;
-  
+
   // 1. Replace duration_expected
   if (content.includes('duration_expected: {TODO: X minutes}')) {
     content = content.replace(
@@ -141,7 +141,7 @@ function processTaskFile(filename) {
     );
     modified = true;
   }
-  
+
   // 2. Replace cost_estimated
   if (content.includes('cost_estimated: {TODO: $X}')) {
     content = content.replace(
@@ -150,7 +150,7 @@ function processTaskFile(filename) {
     );
     modified = true;
   }
-  
+
   // 3. Replace error handling strategy
   const errorStrategy = determineErrorStrategy(filename);
   if (content.includes('**Strategy:** {TODO: Fail-fast | Graceful degradation | Retry with backoff}')) {
@@ -160,14 +160,14 @@ function processTaskFile(filename) {
     );
     modified = true;
   }
-  
+
   if (!modified) {
     return { skipped: true, reason: 'no TODO placeholders found' };
   }
-  
+
   // Write updated content
   fs.writeFileSync(filePath, content, 'utf8');
-  
+
   return {
     processed: true,
     filename,
@@ -182,14 +182,14 @@ function processTaskFile(filename) {
 function main() {
   console.log('🚀 Performance Metrics & Error Strategy Resolver\n');
   console.log(`📂 Processing tasks in: ${TASKS_DIR}\n`);
-  
+
   // Get all .md files
   const files = fs.readdirSync(TASKS_DIR)
     .filter(f => f.endsWith('.md') && !f.includes('backup') && !f.includes('.legacy'))
     .sort();
-  
+
   console.log(`📝 Found ${files.length} task files\n`);
-  
+
   const results = {
     processed: [],
     skipped: [],
@@ -200,12 +200,12 @@ function main() {
       strategiesSet: 0,
     },
   };
-  
+
   // Process each file
   files.forEach(filename => {
     try {
       const result = processTaskFile(filename);
-      
+
       if (result.processed) {
         results.processed.push(result);
         results.stats.durationsSet++;
@@ -221,7 +221,7 @@ function main() {
       console.error(`❌ ${filename}: ${error.message}`);
     }
   });
-  
+
   // Summary
   console.log('\n' + '='.repeat(60));
   console.log('📊 Summary:');
@@ -234,12 +234,12 @@ function main() {
   console.log(`   Strategy TODOs: ${results.stats.strategiesSet}`);
   console.log(`   TOTAL: ${results.stats.durationsSet + results.stats.costsSet + results.stats.strategiesSet}`);
   console.log('='.repeat(60) + '\n');
-  
+
   // Save report
   const reportPath = path.join(__dirname, '../../.ai/task-1.4-1.5-performance-error-report.json');
   fs.writeFileSync(reportPath, JSON.stringify(results, null, 2), 'utf8');
   console.log(`📄 Report saved: ${reportPath}\n`);
-  
+
   return results;
 }
 

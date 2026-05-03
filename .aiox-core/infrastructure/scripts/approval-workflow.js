@@ -35,7 +35,7 @@ class ApprovalWorkflow {
     });
 
     this.approvalRules.set('workflow_modification', {
-      risk_threshold: 'medium', 
+      risk_threshold: 'medium',
       required_approvers: 1,
       timeout_hours: 48,
       auto_approve_conditions: ['low_risk', 'has_tests'],
@@ -69,10 +69,10 @@ class ApprovalWorkflow {
    */
   async processApprovalRequest(impactReport, options = {}) {
     const requestId = `approval-${Date.now()}`;
-    
+
     try {
       console.log(chalk.blue(`🔍 Processing approval request for: ${impactReport.targetComponent.path}`));
-      
+
       const config = {
         skip_approval: options.skip_approval || false,
         auto_approve_low_risk: options.auto_approve_low_risk !== false,
@@ -83,10 +83,10 @@ class ApprovalWorkflow {
 
       // Determine approval requirements
       const approvalRequirements = await this.determineApprovalRequirements(impactReport, config);
-      
+
       // Check if modification can be auto-approved
       const autoApprovalResult = await this.checkAutoApproval(impactReport, approvalRequirements);
-      
+
       if (autoApprovalResult.can_auto_approve) {
         const approvalResult = await this.executeAutoApproval(impactReport, autoApprovalResult, requestId);
         return approvalResult;
@@ -94,9 +94,9 @@ class ApprovalWorkflow {
 
       // Manual approval required
       const approvalResult = await this.executeManualApproval(
-        impactReport, 
-        approvalRequirements, 
-        config, 
+        impactReport,
+        approvalRequirements,
+        config,
         requestId,
       );
 
@@ -216,7 +216,7 @@ class ApprovalWorkflow {
 
     // Check auto-approval conditions
     const autoApprovalConditions = await this.evaluateAutoApprovalConditions(impactReport);
-    
+
     if (autoApprovalConditions.all_conditions_met) {
       result.can_auto_approve = true;
       result.conditions_met = autoApprovalConditions.met_conditions;
@@ -303,7 +303,7 @@ class ApprovalWorkflow {
     console.log(chalk.gray(`Component: ${impactReport.targetComponent.path}`));
     console.log(chalk.gray(`Risk Level: ${impactReport.riskAssessment.overallRisk.toUpperCase()}`));
     console.log(chalk.gray(`Affected Components: ${impactReport.summary.affectedComponents}`));
-    
+
     if (requirements.blocking_issues.length > 0) {
       console.log(chalk.red('\nBlocking Issues:'));
       requirements.blocking_issues.forEach((issue, index) => {
@@ -367,7 +367,7 @@ class ApprovalWorkflow {
       console.log(chalk.green('\n✅ Manual approval granted'));
       console.log(chalk.gray(`   Approved by: ${approval.approved_by}`));
       console.log(chalk.gray(`   Valid until: ${new Date(approval.valid_until).toLocaleString()}`));
-      
+
       if (approval.approval_conditions) {
         console.log(chalk.blue(`   Conditions: ${approval.approval_conditions}`));
       }
@@ -456,7 +456,7 @@ class ApprovalWorkflow {
 
     questions.push({
       type: 'input',
-      name: 'recommended_actions', 
+      name: 'recommended_actions',
       message: 'Recommended actions before resubmission:',
       when: (answers) => !answers.approved,
       default: 'Address critical issues and reduce risk factors',
@@ -483,12 +483,12 @@ class ApprovalWorkflow {
     try {
       const logDir = path.join(this.rootPath, '.aiox', 'audit');
       await fs.mkdir(logDir, { recursive: true });
-      
+
       const logFile = path.join(logDir, 'approval_log.jsonl');
       const logEntry = JSON.stringify(approval) + '\n';
-      
+
       await fs.appendFile(logFile, logEntry);
-      
+
       console.log(chalk.gray('   Approval logged to audit trail'));
 
     } catch (error) {
@@ -542,7 +542,7 @@ class ApprovalWorkflow {
   }
 
   isSmallChange(impactReport) {
-    return impactReport.summary.affectedComponents <= 3 && 
+    return impactReport.summary.affectedComponents <= 3 &&
            impactReport.summary.propagationDepth <= 2;
   }
 

@@ -80,7 +80,7 @@ class UsageAnalytics {
    */
   async analyzeComponentUsage(component) {
     const cacheKey = `${component.id}-${component.last_modified}`;
-    
+
     if (this.usageCache.has(cacheKey)) {
       const cached = this.usageCache.get(cacheKey);
       if (Date.now() - cached.timestamp < this.cacheTimeout) {
@@ -225,7 +225,7 @@ class UsageAnalytics {
         if (!references.files.includes(relativePath)) {
           references.files.push(relativePath);
         }
-        
+
         foundReferences.locations.forEach(loc => {
           references.locations.push({
             file: relativePath,
@@ -395,7 +395,7 @@ class UsageAnalytics {
    */
   async findIndirectReferences(component) {
     const indirectRefs = { count: 0, files: [] };
-    
+
     // This would analyze dependency chains to find indirect usage
     // For now, return basic implementation
     return indirectRefs;
@@ -411,7 +411,7 @@ class UsageAnalytics {
       try {
         const fullPath = path.join(this.rootPath, file);
         const content = await fs.readFile(fullPath, 'utf-8');
-        
+
         const context = this.extractUsageContext(content, component, file);
         if (context) {
           contexts.push(context);
@@ -443,7 +443,7 @@ class UsageAnalytics {
     const directWeight = 1.0;
     const indirectWeight = 0.3;
     const fileWeight = 0.1;
-    
+
     return Math.round(
       (usage.direct_references * directWeight +
        usage.indirect_references * indirectWeight +
@@ -536,7 +536,7 @@ class UsageAnalytics {
    */
   async analyzeCrossReferences(components) {
     const crossRefs = {};
-    
+
     // This would analyze how components reference each other
     // For now, return basic structure
     return crossRefs;
@@ -549,7 +549,7 @@ class UsageAnalytics {
     const totalComponents = Object.keys(usage.component_usage).length;
     const usedComponents = totalComponents - usage.unused_components.length;
     const utilizationRate = usedComponents / totalComponents;
-    
+
     return Math.round(utilizationRate * 100);
   }
 

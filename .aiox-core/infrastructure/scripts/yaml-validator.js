@@ -134,9 +134,9 @@ class YAMLValidator {
       for (const [field, fieldRules] of Object.entries(rules.structure)) {
         if (data[field]) {
           this.validateFieldStructure(
-            data[field], 
-            field, 
-            fieldRules, 
+            data[field],
+            field,
+            fieldRules,
             results,
           );
         }
@@ -148,7 +148,7 @@ class YAMLValidator {
       ...(rules.required || []),
       ...(rules.optional || []),
     ];
-    
+
     for (const field of Object.keys(data)) {
       if (!allKnownFields.includes(field)) {
         results.warnings.push({
@@ -186,7 +186,7 @@ class YAMLValidator {
   validateFieldTypes(data, fieldName, results) {
     for (const [key, value] of Object.entries(data)) {
       const fullPath = `${fieldName}.${key}`;
-      
+
       // Check for null/undefined
       if (value === null || value === undefined) {
         results.warnings.push({
@@ -281,7 +281,7 @@ class YAMLValidator {
 
     // Validate the fixed content
     const validation = await this.validate(fixed, type);
-    
+
     return {
       content: fixed,
       validation,
@@ -303,7 +303,7 @@ class YAMLValidator {
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const trimmed = line.trim();
-      
+
       // Skip empty lines and comments
       if (!trimmed || trimmed.startsWith('#')) {
         fixedLines.push(line);
@@ -314,7 +314,7 @@ class YAMLValidator {
       if (trimmed.startsWith('-')) {
         const baseIndent = indentStack[indentStack.length - 1];
         fixedLines.push(' '.repeat(baseIndent) + trimmed);
-        
+
         // If list item has a key-value pair, prepare for nested content
         if (trimmed.includes(':') && !trimmed.endsWith(':')) {
           const afterDash = trimmed.substring(1).trim();
@@ -328,18 +328,18 @@ class YAMLValidator {
         // Find appropriate indent level
         const colonIndex = trimmed.indexOf(':');
         const key = trimmed.substring(0, colonIndex);
-        
+
         // Pop stack until we find the right level
-        while (indentStack.length > 1 && 
+        while (indentStack.length > 1 &&
                line.length - line.trimStart().length < indentStack[indentStack.length - 1]) {
           indentStack.pop();
         }
-        
+
         currentLevel = indentStack[indentStack.length - 1];
         fixedLines.push(' '.repeat(currentLevel) + trimmed);
-        
+
         // If this opens a new block, push new indent level
-        if (trimmed.endsWith(':') || (i + 1 < lines.length && lines[i + 1].trim() && 
+        if (trimmed.endsWith(':') || (i + 1 < lines.length && lines[i + 1].trim() &&
             lines[i + 1].length - lines[i + 1].trimStart().length > currentLevel)) {
           indentStack.push(currentLevel + 2);
         }
@@ -368,11 +368,11 @@ class YAMLValidator {
    */
   generateReport(validation) {
     const report = [];
-    
+
     report.push('YAML Validation Report');
     report.push('=====================');
     report.push(`Valid: ${validation.valid ? '✅ Yes' : '❌ No'}`);
-    
+
     if (validation.errors.length > 0) {
       report.push(`\nErrors (${validation.errors.length}):`);
       for (const error of validation.errors) {

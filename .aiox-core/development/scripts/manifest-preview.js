@@ -28,7 +28,7 @@ class ManifestPreview {
       // Read current manifest
       const currentContent = await fs.readFile(this.manifestPath, 'utf8');
       const manifest = yaml.load(currentContent);
-      
+
       // Create updated manifest
       const updatedManifest = this.addComponentToManifest(manifest, componentType, componentInfo);
       const updatedContent = yaml.dump(updatedManifest, {
@@ -37,10 +37,10 @@ class ManifestPreview {
         },
         sortKeys: false
       });
-      
+
       // Generate diff preview
       const diff = this.componentPreview.generateManifestDiff(currentContent, updatedContent);
-      
+
       return {
         success: true,
         diff,
@@ -62,17 +62,17 @@ class ManifestPreview {
    */
   addComponentToManifest(manifest, componentType, componentInfo) {
     const updated = JSON.parse(JSON.stringify(manifest)); // Deep clone
-    
+
     switch (componentType) {
       case 'agent':
         if (!updated.team) updated.team = {};
         if (!updated.team.agents) updated.team.agents = [];
-        
+
         // Check if agent already exists
         const existingAgentIndex = updated.team.agents.findIndex(
           a => a.id === componentInfo.id
         );
-        
+
         if (existingAgentIndex >= 0) {
           // Update existing
           updated.team.agents[existingAgentIndex] = {
@@ -91,14 +91,14 @@ class ManifestPreview {
           });
         }
         break;
-        
+
       case 'workflow':
         if (!updated.workflows) updated.workflows = [];
-        
+
         const existingWorkflowIndex = updated.workflows.findIndex(
           w => w.id === componentInfo.id
         );
-        
+
         if (existingWorkflowIndex >= 0) {
           updated.workflows[existingWorkflowIndex] = {
             id: componentInfo.id,
@@ -118,12 +118,12 @@ class ManifestPreview {
         }
         break;
     }
-    
+
     // Update metadata
     if (!updated.metadata) updated.metadata = {};
     updated.metadata.lastUpdated = new Date().toISOString();
     updated.metadata.version = this.incrementVersion(updated.metadata.version || '1.0.0');
-    
+
     return updated;
   }
 
@@ -143,11 +143,11 @@ class ManifestPreview {
    */
   summarizeChanges(oldManifest, newManifest) {
     const changes = [];
-    
+
     // Check agents
     const oldAgents = oldManifest.team?.agents || [];
     const newAgents = newManifest.team?.agents || [];
-    
+
     if (newAgents.length > oldAgents.length) {
       const added = newAgents.slice(oldAgents.length);
       added.forEach(agent => {
@@ -158,11 +158,11 @@ class ManifestPreview {
         });
       });
     }
-    
+
     // Check workflows
     const oldWorkflows = oldManifest.workflows || [];
     const newWorkflows = newManifest.workflows || [];
-    
+
     if (newWorkflows.length > oldWorkflows.length) {
       const added = newWorkflows.slice(oldWorkflows.length);
       added.forEach(workflow => {
@@ -173,7 +173,7 @@ class ManifestPreview {
         });
       });
     }
-    
+
     // Version change
     if (oldManifest.metadata?.version !== newManifest.metadata?.version) {
       changes.push({
@@ -183,7 +183,7 @@ class ManifestPreview {
         to: newManifest.metadata?.version
       });
     }
-    
+
     return changes;
   }
 
@@ -203,15 +203,15 @@ class ManifestPreview {
    */
   async interactiveManifestUpdate(componentType, componentInfo) {
     const preview = await this.previewManifestUpdate(componentType, componentInfo);
-    
+
     if (!preview.success) {
       console.log(chalk.red(`\n❌ Failed to preview manifest update: ${preview.error}`));
       return false;
     }
-    
+
     // Show diff
     console.log(preview.diff);
-    
+
     // Show change summary
     console.log(chalk.cyan('\n📋 Summary of changes:'));
     preview.changes.forEach(change => {
@@ -221,7 +221,7 @@ class ManifestPreview {
         console.log(chalk.yellow(`  ~ Updated ${change.category}: ${change.from} → ${change.to}`));
       }
     });
-    
+
     // Confirm update
     const inquirer = require('inquirer');
     const { confirm } = await inquirer.prompt([{
@@ -230,13 +230,13 @@ class ManifestPreview {
       message: 'Apply these changes to team-manifest.yaml?',
       default: true
     }]);
-    
+
     if (confirm) {
       await this.applyManifestUpdate(preview.updatedContent);
       console.log(chalk.green('\n✅ Manifest updated successfully!'));
       return true;
     }
-    
+
     console.log(chalk.yellow('\n⚠️  Manifest update cancelled'));
     return false;
   }

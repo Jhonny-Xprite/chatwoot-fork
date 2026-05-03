@@ -4,4 +4,4 @@ properties:
     type: array
     items:
       $ref: '#/components/schemas/contact_inbox'
-    description: List of contactable inboxes for the contact 
+    description: List of contactable inboxes for the contact

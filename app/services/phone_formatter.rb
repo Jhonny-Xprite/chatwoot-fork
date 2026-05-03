@@ -42,13 +42,10 @@ class PhoneFormatter
   # Validate international format (with country code)
   # @param phone [String] Phone with country code (e.g., +5511987654321)
   def validate_and_format_international(phone)
-    plus_sign = phone[0]
-    digits = phone[1..-1]
+    digits = phone[1..]
 
     # Validate: must have 1-15 digits after +
-    unless digits.match?(/^\d{1,15}$/)
-      raise PhoneFormatterError, "Invalid phone: #{@original_phone} (invalid format)"
-    end
+    raise PhoneFormatterError, "Invalid phone: #{@original_phone} (invalid format)" unless digits.match?(/^\d{1,15}$/)
 
     # Validate length (E.164 standard: 7-15 digits after country code)
     if digits.length < 7
@@ -68,7 +65,7 @@ class PhoneFormatter
   # @param digits [String] Pure digits (e.g., 11987654321)
   def validate_and_format_as_brazil(digits)
     # Remove leading zero if present (Brazilian landlines may have it)
-    digits = digits[1..-1] if digits.start_with?('0')
+    digits = digits[1..] if digits.start_with?('0')
 
     # Validate length (Brazilian: 10-11 digits, or international: any valid E.164)
     if digits.length < 7
@@ -107,12 +104,12 @@ class PhoneFormatter
     return phone unless phone.start_with?('+55')
 
     # Remove + and analyze
-    waid = phone[1..-1]
+    waid = phone[1..]
 
     # Brazilian number with 12 digits (55 + DDD + 8 digits) needs 9 added
     if waid.length == 12 && waid.start_with?('55')
       ddd = waid[2, 2]
-      number = waid[4..-1]
+      number = waid[4..]
       return "+55#{ddd}9#{number}"
     end
 

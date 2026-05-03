@@ -49,4 +49,4 @@ properties:
   type:
     type: string
     description: The type of entity
-    enum: ["contact"] 
+    enum: ["contact"]

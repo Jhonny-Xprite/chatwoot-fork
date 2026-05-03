@@ -164,10 +164,10 @@ describe DataImport::ContactManager do
 
     context 'with custom attributes' do
       let(:extended_mapping) do
-        mapping.merge({
+        mapping.merge(
           'Company' => 'custom_attribute:company',
           'Title' => 'custom_attribute:job_title'
-        })
+        )
       end
 
       let(:manager_with_custom) { described_class.new(account, extended_mapping) }
@@ -182,10 +182,10 @@ describe DataImport::ContactManager do
 
         contact = manager_with_custom.build_contact(row)
 
-        expect(contact.custom_attributes).to include({
+        expect(contact.custom_attributes).to include(
           'company' => 'Acme Corp',
           'job_title' => 'Manager'
-        })
+        )
       end
     end
   end

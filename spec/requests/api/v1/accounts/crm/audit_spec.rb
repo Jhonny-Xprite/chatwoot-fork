@@ -23,7 +23,7 @@ RSpec.describe 'CRM Module Audit', type: :request do
       pipeline1 = create(:crm_pipeline, account: account)
       pipeline2 = create(:crm_pipeline, account: account)
       stage = create(:crm_pipeline_stage, pipeline: pipeline1)
-      target_stage = create(:crm_pipeline_stage, pipeline: pipeline2)
+      create(:crm_pipeline_stage, pipeline: pipeline2)
 
       conversation = create(:conversation, account: account, pipeline: pipeline1, pipeline_stage: stage)
 
@@ -37,7 +37,8 @@ RSpec.describe 'CRM Module Audit', type: :request do
 
   describe 'Lead Scoring' do
     let!(:rule) do
-      create(:crm_lead_scoring_rule, account: account,
+      create(:crm_lead_scoring_rule,
+             account: account,
              attribute_model: 'contact_attribute',
              attribute_key: 'source',
              filter_operator: 'equal_to',
@@ -62,14 +63,14 @@ RSpec.describe 'CRM Module Audit', type: :request do
 
   describe 'Contact Import Traceability' do
     it 'logs and merges contacts during import' do
-      csv_content = <<~CSV
+      _csv_content = <<~CSV
         name,email,phone
         John Doe,john@example.com,+5511999999999
         Jane Smith,jane@example.com,invalid-phone
       CSV
 
       # Mock the DataImport object
-      data_import = create(:data_import, account: account)
+      _data_import = create(:data_import, account: account)
 
       # This is a unit test for the service since triggering a full job with CSV is complex in request spec
       manager = DataImport::ContactManager.new(account, { 'name' => 'name', 'email' => 'email', 'phone' => 'phone_number' })

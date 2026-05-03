@@ -1,19 +1,19 @@
 /**
  * Output Pattern Validator
- * 
+ *
  * Validates that formatted output follows the fixed structure:
  * - Header section exists
  * - Duration appears on line 7
  * - Tokens appears on line 8
  * - Status section before Output section
  * - Metrics section is last
- * 
+ *
  * Story: 6.1.6 - Output Formatter Implementation
  */
 
 /**
  * Output Pattern Validator
- * 
+ *
  * Validates task execution report structure compliance
  */
 class OutputPatternValidator {
@@ -28,10 +28,10 @@ class OutputPatternValidator {
 
     // Check required sections
     this._validateSections(output, errors);
-    
+
     // Check fixed line positions
     this._validateLinePositions(lines, errors);
-    
+
     // Check section order
     this._validateSectionOrder(output, errors);
 
@@ -91,11 +91,11 @@ class OutputPatternValidator {
     // Check Duration on line 7 (0-indexed: line 6, relative to header start)
     const expectedDurationLine = headerStart + 6; // Header is line 0, Duration should be line 6 (7th line)
     const expectedTokensLine = headerStart + 7; // Tokens should be line 7 (8th line)
-    
+
     // Find actual positions
     let actualDurationLine = -1;
     let actualTokensLine = -1;
-    
+
     for (let i = headerStart; i < Math.min(headerStart + 15, lines.length); i++) {
       if (lines[i].match(/^\*\*Duration:\*\*/)) {
         actualDurationLine = i;
@@ -104,7 +104,7 @@ class OutputPatternValidator {
         actualTokensLine = i;
       }
     }
-    
+
     // Validate Duration position
     if (actualDurationLine === -1) {
       errors.push({
@@ -177,7 +177,7 @@ class OutputPatternValidator {
     if (positions['Metrics'] !== undefined) {
       const metricsIndex = positions['Metrics'];
       const afterMetrics = output.substring(metricsIndex + 10); // Skip "### Metrics" marker
-      
+
       // Check if there are any other sections after Metrics
       const otherSections = ['Header', 'Status', 'Output'];
       for (const section of otherSections) {

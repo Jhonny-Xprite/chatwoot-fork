@@ -1,3 +1,4 @@
+# rubocop:disable Metrics/ClassLength
 class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
   include Sift
   sort_on :email, type: :string
@@ -52,7 +53,7 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
 
     # Valida se o mapping tem pelo menos um campo mapeado
     if mapping.is_a?(Hash) && mapping.empty?
-      Rails.logger.warn "[CRM] Importação falhou: mapeamento de colunas vazio"
+      Rails.logger.warn '[CRM] Importação falhou: mapeamento de colunas vazio'
       render json: { error: 'Please map at least one column' }, status: :unprocessable_entity and return
     end
 
@@ -245,3 +246,4 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     render json: error, status: error_status
   end
 end
+# rubocop:enable Metrics/ClassLength

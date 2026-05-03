@@ -7,4 +7,4 @@ properties:
     type: array
     items:
       $ref: '#/components/schemas/message_detailed'
-    description: List of messages in the conversation 
+    description: List of messages in the conversation

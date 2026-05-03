@@ -1,6 +1,6 @@
 class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::BaseController
   before_action :set_pipeline
-  before_action :set_stage, only: [:show, :update, :destroy]
+  before_action :set_stage, only: [:update, :destroy]
 
   def index
     @stages = @pipeline.stages.to_a
@@ -29,9 +29,10 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
     end
   end
 
+  # rubocop:disable Metrics/AbcSize, Metrics/MethodLength
   def reorder
     authorize @pipeline, :update?
-    
+
     # ATENÇÃO: MANTER COMO 'stages'. NÃO MUDAR PARA 'positions'.
     # O frontend envia o array completo de estágios para permitir renomear e reordenar simultaneamente.
     stages_params = params[:stages]
@@ -60,6 +61,7 @@ class Api::V1::Accounts::Crm::PipelineStagesController < Api::V1::Accounts::Base
   rescue ActiveRecord::RecordInvalid => e
     render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_entity
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
   def destroy
     authorize @stage

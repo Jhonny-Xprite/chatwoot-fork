@@ -46,7 +46,7 @@ class Api::V1::Accounts::Crm::PipelinesController < Api::V1::Accounts::BaseContr
 
   def destroy
     authorize @pipeline
-    
+
     # Tentativa de migração atômica via modelo
     begin
       @pipeline.destroy!

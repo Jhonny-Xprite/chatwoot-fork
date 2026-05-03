@@ -23,4 +23,4 @@ properties:
     description: Number of categories
   default_locale:
     type: string
-    description: Default locale for the portal 
+    description: Default locale for the portal

@@ -10,7 +10,7 @@ class MetricsTracker {
     this.rootPath = options.rootPath || process.cwd();
     this.metricsFile = path.join(this.rootPath, '.aiox', 'improvement-metrics.json');
     this.maxEntries = options.maxEntries || 1000;
-    
+
     // Metric categories
     this.categories = {
       performance: ['execution_time', 'memory_usage', 'cpu_usage'],
@@ -26,10 +26,10 @@ class MetricsTracker {
    */
   async initialize() {
     const metricsDir = path.dirname(this.metricsFile);
-    
+
     try {
       await fs.mkdir(metricsDir, { recursive: true });
-      
+
       // Initialize file if doesn't exist
       try {
         await fs.access(this.metricsFile);
@@ -54,9 +54,9 @@ class MetricsTracker {
    */
   async recordImprovement(improvement) {
     await this.initialize();
-    
+
     const metrics = await this.loadMetrics();
-    
+
     const entry = {
       improvement_id: improvement.improvement_id,
       timestamp: new Date().toISOString(),
@@ -68,20 +68,20 @@ class MetricsTracker {
     };
 
     metrics.improvements.push(entry);
-    
+
     // Keep only recent entries
     if (metrics.improvements.length > this.maxEntries) {
       metrics.improvements = metrics.improvements.slice(-this.maxEntries);
     }
-    
+
     // Update aggregates
     await this.updateAggregates(metrics, entry);
-    
+
     // Calculate trends
     metrics.trends = await this.calculateTrends(metrics);
-    
+
     await this.saveMetrics(metrics);
-    
+
     console.log(chalk.green(`📊 Metrics recorded for improvement: ${improvement.improvement_id}`));
   }
 
@@ -93,24 +93,24 @@ class MetricsTracker {
    */
   async updateOutcome(improvementId, outcome) {
     const metrics = await this.loadMetrics();
-    
+
     const entry = metrics.improvements.find(i => i.improvement_id === improvementId);
     if (!entry) {
       throw new Error(`Improvement not found: ${improvementId}`);
     }
-    
+
     entry.outcome = outcome.status; // 'success', 'failed', 'rolled_back'
     entry.outcome_details = outcome;
     entry.end_timestamp = new Date().toISOString();
-    
+
     // Calculate duration
     const start = new Date(entry.timestamp);
     const end = new Date(entry.end_timestamp);
     entry.duration_ms = end - start;
-    
+
     // Update aggregates based on outcome
     await this.updateOutcomeAggregates(metrics, entry);
-    
+
     await this.saveMetrics(metrics);
   }
 
@@ -122,11 +122,11 @@ class MetricsTracker {
   async getImprovementReport(improvementId) {
     const metrics = await this.loadMetrics();
     const entry = metrics.improvements.find(i => i.improvement_id === improvementId);
-    
+
     if (!entry) {
       throw new Error(`Improvement not found: ${improvementId}`);
     }
-    
+
     const report = {
       improvement_id: improvementId,
       timestamp: entry.timestamp,
@@ -137,7 +137,7 @@ class MetricsTracker {
       impact_summary: this.generateImpactSummary(entry),
       recommendations: this.generateRecommendations(entry)
     };
-    
+
     return report;
   }
 
@@ -149,12 +149,12 @@ class MetricsTracker {
   async getDashboard(options = {}) {
     const { period = '7d' } = options;
     const metrics = await this.loadMetrics();
-    
+
     const cutoff = this.getPeriodCutoff(period);
     const recentImprovements = metrics.improvements.filter(
       i => new Date(i.timestamp) > cutoff
     );
-    
+
     const dashboard = {
       period,
       summary: {
@@ -170,7 +170,7 @@ class MetricsTracker {
       top_improvements: this.getTopImprovements(recentImprovements, 5),
       recommendations: this.generateDashboardRecommendations(metrics)
     };
-    
+
     return dashboard;
   }
 
@@ -181,7 +181,7 @@ class MetricsTracker {
    */
   async generateAnalytics(options = {}) {
     const metrics = await this.loadMetrics();
-    
+
     const analytics = {
       generated: new Date().toISOString(),
       period: options.period || 'all-time',
@@ -204,7 +204,7 @@ class MetricsTracker {
       patterns: this.identifyPatterns(metrics.improvements),
       insights: this.generateInsights(metrics)
     };
-    
+
     return analytics;
   }
 
@@ -218,7 +218,7 @@ class MetricsTracker {
       projected: {},
       actual: {}
     };
-    
+
     // Baseline measurements from analysis
     if (improvement.analysis) {
       measurements.baseline = {
@@ -231,7 +231,7 @@ class MetricsTracker {
           : {}
       };
     }
-    
+
     // Projected improvements from plan
     if (improvement.plan) {
       measurements.projected = {
@@ -241,12 +241,12 @@ class MetricsTracker {
         files: improvement.plan.affectedFiles?.length || 0
       };
     }
-    
+
     // Actual measurements will be filled later
     measurements.actual = {
       timestamp: new Date().toISOString()
     };
-    
+
     return measurements;
   }
 
@@ -256,20 +256,20 @@ class MetricsTracker {
    */
   async updateAggregates(metrics, entry) {
     const agg = metrics.aggregates;
-    
+
     agg.total_improvements++;
-    
+
     if (entry.measurements.projected.files) {
       agg.total_files_modified += entry.measurements.projected.files;
     }
-    
+
     // Update category counts
     if (entry.plan && entry.plan.target_areas) {
       entry.plan.target_areas.forEach(area => {
         agg.improvements_by_category[area] = (agg.improvements_by_category[area] || 0) + 1;
       });
     }
-    
+
     // Update hourly distribution
     const hour = new Date(entry.timestamp).getHours();
     agg.improvements_by_hour[hour] = (agg.improvements_by_hour[hour] || 0) + 1;
@@ -281,7 +281,7 @@ class MetricsTracker {
    */
   async updateOutcomeAggregates(metrics, entry) {
     const agg = metrics.aggregates;
-    
+
     switch (entry.outcome) {
       case 'success':
         agg.successful_improvements++;
@@ -296,7 +296,7 @@ class MetricsTracker {
         agg.rolled_back_improvements++;
         break;
     }
-    
+
     // Update success rate
     const total = agg.successful_improvements + agg.failed_improvements + agg.rolled_back_improvements;
     agg.success_rate = total > 0 ? (agg.successful_improvements / total) * 100 : 0;
@@ -308,22 +308,22 @@ class MetricsTracker {
    */
   async calculateTrends(metrics) {
     const trends = {};
-    
+
     // Success rate trend (last 5 periods)
     const periods = 5;
     const periodLength = 7 * 24 * 60 * 60 * 1000; // 7 days
-    
+
     trends.success_rate = [];
-    
+
     for (let i = 0; i < periods; i++) {
       const end = Date.now() - (i * periodLength);
       const start = end - periodLength;
-      
+
       const periodImprovements = metrics.improvements.filter(imp => {
         const timestamp = new Date(imp.timestamp).getTime();
         return timestamp >= start && timestamp < end;
       });
-      
+
       const successRate = this.calculateSuccessRate(periodImprovements);
       trends.success_rate.unshift({
         period: i,
@@ -331,13 +331,13 @@ class MetricsTracker {
         count: periodImprovements.length
       });
     }
-    
+
     // Velocity trend
     trends.velocity = this.calculateVelocityTrend(metrics.improvements);
-    
+
     // Category trends
     trends.categories = this.calculateCategoryTrends(metrics.improvements);
-    
+
     return trends;
   }
 
@@ -348,7 +348,7 @@ class MetricsTracker {
   calculateSuccessRate(_improvements) {
     const completed = improvements.filter(i => i.outcome !== 'pending');
     if (completed.length === 0) return 0;
-    
+
     const successful = completed.filter(i => i.outcome === 'success').length;
     return (successful / completed.length) * 100;
   }
@@ -360,15 +360,15 @@ class MetricsTracker {
   calculateVelocityTrend(_improvements) {
     const last30Days = Date.now() - (30 * 24 * 60 * 60 * 1000);
     const last60Days = Date.now() - (60 * 24 * 60 * 60 * 1000);
-    
+
     const recent = improvements.filter(i => new Date(i.timestamp) > last30Days).length;
     const previous = improvements.filter(i => {
       const timestamp = new Date(i.timestamp);
       return timestamp > last60Days && timestamp <= last30Days;
     }).length;
-    
+
     const change = previous > 0 ? ((recent - previous) / previous) * 100 : 0;
-    
+
     return {
       current: recent,
       previous,
@@ -387,22 +387,22 @@ class MetricsTracker {
       magnitude: 'unknown',
       areas_affected: []
     };
-    
+
     if (entry.measurements.projected) {
       const files = entry.measurements.projected.files || 0;
-      
+
       if (files === 0) summary.scope = 'none';
       else if (files <= 3) summary.scope = 'small';
       else if (files <= 10) summary.scope = 'medium';
       else summary.scope = 'large';
-      
+
       summary.magnitude = entry.measurements.projected.impact || 'unknown';
     }
-    
+
     if (entry.plan && entry.plan.target_areas) {
       summary.areas_affected = entry.plan.target_areas;
     }
-    
+
     return summary;
   }
 
@@ -412,28 +412,28 @@ class MetricsTracker {
    */
   generateRecommendations(entry) {
     const recommendations = [];
-    
+
     if (entry.outcome === 'failed') {
       recommendations.push({
         type: 'investigation',
         message: 'Investigate failure cause and adjust validation criteria'
       });
     }
-    
+
     if (entry.outcome === 'rolled_back') {
       recommendations.push({
         type: 'review',
         message: 'Review rollback reasons and improve testing coverage'
       });
     }
-    
+
     if (entry.measurements.projected && entry.measurements.projected.risk === 'high') {
       recommendations.push({
         type: 'caution',
         message: 'Consider breaking high-risk improvements into smaller changes'
       });
     }
-    
+
     return recommendations;
   }
 
@@ -443,21 +443,21 @@ class MetricsTracker {
    */
   generateDashboardRecommendations(metrics) {
     const recommendations = [];
-    
+
     if (metrics.aggregates.success_rate < 70) {
       recommendations.push({
         priority: 'high',
         message: 'Success rate below 70% - review validation and testing processes'
       });
     }
-    
+
     if (metrics.aggregates.rolled_back_improvements > metrics.aggregates.successful_improvements * 0.2) {
       recommendations.push({
         priority: 'medium',
         message: 'High rollback rate detected - improve sandbox testing'
       });
     }
-    
+
     const recentTrend = metrics.trends.velocity;
     if (recentTrend && recentTrend.direction === 'down' && recentTrend.change < -50) {
       recommendations.push({
@@ -465,7 +465,7 @@ class MetricsTracker {
         message: 'Improvement velocity decreasing - consider process optimization'
       });
     }
-    
+
     return recommendations;
   }
 
@@ -500,7 +500,7 @@ class MetricsTracker {
       success_factors: [],
       time_patterns: {}
     };
-    
+
     // Analyze failures
     const failures = improvements.filter(i => i.outcome === 'failed');
     failures.forEach(f => {
@@ -510,20 +510,20 @@ class MetricsTracker {
         });
       }
     });
-    
+
     // Success patterns
     const successes = improvements.filter(i => i.outcome === 'success');
     if (successes.length > 0) {
-      const avgFiles = successes.reduce((sum, s) => 
+      const avgFiles = successes.reduce((sum, s) =>
         sum + (s.measurements.projected?.files || 0), 0) / successes.length;
-      
+
       patterns.success_factors.push({
         factor: 'optimal_file_count',
         value: Math.round(avgFiles),
         confidence: 0.7
       });
     }
-    
+
     return patterns;
   }
 
@@ -533,12 +533,12 @@ class MetricsTracker {
    */
   generateInsights(metrics) {
     const insights = [];
-    
+
     // Time-based insights
     const hourlyDist = metrics.aggregates.improvements_by_hour;
     const peakHour = Object.entries(hourlyDist)
       .sort(([,a], [,b]) => b - a)[0];
-    
+
     if (peakHour) {
       insights.push({
         type: 'timing',
@@ -546,12 +546,12 @@ class MetricsTracker {
         data: { hour: peakHour[0], count: peakHour[1] }
       });
     }
-    
+
     // Category insights
     const categories = metrics.aggregates.improvements_by_category;
     const topCategory = Object.entries(categories)
       .sort(([,a], [,b]) => b - a)[0];
-    
+
     if (topCategory) {
       insights.push({
         type: 'focus',
@@ -559,7 +559,7 @@ class MetricsTracker {
         data: { category: topCategory[0], count: topCategory[1] }
       });
     }
-    
+
     return insights;
   }
 
@@ -588,7 +588,7 @@ class MetricsTracker {
    */
   getPeriodCutoff(period) {
     const now = new Date();
-    
+
     switch (period) {
       case '24h':
         return new Date(now - 24 * 60 * 60 * 1000);
@@ -610,7 +610,7 @@ class MetricsTracker {
   calculateAverageDuration(_improvements) {
     const completed = improvements.filter(i => i.duration_ms);
     if (completed.length === 0) return 0;
-    
+
     const total = completed.reduce((sum, i) => sum + i.duration_ms, 0);
     return Math.round(total / completed.length);
   }
@@ -630,19 +630,19 @@ class MetricsTracker {
    * @private
    */
   calculateAverageImprovementScore(_improvements) {
-    const withScores = improvements.filter(i => 
-      i.measurements?.baseline?.overall_score && 
+    const withScores = improvements.filter(i =>
+      i.measurements?.baseline?.overall_score &&
       i.outcome === 'success'
     );
-    
+
     if (withScores.length === 0) return 0;
-    
+
     const totalImprovement = withScores.reduce((sum, i) => {
       const baseline = parseFloat(i.measurements.baseline.overall_score) || 0;
       const projected = baseline + (i.measurements.projected?.impact || 0);
       return sum + (projected - baseline);
     }, 0);
-    
+
     return (totalImprovement / withScores.length).toFixed(2);
   }
 
@@ -664,7 +664,7 @@ class MetricsTracker {
    */
   groupByCategory(_improvements) {
     const groups = {};
-    
+
     improvements.forEach(imp => {
       if (imp.plan && imp.plan.target_areas) {
         imp.plan.target_areas.forEach(area => {
@@ -672,7 +672,7 @@ class MetricsTracker {
         });
       }
     });
-    
+
     return groups;
   }
 
@@ -694,7 +694,7 @@ class MetricsTracker {
    */
   calculatePerformanceMetrics(_improvements) {
     const successful = improvements.filter(i => i.outcome === 'success');
-    
+
     return {
       average_duration: this.calculateAverageDuration(successful),
       fastest_improvement: successful
@@ -725,21 +725,21 @@ class MetricsTracker {
   calculateCategoryTrends(_improvements) {
     const trends = {};
     const categories = Object.keys(this.categories);
-    
+
     categories.forEach(cat => {
-      const catImprovements = improvements.filter(i => 
+      const catImprovements = improvements.filter(i =>
         i.plan?.target_areas?.includes(cat)
       );
-      
+
       trends[cat] = {
         total: catImprovements.length,
         success_rate: this.calculateSuccessRate(catImprovements),
-        recent_activity: catImprovements.filter(i => 
+        recent_activity: catImprovements.filter(i =>
           new Date(i.timestamp) > this.getPeriodCutoff('7d')
         ).length
       };
     });
-    
+
     return trends;
   }
 

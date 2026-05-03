@@ -143,7 +143,7 @@ class RefactoringSuggester {
 
       // Parse code
       const _ast = this.parseCode(_content, filePath);
-      
+
       // Calculate code metrics
       const _metrics = this.calculateCodeMetrics(_ast, content);
       this.codeMetrics.set(filePath, metrics);
@@ -252,7 +252,7 @@ class RefactoringSuggester {
       ArrowFunctionExpression: () => metrics.functions++,
       ClassDeclaration: () => metrics.classes++,
       ImportDeclaration: () => metrics.imports++,
-      
+
       IfStatement: {
         enter: () => {
           metrics.complexity++;
@@ -261,7 +261,7 @@ class RefactoringSuggester {
         },
         exit: () => currentNesting--
       },
-      
+
       SwitchStatement: () => metrics.complexity += 2,
       ForStatement: () => metrics.complexity++,
       WhileStatement: () => metrics.complexity++,
@@ -272,7 +272,7 @@ class RefactoringSuggester {
           metrics.complexity++;
         }
       },
-      
+
       Comment: () => metrics.comments++
     });
 
@@ -376,7 +376,7 @@ class RefactoringSuggester {
           });
         }
       },
-      
+
       SwitchStatement: (path) => {
         const cases = path.node.cases.length;
         if (cases > branchThreshold) {
@@ -412,7 +412,7 @@ class RefactoringSuggester {
           }
         }
       },
-      
+
       Identifier: (path) => {
         if (path.isReferencedIdentifier()) {
           const varName = path.node.name;
@@ -449,7 +449,7 @@ class RefactoringSuggester {
         if (parent.type === 'BlockStatement') {
           const siblings = parent.body;
           const currentIndex = siblings.indexOf(path.node);
-          
+
           for (let i = currentIndex + 1; i < siblings.length; i++) {
             deadCode.push({
               type: 'unreachable_code',
@@ -460,7 +460,7 @@ class RefactoringSuggester {
           }
         }
       },
-      
+
       // Unused functions
       FunctionDeclaration: (path) => {
         const functionName = path.node.id?.name;
@@ -473,7 +473,7 @@ class RefactoringSuggester {
           });
         }
       },
-      
+
       // Always false conditions
       IfStatement: (path) => {
         if (path.node.test.type === 'BooleanLiteral' && !path.node.test.value) {
@@ -499,7 +499,7 @@ class RefactoringSuggester {
       BlockStatement: (path) => {
         if (path.node.body.length >= minBlockSize) {
           const blockHash = this.hashCodeBlock(path.node);
-          
+
           if (codeBlocks.has(blockHash)) {
             const original = codeBlocks.get(blockHash);
             duplicates.push({
@@ -561,15 +561,15 @@ class RefactoringSuggester {
     traverse(_ast, {
       NumericLiteral: (path) => {
         const value = path.node.value;
-        
+
         // Skip common/obvious numbers
         if (ignoredNumbers.has(value)) return;
-        
+
         // Skip array indices
         if (path.parent.type === 'MemberExpression' && path.parent.computed) return;
-        
+
         // Skip in constant declarations
-        if (path.findParent(p => p.isVariableDeclarator() && 
+        if (path.findParent(p => p.isVariableDeclarator() &&
             p.parent.kind === 'const')) return;
 
         magicNumbers.push({
@@ -593,10 +593,10 @@ class RefactoringSuggester {
 
     traverse(_ast, {
       ClassDeclaration: (path) => {
-        const methods = path.node.body.body.filter(m => 
+        const methods = path.node.body.body.filter(m =>
           m.type === 'ClassMethod' || m.type === 'ClassProperty'
         );
-        
+
         const methodCount = methods.filter(m => m.type === 'ClassMethod').length;
         const propertyCount = methods.filter(m => m.type === 'ClassProperty').length;
 
@@ -790,28 +790,28 @@ class RefactoringSuggester {
     if (path.node.id) {
       return path.node.id.name;
     }
-    
+
     // Check if it's a method in a class
     if (path.parent.type === 'ClassMethod') {
       return path.parent.key.name;
     }
-    
+
     // Check if it's assigned to a variable
     if (path.parent.type === 'VariableDeclarator') {
       return path.parent.id.name;
     }
-    
+
     // Check if it's a property
     if (path.parent.type === 'ObjectProperty') {
       return path.parent.key.name || path.parent.key.value;
     }
-    
+
     return 'anonymous';
   }
 
   calculateMethodComplexity(path) {
     let complexity = 1;
-    
+
     traverse(path.node, {
       IfStatement: () => complexity++,
       ConditionalExpression: () => complexity++,
@@ -825,15 +825,15 @@ class RefactoringSuggester {
         }
       }
     }, path.scope, path);
-    
+
     return complexity;
   }
 
   calculateExpressionComplexity(node, depth = 0) {
     if (!node) return depth;
-    
+
     let maxDepth = depth;
-    
+
     // Check different expression types
     if (node.type === 'CallExpression') {
       maxDepth = Math.max(maxDepth, this.calculateExpressionComplexity(node.callee, depth + 1));
@@ -843,7 +843,7 @@ class RefactoringSuggester {
     } else if (node.type === 'MemberExpression') {
       maxDepth = Math.max(maxDepth, this.calculateExpressionComplexity(node.object, depth + 1));
     } else if (node.type === 'ConditionalExpression') {
-      maxDepth = Math.max(maxDepth, 
+      maxDepth = Math.max(maxDepth,
         this.calculateExpressionComplexity(node.test, depth + 1),
         this.calculateExpressionComplexity(node.consequent, depth + 1),
         this.calculateExpressionComplexity(node.alternate, depth + 1)
@@ -854,13 +854,13 @@ class RefactoringSuggester {
         this.calculateExpressionComplexity(node.right, depth + 1)
       );
     }
-    
+
     return maxDepth;
   }
 
   countConditionalBranches(path) {
     let branches = 1; // Initial if branch
-    
+
     let current = path.node;
     while (current.alternate) {
       branches++;
@@ -870,23 +870,23 @@ class RefactoringSuggester {
         break;
       }
     }
-    
+
     return branches;
   }
 
   isFunctionUsed(functionName, ast) {
     let used = false;
-    
+
     traverse(_ast, {
       CallExpression: (path) => {
-        if (path.node.callee.type === 'Identifier' && 
+        if (path.node.callee.type === 'Identifier' &&
             path.node.callee.name === functionName) {
           used = true;
           path.stop();
         }
       },
       Identifier: (path) => {
-        if (path.node.name === functionName && 
+        if (path.node.name === functionName &&
             path.isReferencedIdentifier() &&
             !path.isFunction()) {
           used = true;
@@ -894,7 +894,7 @@ class RefactoringSuggester {
         }
       }
     });
-    
+
     return used;
   }
 
@@ -1025,7 +1025,7 @@ class RefactoringSuggester {
       'ForStatement': 'LIMIT',
       'CallExpression': 'PARAMETER'
     };
-    
+
     const baseContext = contextMap[context] || 'VALUE';
     return `${baseContext}_${Math.abs(value).toString().replace('.', '_')}`;
   }
@@ -1035,11 +1035,11 @@ class RefactoringSuggester {
    */
   async applySuggestion(suggestion, options = {}) {
     console.log(chalk.blue(`🔧 Applying ${suggestion.type} refactoring...`));
-    
+
     try {
       // This would integrate with the actual refactoring implementation
       // For now, it's a placeholder showing the structure
-      
+
       const result = {
         success: false,
         changes: [],
@@ -1126,19 +1126,19 @@ class RefactoringSuggester {
     };
 
     let totalImpact = 0;
-    
+
     for (const suggestion of this.suggestions) {
       // By type
       stats.byType[suggestion.type] = (stats.byType[suggestion.type] || 0) + 1;
-      
+
       // By priority
       stats.byPriority[suggestion.priority]++;
-      
+
       // Impact
       totalImpact += suggestion.impact || 0;
     }
 
-    stats.averageImpact = stats.totalSuggestions > 0 ? 
+    stats.averageImpact = stats.totalSuggestions > 0 ?
       (totalImpact / stats.totalSuggestions).toFixed(2) : 0;
 
     return stats;

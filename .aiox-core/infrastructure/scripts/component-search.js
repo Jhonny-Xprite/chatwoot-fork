@@ -23,18 +23,18 @@ class ComponentSearch {
    */
   async findComponent(componentType, componentName) {
     const cacheKey = `${componentType}/${componentName}`;
-    
+
     if (this.componentCache.has(cacheKey)) {
       return this.componentCache.get(cacheKey);
     }
 
     try {
       const component = await this.searchComponent(componentType, componentName);
-      
+
       if (component) {
         this.componentCache.set(cacheKey, component);
       }
-      
+
       return component;
 
     } catch (error) {
@@ -60,7 +60,7 @@ class ComponentSearch {
     for (const searchPath of searchPaths) {
       try {
         await fs.access(searchPath);
-        
+
         // Try exact match first
         const exactMatch = await this.findExactMatch(searchPath, componentName, typeConfig.extension);
         if (exactMatch) {
@@ -95,10 +95,10 @@ class ComponentSearch {
 
     for (const filename of possibleNames) {
       const filePath = path.join(searchPath, filename);
-      
+
       try {
         await fs.access(filePath);
-        
+
         const component = await this.createComponentInfo(filePath, componentName);
         return component;
 
@@ -147,7 +147,7 @@ class ComponentSearch {
   async findSimilarComponents(componentType, componentName, limit = 5) {
     const suggestions = [];
     const typeConfig = this.componentTypes[componentType];
-    
+
     if (!typeConfig) {
       return suggestions;
     }
@@ -161,12 +161,12 @@ class ComponentSearch {
       try {
         await fs.access(searchPath);
         const files = await fs.readdir(searchPath);
-        
+
         for (const file of files) {
           if (path.extname(file) === typeConfig.extension) {
             const basename = path.basename(file, typeConfig.extension);
             const similarity = this.calculateSimilarity(componentName, basename);
-            
+
             if (similarity > 0.3 && similarity < 1.0) {
               suggestions.push({
                 type: componentType,
@@ -196,7 +196,7 @@ class ComponentSearch {
   calculateSimilarity(str1, str2) {
     const len1 = str1.length;
     const len2 = str2.length;
-    
+
     if (len1 === 0) return len2 === 0 ? 1 : 0;
     if (len2 === 0) return 0;
 
@@ -225,7 +225,7 @@ class ComponentSearch {
    */
   async createComponentInfo(filePath, componentName) {
     const componentType = this.inferComponentType(filePath);
-    
+
     const component = {
       id: `${componentType}/${componentName}`,
       type: componentType,
@@ -247,7 +247,7 @@ class ComponentSearch {
         return type;
       }
     }
-    
+
     return 'unknown';
   }
 
