@@ -1,0 +1,207 @@
+// scss-lint:disable PropertySortOrder
+// ═══════════════════════════════════════════════════════════════════════════
+// SEMANTIC COLOR TOKENS — Component Intent Mapping
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Maps color INTENT (primary, secondary, error, success) to actual color
+// values from Radix palette. Allows swapping colors globally without changing
+// component code.
+//
+// Examples:
+//   var(--color-primary-bg)     → iris-5 (light blue background)
+//   var(--color-primary-text)   → iris-12 (dark blue text)
+//   var(--color-error-border)   → ruby-6 (red border)
+//   var(--color-success-badge)  → teal-9 (green accent)
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+@layer base {
+  :root {
+    // ─────────────────────────────────────────────────────────────────────
+    // PRIMARY COLOR INTENT (Brand color, main actions)
+    // Maps to: Iris (blue) palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-primary-bg: rgb(var(--iris-3));          // Very light iris for backgrounds
+    --color-primary-bg-hover: rgb(var(--iris-4));    // Slightly darker on hover
+    --color-primary-border: rgb(var(--iris-6));      // Border
+    --color-primary-border-strong: rgb(var(--iris-9));  // Strong border/outline
+    --color-primary-text: rgb(var(--iris-12));       // Dark text
+    --color-primary-text-subtle: rgb(var(--iris-11));   // Subtle text (secondary)
+    --color-primary-badge: rgb(var(--iris-9));       // Badge background
+    --color-primary-solid: rgb(var(--iris-9));       // Solid button background
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SECONDARY COLOR INTENT (Alternative actions, less emphasis)
+    // Maps to: Violet (purple) palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-secondary-bg: rgb(var(--violet-3));
+    --color-secondary-bg-hover: rgb(var(--violet-4));
+    --color-secondary-border: rgb(var(--violet-6));
+    --color-secondary-border-strong: rgb(var(--violet-9));
+    --color-secondary-text: rgb(var(--violet-12));
+    --color-secondary-text-subtle: rgb(var(--violet-11));
+    --color-secondary-badge: rgb(var(--violet-9));
+    --color-secondary-solid: rgb(var(--violet-9));
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SUCCESS COLOR INTENT (Positive actions, confirmations, achievements)
+    // Maps to: Teal (green) palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-success-bg: rgb(var(--teal-3));
+    --color-success-bg-hover: rgb(var(--teal-4));
+    --color-success-border: rgb(var(--teal-6));
+    --color-success-border-strong: rgb(var(--teal-9));
+    --color-success-text: rgb(var(--teal-12));
+    --color-success-text-subtle: rgb(var(--teal-11));
+    --color-success-badge: rgb(var(--teal-9));
+    --color-success-solid: rgb(var(--teal-9));
+    --color-success-icon: rgb(var(--teal-9));
+
+    // ─────────────────────────────────────────────────────────────────────
+    // WARNING COLOR INTENT (Cautions, alerts, attention needed)
+    // Maps to: Amber (orange/yellow) palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-warning-bg: rgb(var(--amber-3));
+    --color-warning-bg-hover: rgb(var(--amber-4));
+    --color-warning-border: rgb(var(--amber-6));
+    --color-warning-border-strong: rgb(var(--amber-9));
+    --color-warning-text: rgb(var(--amber-12));
+    --color-warning-text-subtle: rgb(var(--amber-11));
+    --color-warning-badge: rgb(var(--amber-9));
+    --color-warning-solid: rgb(var(--amber-9));
+    --color-warning-icon: rgb(var(--amber-9));
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ERROR COLOR INTENT (Errors, deletions, destructive actions)
+    // Maps to: Ruby (red) palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-error-bg: rgb(var(--ruby-3));
+    --color-error-bg-hover: rgb(var(--ruby-4));
+    --color-error-border: rgb(var(--ruby-6));
+    --color-error-border-strong: rgb(var(--ruby-9));
+    --color-error-text: rgb(var(--ruby-12));
+    --color-error-text-subtle: rgb(var(--ruby-11));
+    --color-error-badge: rgb(var(--ruby-9));
+    --color-error-solid: rgb(var(--ruby-9));
+    --color-error-icon: rgb(var(--ruby-9));
+
+    // ─────────────────────────────────────────────────────────────────────
+    // INFO COLOR INTENT (Information, neutral communication)
+    // Maps to: Blue palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-info-bg: rgb(var(--blue-3));
+    --color-info-bg-hover: rgb(var(--blue-4));
+    --color-info-border: rgb(var(--blue-6));
+    --color-info-border-strong: rgb(var(--blue-9));
+    --color-info-text: rgb(var(--blue-12));
+    --color-info-text-subtle: rgb(var(--blue-11));
+    --color-info-badge: rgb(var(--blue-9));
+    --color-info-solid: rgb(var(--blue-9));
+
+    // ─────────────────────────────────────────────────────────────────────
+    // NEUTRAL COLOR INTENT (Default, disabled, neutral states)
+    // Maps to: Slate (gray) palette
+    // ─────────────────────────────────────────────────────────────────────
+    --color-neutral-bg: rgb(var(--slate-3));
+    --color-neutral-bg-hover: rgb(var(--slate-4));
+    --color-neutral-border: rgb(var(--slate-6));
+    --color-neutral-border-strong: rgb(var(--slate-9));
+    --color-neutral-text: rgb(var(--slate-12));
+    --color-neutral-text-subtle: rgb(var(--slate-11));
+    --color-neutral-text-muted: rgb(var(--slate-10));
+    --color-neutral-badge: rgb(var(--slate-9));
+    --color-neutral-disabled: rgb(var(--slate-8));
+
+    // ─────────────────────────────────────────────────────────────────────
+    // COMPONENT-SPECIFIC SEMANTIC COLORS
+    // ─────────────────────────────────────────────────────────────────────
+
+    // Button colors
+    --color-button-primary-bg: var(--color-primary-solid);
+    --color-button-primary-text: rgb(var(--slate-1));
+    --color-button-primary-hover: rgb(var(--iris-10));
+    --color-button-secondary-bg: var(--color-secondary-solid);
+    --color-button-secondary-text: rgb(var(--slate-1));
+    --color-button-ghost-text: var(--color-primary-text);
+    --color-button-ghost-hover: var(--color-primary-bg-hover);
+    --color-button-disabled-bg: var(--color-neutral-disabled);
+    --color-button-disabled-text: rgb(var(--slate-8));
+
+    // Form colors
+    --color-input-bg: rgb(var(--slate-2));
+    --color-input-border: var(--color-neutral-border);
+    --color-input-border-focus: var(--color-primary-border-strong);
+    --color-input-text: var(--color-neutral-text);
+    --color-input-placeholder: rgb(var(--slate-9));
+
+    // Label & badge colors
+    --color-label-bg: var(--color-primary-badge);
+    --color-label-text: rgb(var(--slate-1));
+    --color-badge-bg: var(--color-neutral-badge);
+    --color-badge-text: rgb(var(--slate-12));
+
+    // Alert/notification colors
+    --color-alert-error-bg: rgb(var(--ruby-2));
+    --color-alert-error-text: var(--color-error-text);
+    --color-alert-error-border: var(--color-error-border);
+    --color-alert-success-bg: rgb(var(--teal-2));
+    --color-alert-success-text: var(--color-success-text);
+    --color-alert-success-border: var(--color-success-border);
+    --color-alert-warning-bg: rgb(var(--amber-2));
+    --color-alert-warning-text: var(--color-warning-text);
+    --color-alert-warning-border: var(--color-warning-border);
+    --color-alert-info-bg: rgb(var(--blue-2));
+    --color-alert-info-text: var(--color-info-text);
+    --color-alert-info-border: var(--color-info-border);
+  }
+
+  .dark {
+    // Dark mode: Colors automatically invert due to Radix palette
+    // The same semantic tokens work, but with darker mode colors
+    // Example: --iris-9 is blue in light mode, becomes lighter blue in dark
+    // No additional changes needed here - CSS variables handle it
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// USAGE GUIDE
+// ═════════════════════════════════════════════════════════════════════════
+//
+// BEFORE (hardcoded colors):
+//   .button {
+//     background: rgb(var(--iris-9));
+//     color: rgb(var(--slate-1));
+//   }
+//
+// AFTER (semantic tokens):
+//   .button {
+//     background: var(--color-button-primary-bg);
+//     color: var(--color-button-primary-text);
+//   }
+//
+// Benefits:
+// • Intent is clear: "primary button" not "iris-9"
+// • Easy to swap: change --color-primary-solid, all primaries update
+// • Dark mode: automatic (Radix handles inversion)
+// • Component tokens: --color-button-* for button-specific colors
+//
+// ═════════════════════════════════════════════════════════════════════════
+// TAILWIND INTEGRATION
+// ═════════════════════════════════════════════════════════════════════════
+//
+// In tailwind.config.js, extend colors:
+//
+//   theme: {
+//     extend: {
+//       colors: {
+//         'semantic-primary': 'var(--color-primary-solid)',
+//         'semantic-success': 'var(--color-success-solid)',
+//         'semantic-error': 'var(--color-error-solid)',
+//       }
+//     }
+//   }
+//
+// Usage in Vue:
+//   <button class="bg-semantic-primary text-white">Primary</button>
+//
+// ═════════════════════════════════════════════════════════════════════════

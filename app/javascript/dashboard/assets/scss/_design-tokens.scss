@@ -7,15 +7,19 @@
 //
 // Token Categories:
 // 1. Colors (from _next-colors.scss)
-// 2. Spacing (from _spacing-tokens.scss)
-// 3. Typography (from _typography-tokens.scss)
-// 4. Shadows & Elevation (from _shadow-tokens.scss)
-// 5. Z-Index Hierarchy (from _z-index-tokens.scss)
+// 2. Semantic Colors (from _semantic-color-tokens.scss)
+// 3. Spacing (from _spacing-tokens.scss)
+// 4. Typography (from _typography-tokens.scss)
+// 5. Shadows & Elevation (from _shadow-tokens.scss)
+// 6. Z-Index Hierarchy (from _z-index-tokens.scss)
 //
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Color tokens (Radix UI scale + semantic colors)
+// Color tokens (Radix UI scale)
 @import 'next-colors';
+
+// Semantic color tokens (Intent-based: primary, secondary, error, success, warning, neutral, info)
+@import 'semantic-color-tokens';
 
 // Spacing scale (4px baseline)
 @import 'spacing-tokens';
