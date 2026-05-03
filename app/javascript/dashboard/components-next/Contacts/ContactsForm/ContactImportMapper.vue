@@ -5,6 +5,7 @@ import { useStore, useMapGetter } from 'dashboard/composables/store';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
+import Select from 'dashboard/components-next/select/Select.vue';
 
 const props = defineProps({
   file: { type: File, required: true },
@@ -48,6 +49,29 @@ const availableFields = computed(() => {
     });
   });
   return fields;
+});
+
+const mappingGroups = computed(() => {
+  const groups = [
+    {
+      label: t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.STANDARD_FIELDS'),
+      options: standardFields.map(f => ({ value: f.key, label: f.label })),
+    },
+  ];
+
+  if (contactAttributes.value.length) {
+    groups.push({
+      label: t(
+        'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CUSTOM_ATTRIBUTES'
+      ),
+      options: contactAttributes.value.map(attr => ({
+        value: `custom_attribute:${attr.attributeKey}`,
+        label: attr.attributeDisplayName,
+      })),
+    });
+  }
+
+  return groups;
 });
 
 const AUTO_MAPPING_DICTIONARY = {
@@ -245,7 +269,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full gap-4 overflow-hidden min-h-[400px]">
+  <div class="flex flex-col gap-4 overflow-hidden">
     <div class="flex items-center justify-between gap-1">
       <div class="flex flex-col">
         <h3 class="text-lg font-semibold text-n-slate-12">
@@ -263,34 +287,35 @@ onMounted(() => {
         variant="ghost"
         color="blue"
         size="sm"
+        class="shrink-0"
         @click="openCreateAttributeModal"
       />
     </div>
 
     <div
-      class="flex-1 overflow-y-auto border rounded-xl border-n-strong bg-n-alpha-1"
+      class="overflow-y-auto border rounded-xl border-n-strong bg-n-alpha-1 max-h-[60vh]"
     >
-      <table class="w-full text-left border-collapse">
+      <table class="w-full text-left border-collapse table-fixed">
         <thead
           class="sticky top-0 z-10 bg-n-surface-2 border-b border-n-strong shadow-sm"
         >
           <tr>
             <th
-              class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider"
+              class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider w-1/3"
             >
               {{
                 t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.COLUMN_HEADER')
               }}
             </th>
             <th
-              class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider"
+              class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider w-1/4"
             >
               {{
                 t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.EXAMPLE_VALUE')
               }}
             </th>
             <th
-              class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider"
+              class="px-4 py-3 text-xs font-semibold uppercase text-n-slate-11 tracking-wider w-5/12"
             >
               {{
                 t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CHATWOOT_FIELD')
@@ -304,63 +329,30 @@ onMounted(() => {
             :key="header"
             class="group hover:bg-n-alpha-2 transition-colors"
           >
-            <td class="px-4 py-3">
+            <td class="px-4 py-3 truncate" :title="header">
               <span class="text-sm font-medium text-n-slate-12">{{
                 header
               }}</span>
             </td>
             <td class="px-4 py-3">
               <span
-                class="text-sm text-n-slate-10 italic truncate max-w-[200px] block"
+                class="text-sm text-n-slate-10 italic truncate block"
                 :title="previewRow[header]"
               >
                 {{ previewRow[header] || '-' }}
               </span>
             </td>
             <td class="px-4 py-3">
-              <select
+              <Select
                 v-model="mapping[header]"
-                class="w-full h-9 px-3 text-sm rounded-lg bg-n-surface-1 border border-n-strong focus:outline-none focus:ring-2 focus:ring-n-blue-8 transition-all appearance-none cursor-pointer hover:border-n-blue-7"
-              >
-                <option value="">
-                  {{
-                    t(
-                      'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.DO_NOT_IMPORT'
-                    )
-                  }}
-                </option>
-                <optgroup
-                  :label="
-                    t(
-                      'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.STANDARD_FIELDS'
-                    )
-                  "
-                >
-                  <option
-                    v-for="field in standardFields"
-                    :key="field.key"
-                    :value="field.key"
-                  >
-                    {{ field.label }}
-                  </option>
-                </optgroup>
-                <optgroup
-                  v-if="contactAttributes.length"
-                  :label="
-                    t(
-                      'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.CUSTOM_ATTRIBUTES'
-                    )
-                  "
-                >
-                  <option
-                    v-for="attr in contactAttributes"
-                    :key="attr.attributeKey"
-                    :value="`custom_attribute:${attr.attributeKey}`"
-                  >
-                    {{ attr.attributeDisplayName }}
-                  </option>
-                </optgroup>
-              </select>
+                class="!w-full"
+                :groups="mappingGroups"
+                :placeholder="
+                  t(
+                    'CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_MAPPER.DO_NOT_IMPORT'
+                  )
+                "
+              />
             </td>
           </tr>
         </tbody>

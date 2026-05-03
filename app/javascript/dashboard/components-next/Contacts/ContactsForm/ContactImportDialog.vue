@@ -67,8 +67,9 @@ defineExpose({ dialogRef });
     :title="t('CONTACTS_LAYOUT.HEADER.ACTIONS.IMPORT_CONTACT.TITLE')"
     :is-loading="isImportingContact"
     :disable-confirm-button="isImportingContact || !hasSelectedFile"
-    :show-footer="!showMapper"
-    size="medium"
+    :show-confirm-button="!showMapper"
+    :show-cancel-button="!showMapper"
+    width="xl"
     @confirm="proceedToMapping"
   >
     <template v-if="!showMapper" #description>

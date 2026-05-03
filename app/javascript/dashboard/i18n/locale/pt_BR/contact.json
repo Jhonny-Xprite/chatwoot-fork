@@ -328,6 +328,35 @@
           "SUCCESS_MESSAGE": "Você será notificado por e-mail quando a importação estiver concluída.",
           "ERROR_MESSAGE": "Ocorreu um erro, por favor tente novamente"
         },
+        "IMPORT_MAPPER": {
+          "TITLE": "Mapear Colunas do CSV",
+          "DESCRIPTION": "Associe as colunas da sua planilha aos campos do Chatwoot.",
+          "CANCEL": "Cancelar",
+          "PROCEED": "Iniciar Importação",
+          "COLUMN_HEADER": "Coluna no CSV",
+          "EXAMPLE_VALUE": "Valor de Exemplo",
+          "CHATWOOT_FIELD": "Campo no Chatwoot",
+          "DO_NOT_IMPORT": "Não importar",
+          "STANDARD_FIELDS": "Campos Padrão",
+          "CUSTOM_ATTRIBUTES": "Atributos Personalizados",
+          "CREATE_NEW_FIELD": "Criar Novo Campo",
+          "CREATE_ATTRIBUTE_DIALOG": {
+            "TITLE": "Criar Atributo Personalizado",
+            "CONFIRM": "Criar Campo",
+            "FIELD_NAME": {
+              "LABEL": "Nome do Campo",
+              "PLACEHOLDER": "Ex: Nível de Vendas"
+            },
+            "FIELD_TYPE": {
+              "LABEL": "Tipo do Campo",
+              "TEXT": "Texto",
+              "NUMBER": "Número",
+              "DATE": "Data",
+              "LINK": "Link",
+              "CHECKBOX": "Caixa de Seleção"
+            }
+          }
+        },
         "EXPORT_CONTACT": {
           "TITLE": "Exportar contatos",
           "DESCRIPTION": "Exporte rapidamente um arquivo CSV com detalhes completos dos seus contatos",
