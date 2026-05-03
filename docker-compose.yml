@@ -7,8 +7,8 @@ x-chatwoot-build: &chatwoot-build
 services:
   # --- Banco de Dados PostgreSQL ---
   postgres:
-    container_name: chatwoot-postgres
-    image: pgvector/pgvector:pg17 # Versão 17 com suporte a vetores
+    # container_name removido para evitar conflitos em deploys paralelos (staging/prod)
+    image: pgvector/pgvector:pg17
     environment:
       POSTGRES_DB: ${POSTGRES_DATABASE:-chatwoot_production}
       POSTGRES_USER: ${POSTGRES_USERNAME:-chatwoot_prod}
@@ -24,7 +24,6 @@ services:
 
   # --- Cache e Filas Redis ---
   redis:
-    container_name: chatwoot-redis
     image: valkey/valkey:7.2.5-alpine
     command: valkey-server --appendonly yes
     volumes:
@@ -38,7 +37,6 @@ services:
 
   # --- Servidor Principal do Chatwoot (Web) ---
   chatwoot:
-    container_name: chatwoot-web
     image: *chatwoot-image
     build: *chatwoot-build
     env_file:
@@ -46,16 +44,12 @@ services:
     environment:
       - RAILS_ENV=production
       - NODE_ENV=production
-      
-      # Automação de Usuário e Onboarding
       - INSTALLATION_OWNER_EMAIL=${INSTALLATION_OWNER_EMAIL:-contato@aiox.com.br}
       - INSTALLATION_OWNER_PASSWORD=${INSTALLATION_OWNER_PASSWORD:-Chatwoot123!}
       - INSTALLATION_OWNER_NAME=${INSTALLATION_OWNER_NAME:-Admin AIOX}
       - DEFAULT_LOCALE=pt_BR
       - ENABLE_ACCOUNT_SIGNUP=false
-      
-      # Segurança e Conectividade
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE:-840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d}
       - POSTGRES_HOST=postgres
       - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
@@ -80,7 +74,6 @@ services:
 
   # --- Processador de Fundo (Sidekiq) ---
   sidekiq:
-    container_name: chatwoot-sidekiq
     image: *chatwoot-image
     build: *chatwoot-build
     env_file:
@@ -88,7 +81,7 @@ services:
     environment:
       - RAILS_ENV=production
       - NODE_ENV=production
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE:-840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d}
       - POSTGRES_HOST=postgres
       - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
       - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
