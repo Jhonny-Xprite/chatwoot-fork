@@ -39,7 +39,7 @@ const isLoading = computed(() =>
 );
 
 const dragOptions = computed(() => ({
-  animation: 200,
+  animation: 300,
   group: 'conversations',
   disabled: false,
   ghostClass: 'sortable-ghost',
@@ -152,18 +152,28 @@ const onDragChange = event => {
 }
 
 .sortable-ghost {
-  background: var(--n-brand-primary-alpha-1);
-  border: 2px dashed var(--n-brand-primary-alpha-3) !important;
-  opacity: 0.6;
-  transform: scale(0.98);
+  background: var(--n-alpha-1) !important;
+  border: 2px dashed var(--n-brand-primary) !important;
+  opacity: 0.4;
+  transform: scale(0.96);
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: none !important;
 }
 
 .sortable-drag {
-  z-index: 1000;
-  transform: rotate(1.5deg) scale(1.02);
-  box-shadow: var(--shadow-n-brand-primary-lg);
-  cursor: grabbing;
+  z-index: 9999 !important;
+  transform: rotate(2deg) scale(1.04) !important;
+  box-shadow:
+    0 20px 25px -5px rgba(39, 129, 246, 0.2),
+    0 10px 10px -5px rgba(39, 129, 246, 0.1) !important;
+  cursor: grabbing !important;
+  opacity: 1 !important;
+  pointer-events: none;
+}
+
+.sortable-chosen {
+  background: var(--n-alpha-2) !important;
+  border-color: var(--n-brand-primary) !important;
 }
 
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
