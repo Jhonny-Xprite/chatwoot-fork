@@ -190,7 +190,7 @@ ja:
       conversation_id: 会話ID
       sla_policy_breached: SLAポリシー
       assignee: 担当者
-      team: チー�
+      team: チー�
       inbox: 受信トレイ
       labels: ラベル
       conversation_link: 会話へのリンク
@@ -394,7 +394,7 @@ ja:
     hero:
       sub_title: ここで記事を検索するか、以下のカテゴリを参照してください。
     common:
-      home: ホー�
+      home: ホー�
       last_updated_on: 最終更新日 %{last_updated_on}
       view_all_articles: すべて表示
       article: 記事
@@ -411,7 +411,7 @@ ja:
       go_to_homepage: ウェブサイト
       visit_website: Visit website
       appearance:
-        system: システ�
+        system: システ�
         light: ライト
         dark: ダーク
       featured_articles: 注目の記事
