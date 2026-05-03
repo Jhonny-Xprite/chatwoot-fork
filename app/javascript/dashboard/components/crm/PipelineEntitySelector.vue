@@ -128,10 +128,7 @@ const badgeStyle = computed(() => {
         class="flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[10px] font-bold transition-all hover:brightness-95 active:scale-95 whitespace-nowrap"
         :style="badgeStyle"
       >
-        <span
-          class="w-1.5 h-1.5 rounded-full"
-          :style="{ backgroundColor: currentStage.color }"
-        />
+        <span class="w-1.5 h-1.5 rounded-full" : />
         {{ currentStage.name }}
         <i class="i-lucide-chevron-down size-3 opacity-70" />
       </button>
@@ -151,10 +148,7 @@ const badgeStyle = computed(() => {
           @action="handleStageAction($event, hide)"
         >
           <template #thumbnail="{ item }">
-            <div
-              class="size-2 rounded-full"
-              :style="{ backgroundColor: item.thumbnail.color }"
-            />
+            <div class="size-2 rounded-full" : />
           </template>
         </DropdownMenu>
       </template>

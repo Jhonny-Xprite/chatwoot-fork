@@ -53,7 +53,7 @@ const generateImage = async () => {
       'bg-[#f87171]': '#f87171',
       'bg-[#fbbf24]': '#fbbf24',
     };
-    const bgColor = colorMap[props.slideBackground] || '#ffffff';
+    const bgColor = colorMap[props.slideBackground] || var(--n-slate-0);
 
     const dataUrl = await toPng(slideElement, {
       pixelRatio: 1.2,

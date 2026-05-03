@@ -93,19 +93,14 @@ export default {
     </span>
     <span
       v-if="['smooth', 'dashed'].includes(variant) && title && !icon"
-      :style="{ background: color }"
+      :
       class="label-color-dot flex-shrink-0"
     />
     <span v-if="!href" class="whitespace-nowrap text-ellipsis overflow-hidden">
       {{ title }}
     </span>
     <a v-else :href="href" :style="anchorStyle">{{ title }}</a>
-    <button
-      v-if="showClose"
-      class="label-close--button p-0"
-      :style="{ color: textColor }"
-      @click="onClick"
-    >
+    <button v-if="showClose" class="label-close--button p-0" : @click="onClick">
       <fluent-icon icon="dismiss" size="12" class="close--icon" />
     </button>
   </div>

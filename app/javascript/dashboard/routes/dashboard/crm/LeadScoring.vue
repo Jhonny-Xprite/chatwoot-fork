@@ -77,16 +77,31 @@ const attributeModels = computed(() => [
 // Filtra os atributos baseados na origem selecionada
 const availableAttributes = computed(() => {
   if (newRule.value.attribute_model === 'contact_attribute') {
-    return contactAttributes.value.map(a => ({
+    const customAttrs = contactAttributes.value.map(a => ({
       label: a.attributeDisplayName,
       value: a.attributeKey,
     }));
+    const standardAttrs = [
+      { label: 'Email', value: 'email' },
+      { label: 'Phone Number', value: 'phone_number' },
+      { label: 'Name', value: 'name' },
+      { label: 'Identifier', value: 'identifier' },
+      { label: 'City', value: 'city' },
+      { label: 'Country', value: 'country_code' },
+    ];
+    return [...standardAttrs, ...customAttrs];
   }
   if (newRule.value.attribute_model === 'conversation_attribute') {
-    return conversationAttributes.value.map(a => ({
+    const customAttrs = conversationAttributes.value.map(a => ({
       label: a.attributeDisplayName,
       value: a.attributeKey,
     }));
+    const standardAttrs = [
+      { label: 'Status', value: 'status' },
+      { label: 'Channel', value: 'channel' },
+      { label: 'Priority', value: 'priority' },
+    ];
+    return [...standardAttrs, ...customAttrs];
   }
   return [{ label: t('CRM.LABELS'), value: 'labels' }];
 });

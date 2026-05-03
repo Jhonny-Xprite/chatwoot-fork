@@ -45,7 +45,6 @@ const stageCount = computed(() => {
 const isLoading = computed(() =>
   store.getters['crmPipeline/isStageLoading'](props.stage.id)
 );
-
 const dragOptions = computed(() => ({
   animation: 300,
   group: 'conversations',
