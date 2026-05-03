@@ -88,9 +88,9 @@ watch(
 
 <template>
   <div
-    class="relative flex flex-col w-full px-4 py-3 cursor-pointer conversation border-b border-n-slate-3/20 dark:border-n-slate-2/10 transition-all duration-300 group"
+    class="relative flex min-h-[92px] w-full flex-col px-4 py-3 cursor-pointer conversation border-b border-n-slate-3/20 dark:border-n-slate-2/10 transition-colors duration-200 group"
     :class="{
-      'active-premium bg-white/60 dark:bg-n-slate-1/60 shadow-2xl shadow-n-brand-primary/10 z-20':
+      'active-premium bg-white/70 dark:bg-n-slate-1/70 shadow-sm ring-1 ring-inset ring-n-brand-primary/20 z-10':
         isActiveChat,
       'selected bg-n-brand-primary/5': selected,
       '!px-2 !py-2': compact,
@@ -101,7 +101,7 @@ watch(
     <!-- Background Blur Effect for Active Chat -->
     <div
       v-if="isActiveChat"
-      class="absolute inset-0 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-xl -z-10 rounded-xl"
+      class="absolute inset-0 bg-white/30 dark:bg-n-slate-1/30 backdrop-blur-md -z-10"
     />
 
     <div class="flex items-start gap-3">
@@ -117,7 +117,7 @@ watch(
           :src="currentContact.thumbnail"
           :size="compact ? 32 : 44"
           :status="currentContact.availability_status"
-          class="!rounded-2xl shadow-sm border border-white dark:border-n-slate-2/50 group-hover:scale-105 transition-transform duration-300"
+          class="!rounded-2xl shadow-sm border border-white dark:border-n-slate-2/50"
           hide-offline-status
         >
           <template #overlay="{ size }">
@@ -190,7 +190,7 @@ watch(
           <UnreadBadge
             v-if="hasUnread"
             :count="unreadCount"
-            class="shadow-xl shadow-n-brand-primary/20 scale-90"
+            class="shadow-sm shadow-n-brand-primary/10 scale-90"
           />
         </div>
 
@@ -244,29 +244,29 @@ watch(
 
 <style scoped>
 .conversation {
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .conversation:hover:not(.active-premium) {
   @apply bg-white/20 dark:bg-n-slate-3/10;
-  transform: translateX(4px);
 }
 
 .active-premium {
-  @apply rounded-xl mx-2 my-1 border-none;
+  @apply border-n-brand-primary/20;
 }
 
 .active-premium::before {
   content: '';
   position: absolute;
-  left: -8px;
-  top: 15%;
-  bottom: 15%;
-  width: 4px;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
   background: var(--color-n-brand-primary);
   border-radius: 99px;
-  box-shadow: 0 0 15px var(--color-n-brand-primary);
-  transition: all 0.3s ease;
 }
 
 .selected {

@@ -52,7 +52,7 @@ const openContact = () => {
   <div
     role="button"
     tabindex="0"
-    class="group relative flex-shrink-0 overflow-hidden rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-n-brand-primary/30 hover:shadow-xl hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1"
+    class="group relative flex-shrink-0 overflow-hidden rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-200 hover:border-n-brand-primary/30 hover:shadow-lg hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
     @click="openContact"
   >
     <div

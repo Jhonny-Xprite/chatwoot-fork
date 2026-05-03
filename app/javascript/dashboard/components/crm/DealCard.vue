@@ -75,6 +75,17 @@ const lastMessageSenderLabel = computed(() => {
 
 const leadScore = computed(() => contact.value.lead_score || 0);
 const isHotLead = computed(() => leadScore.value >= 70);
+const leadScoreClasses = computed(() => {
+  if (leadScore.value >= 70) {
+    return 'border-n-ruby-9/20 bg-n-ruby-9/10 text-n-ruby-11';
+  }
+
+  if (leadScore.value >= 40) {
+    return 'border-n-amber-9/20 bg-n-amber-9/10 text-n-amber-11';
+  }
+
+  return 'border-n-teal-9/20 bg-n-teal-9/10 text-n-teal-11';
+});
 
 const showReplyNeeded = computed(
   () => hasUnread.value || lastMessage.value?.message_type === 0
@@ -176,13 +187,13 @@ const dynamicAttributes = computed(() => {
   <div
     role="button"
     tabindex="0"
-    class="group relative flex flex-shrink-0 flex-col gap-3 cursor-pointer select-none overflow-hidden rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:border-n-brand-primary/40 hover:shadow-2xl hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1"
+    class="group relative flex flex-shrink-0 flex-col gap-3 cursor-pointer select-none overflow-hidden rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-200 hover:border-n-brand-primary/30 hover:shadow-lg hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
     :class="[
       isHotLead
         ? 'ring-1 ring-n-brand-primary/20 bg-gradient-to-br from-white to-n-brand-primary-alpha-1/10'
         : '',
       showReplyNeeded ? 'border-n-brand-primary/30' : '',
-      isDragging ? 'is-dragging' : 'hover:-translate-y-1.5',
+      isDragging ? 'is-dragging' : '',
     ]"
     @click="emit('select', conversation)"
   >
@@ -220,15 +231,22 @@ const dynamicAttributes = computed(() => {
           </template>
         </Popover>
         <span
-          class="text-[10px] font-black uppercase tracking-widest text-n-slate-8"
+          class="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-n-slate-8"
         >
-          {{ `#${conversation.id}` }}
+          <span>{{ `#${conversation.id}` }}</span>
           <template v-if="inboxName && viewPrefs.showChannel">
-            <span class="mx-1.5 opacity-30">
-              {{ '|' }}
-            </span>
+            <span class="h-1 w-1 rounded-full bg-n-slate-6" />
             <span class="text-n-slate-10">{{ inboxName }}</span>
           </template>
+          <span
+            v-if="viewPrefs.showScore"
+            class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-black normal-case tracking-normal"
+            :class="leadScoreClasses"
+          >
+            <i class="i-lucide-flame h-3 w-3" />
+            <span>{{ t('CRM.LEAD_SCORE_BADGE') }}</span>
+            <span>{{ leadScore }}</span>
+          </span>
         </span>
       </div>
 
@@ -254,7 +272,7 @@ const dynamicAttributes = computed(() => {
           :src="contact.thumbnail"
           :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
           :size="44"
-          class="shrink-0 shadow-lg ring-2 ring-white dark:ring-n-slate-2 transition-transform group-hover:scale-105"
+          class="shrink-0 shadow-sm ring-2 ring-white dark:ring-n-slate-2"
         />
         <div
           v-if="leadScore > 0"
@@ -303,7 +321,7 @@ const dynamicAttributes = computed(() => {
         :key="attr.label"
         class="flex items-center gap-1 text-[10px] font-bold"
       >
-        <span class="text-n-slate-8">{{ attr.label }}:</span>
+        <span class="text-n-slate-8">{{ `${attr.label}:` }}</span>
         <span class="text-n-slate-11">{{ attr.value }}</span>
       </div>
     </div>
@@ -330,7 +348,7 @@ const dynamicAttributes = computed(() => {
     <!-- Premium Message Preview (Glass Style) -->
     <div
       v-if="viewPrefs.showLastMessage && lastMessage"
-      class="relative mt-0.5 rounded-xl border border-n-slate-2/60 bg-n-slate-2/30 p-3 text-[12px] leading-relaxed text-n-slate-11 transition-all group-hover:bg-white/80 dark:group-hover:bg-n-slate-2/80 group-hover:shadow-inner"
+      class="relative mt-0.5 rounded-xl border border-n-slate-2/60 bg-n-slate-2/30 p-3 text-[12px] leading-relaxed text-n-slate-11 transition-colors group-hover:bg-white/80 dark:group-hover:bg-n-slate-2/80"
     >
       <div class="mb-1 flex items-center gap-2">
         <span
@@ -412,7 +430,7 @@ const dynamicAttributes = computed(() => {
           variant="solid"
           color="brand"
           size="xs"
-          class="!h-8 px-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-lg shadow-n-brand-primary/20 translate-x-2 group-hover:translate-x-0"
+          class="!h-8 px-3 rounded-xl opacity-0 group-hover:opacity-100 transition-all shadow-sm shadow-n-brand-primary/10"
           @click.stop="emit('select', conversation)"
         >
           <i class="i-lucide-external-link text-sm ltr:mr-1.5 rtl:ml-1.5" />
@@ -426,23 +444,18 @@ const dynamicAttributes = computed(() => {
 </template>
 
 <style scoped>
-/* Spring Animation for Premium Feel */
 .group {
-  transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.group:hover {
-  transform: translateY(-6px) scale(1.01);
-}
-
-/* Glassmorphism for Apple Theme */
 :global(.apple-theme) .group {
   background: var(--glass-bg);
   backdrop-filter: blur(12px);
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-/* High-Tech Borders for Linear Theme */
 :global(.linear-theme) .group {
   border-radius: 8px;
   background: #0c0c0e;

@@ -31,6 +31,8 @@ const DEFAULT_FILTERS = {
   priority: '',
 };
 
+const GROUP_NAME_PATTERN = /\(GROUP\)/i;
+
 const store = useStore();
 const router = useRouter();
 const route = useRoute();
@@ -65,7 +67,6 @@ const currentPipelineStages = computed(
   () => store.getters['crmPipeline/getStages']
 );
 const boardContacts = computed(() => store.getters['contacts/getContactsList']);
-const contactsMeta = computed(() => store.getters['contacts/getMeta']);
 const contactsUiFlags = computed(() => store.getters['contacts/getUIFlags']);
 const viewPreferences = computed(
   () => store.getters['crmPipeline/viewPreferences']
@@ -80,11 +81,24 @@ const isLoading = computed(
 const showContactsColumn = computed(
   () => viewPreferences.value.showContactsColumn !== false
 );
+const showGroupsInPipeline = computed(
+  () => viewPreferences.value.showGroupsInPipeline !== false
+);
 const boardHasVisibleColumns = computed(
   () => showContactsColumn.value || currentPipelineStages.value.length > 0
 );
 const isCreatePipelineOpen = ref(false);
 const createPipelineName = ref('');
+
+const isGroupEntity = name => GROUP_NAME_PATTERN.test(name || '');
+
+const filteredBoardContacts = computed(() => {
+  if (showGroupsInPipeline.value) {
+    return boardContacts.value;
+  }
+
+  return boardContacts.value.filter(contact => !isGroupEntity(contact.name));
+});
 
 const buildContactFilterPayload = filters => {
   const payload = [];
@@ -128,6 +142,17 @@ const fetchBoardContacts = async () => {
     queryPayload: { payload },
     resetState: true,
   });
+};
+
+const toggleGroupsInPipeline = async () => {
+  store.commit('crmPipeline/UPDATE_VIEW_PREFERENCES', {
+    showGroupsInPipeline: !showGroupsInPipeline.value,
+  });
+
+  await Promise.all([
+    store.dispatch('crmPipeline/refreshAllStages'),
+    fetchBoardContacts(),
+  ]);
 };
 
 const selectedPipelineId = computed({
@@ -461,6 +486,22 @@ const createStage = async () => {
             <ViewCustomizer />
           </template>
         </Popover>
+        <button
+          class="inline-flex items-center gap-2 rounded-xl border border-n-weak bg-n-alpha-2 px-3 py-2 text-xs font-semibold text-n-slate-12 transition-colors hover:border-n-brand-primary/30 hover:bg-n-brand-primary-alpha-1"
+          @click="toggleGroupsInPipeline"
+        >
+          <span
+            class="flex h-4 w-4 items-center justify-center rounded border transition-colors"
+            :class="
+              showGroupsInPipeline
+                ? 'border-n-brand-primary bg-n-brand-primary text-white'
+                : 'border-n-slate-4 bg-transparent text-transparent'
+            "
+          >
+            <i class="i-lucide-check h-3 w-3" />
+          </span>
+          <span>{{ $t('CRM.SHOW_GROUPS') }}</span>
+        </button>
       </div>
 
       <div
@@ -491,10 +532,11 @@ const createStage = async () => {
       <PipelineBoard
         v-if="selectedPipeline && boardHasVisibleColumns"
         :stages="currentPipelineStages"
-        :contacts="boardContacts"
-        :contacts-count="contactsMeta.count"
+        :contacts="filteredBoardContacts"
+        :contacts-count="filteredBoardContacts.length"
         :is-contacts-loading="contactsUiFlags.isFetching"
         :show-contacts-column="showContactsColumn"
+        :show-groups="showGroupsInPipeline"
         @select="onDealSelect"
         @select-contact="onContactSelect"
         @add-stage="createStage"

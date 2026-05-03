@@ -26,6 +26,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  showGroups: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 const emit = defineEmits(['select', 'selectContact', 'addStage']);
@@ -84,6 +88,7 @@ const dragOptions = {
             <template #item="{ element: stage }">
               <PipelineColumn
                 :stage="stage"
+                :show-groups="showGroups"
                 @select="emit('select', $event)"
                 @select-contact="emit('selectContact', $event)"
               />

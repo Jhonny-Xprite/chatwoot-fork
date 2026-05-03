@@ -310,6 +310,29 @@ const densityOptions = [
           />
         </div>
       </button>
+
+      <button
+        class="group flex w-full items-center justify-between rounded-lg px-3 py-2 transition-colors hover:bg-n-alpha-1"
+        @click="togglePref('showScore')"
+      >
+        <div class="flex items-center gap-2">
+          <span
+            class="i-lucide-badge-percent text-n-slate-10 group-hover:text-n-brand-primary"
+          />
+          <span class="text-xs font-medium text-n-slate-12">
+            {{ t('CRM.SETTINGS.FIELD_SCORE') }}
+          </span>
+        </div>
+        <div
+          class="relative h-4 w-8 rounded-full transition-colors"
+          :class="viewPrefs.showScore ? 'bg-n-brand-primary' : 'bg-n-slate-3'"
+        >
+          <div
+            class="absolute left-0.5 top-0.5 h-3 w-3 rounded-full bg-n-white shadow-sm transition-transform"
+            :class="{ 'translate-x-4': viewPrefs.showScore }"
+          />
+        </div>
+      </button>
     </div>
 
     <!-- Dynamic Attributes -->

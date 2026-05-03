@@ -37,6 +37,8 @@
     "OPEN": "Open",
     "ADD_DEAL": "Add Deal",
     "NO_DEALS": "No deals here",
+    "SHOW_GROUPS": "Show groups",
+    "LEAD_SCORE_BADGE": "Score",
     "CONTACTS_COLUMN": {
       "TITLE": "Contacts",
       "EMPTY": "No contacts found",
@@ -97,6 +99,7 @@
       "FIELD_COMPANY": "Company",
       "FIELD_ASSIGNEE": "Assignee",
       "FIELD_CHANNEL": "Channel",
+      "FIELD_SCORE": "Lead Score",
       "CUSTOM_ATTRIBUTES": "Custom Attributes",
       "CUSTOM_ATTRIBUTES_HELP": "Selected fields will appear on the card if they have data.",
       "PIPELINES_TITLE": "Pipeline management",

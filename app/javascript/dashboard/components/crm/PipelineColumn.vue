@@ -11,6 +11,10 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  showGroups: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 defineEmits(['select', 'selectContact', 'addDeal']);
@@ -19,6 +23,7 @@ const store = useStore();
 const { t } = useI18n();
 
 const isDragging = ref(false);
+const GROUP_NAME_PATTERN = /\(GROUP\)/i;
 
 const conversations = computed({
   get: () =>
@@ -31,9 +36,21 @@ const conversations = computed({
   },
 });
 
+const isGroupConversation = conversation =>
+  GROUP_NAME_PATTERN.test(conversation?.meta?.sender?.name || '');
+
+const visibleConversations = computed(() => {
+  if (props.showGroups) {
+    return conversations.value;
+  }
+
+  return conversations.value.filter(
+    conversation => !isGroupConversation(conversation)
+  );
+});
+
 const stageCount = computed(() => {
-  const meta = store.getters['crmPipeline/getMetaByStage'](props.stage.id);
-  return meta.total_count || conversations.value.length;
+  return visibleConversations.value.length;
 });
 
 const isLoading = computed(() =>
@@ -71,7 +88,7 @@ const onDragChange = event => {
 
 <template>
   <div
-    class="flex flex-col h-full bg-n-slate-2/40 dark:bg-n-slate-2/10 rounded-3xl border border-n-slate-3 dark:border-n-slate-2/50 min-w-0 w-[340px] flex-shrink-0 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-n-brand-primary/5 hover:border-n-brand-primary/20"
+    class="flex flex-col h-full bg-n-slate-2/40 dark:bg-n-slate-2/10 rounded-3xl border border-n-slate-3 dark:border-n-slate-2/50 min-w-0 w-[340px] flex-shrink-0 overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-n-brand-primary/5 hover:border-n-brand-primary/20"
     :class="{ 'ring-2 ring-n-brand-primary/20 shadow-2xl': isDragging }"
   >
     <!-- Stage Color Banner -->
@@ -118,6 +135,7 @@ const onDragChange = event => {
       >
         <template #item="{ element: conversation }">
           <DealCard
+            v-show="props.showGroups || !isGroupConversation(conversation)"
             :conversation="conversation"
             :is-dragging="isDragging"
             @select="$emit('select', $event)"
@@ -128,7 +146,7 @@ const onDragChange = event => {
 
       <!-- Empty State -->
       <div
-        v-if="!conversations.length && !isLoading"
+        v-if="!visibleConversations.length && !isLoading"
         class="absolute inset-0 flex flex-col items-center justify-center p-8 opacity-40 grayscale pointer-events-none"
       >
         <div class="mb-4 rounded-full bg-n-slate-2 p-5 dark:bg-n-slate-3">

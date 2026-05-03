@@ -54,6 +54,7 @@ const state = {
     showChannel: true,
     showScore: true,
     showContactsColumn: true,
+    showGroupsInPipeline: true,
     density: 'comfortable', // Densidade: compact | comfortable
     customAttributes: [], // Chaves de atributos customizados para exibir no card
   },

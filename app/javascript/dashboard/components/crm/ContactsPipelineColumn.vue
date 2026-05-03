@@ -25,7 +25,7 @@ const { t } = useI18n();
 
 <template>
   <div
-    class="flex h-full w-[340px] flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-n-slate-3 bg-n-slate-2/40 transition-all duration-300 hover:border-n-brand-primary/20 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2/50 dark:bg-n-slate-2/10"
+    class="flex h-full w-[340px] flex-shrink-0 flex-col overflow-hidden rounded-3xl border border-n-slate-3 bg-n-slate-2/40 transition-all duration-300 hover:border-n-brand-primary/20 hover:shadow-lg hover:shadow-n-brand-primary/5 dark:border-n-slate-2/50 dark:bg-n-slate-2/10"
   >
     <div class="h-1.5 w-full shrink-0 bg-n-brand-primary opacity-80" />
 
