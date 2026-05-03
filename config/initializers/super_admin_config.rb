@@ -7,6 +7,10 @@ Rails.application.config.after_initialize do
   admin_email = ENV.fetch('EASYPANEL_USER', 'equipe@jhonnyxprite.com')
 
   begin
+    # Pula se estivermos compilando assets ou se o banco não estiver disponível
+    next if ENV['SECRET_KEY_BASE'] == 'precompile_placeholder'
+    next unless ActiveRecord::Base.connected?
+
     # Procuramos o usuário pelo email
     user = User.find_by(email: admin_email.downcase)
 
