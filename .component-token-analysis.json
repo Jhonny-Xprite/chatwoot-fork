@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-05-03T08:21:52.899Z",
+  "generatedAt": "2026-05-03T08:22:45.303Z",
   "summary": {
     "totalComponents": 939,
-    "adoptionRate": "57.0",
     "fullAdoption": 535,
     "partialAdoption": 254,
-    "noAdoption": 150
+    "noAdoption": 150,
+    "adoptionRate": "84.0"
   },
   "patterns": {
     "component": {

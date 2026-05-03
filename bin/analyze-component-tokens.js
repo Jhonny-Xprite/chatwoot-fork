@@ -348,12 +348,12 @@ class ComponentTokenAnalyzer {
       generatedAt: new Date().toISOString(),
       summary: {
         totalComponents: this.components.length,
-        adoptionRate: (
-          (this.analysis.tokenAdoption.full.length / this.components.length) * 100
-        ).toFixed(1),
         fullAdoption: this.analysis.tokenAdoption.full.length,
         partialAdoption: this.analysis.tokenAdoption.partial.length,
         noAdoption: this.analysis.tokenAdoption.none.length,
+        adoptionRate: (
+          ((this.analysis.tokenAdoption.full.length + this.analysis.tokenAdoption.partial.length) / this.components.length) * 100
+        ).toFixed(1),
       },
       patterns: this.analysis.patterns,
       components: this.components,
