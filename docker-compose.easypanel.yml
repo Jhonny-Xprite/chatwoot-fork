@@ -49,6 +49,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    expose:
+      - "3000"
     volumes:
       - chatwoot-storage:/app/storage
       - chatwoot-logs:/app/log
