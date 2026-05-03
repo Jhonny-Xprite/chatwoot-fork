@@ -239,8 +239,8 @@ const onAttributeUpdate = async (attr, newValue) => {
 
     <!-- Main Grid Layout: Avatar | Content -->
     <div
-      class="flex gap-3"
-      :class="viewPrefs.density === 'compact' ? 'gap-2' : 'gap-3'"
+      class="flex gap-4"
+      :class="viewPrefs.density === 'compact' ? 'gap-3' : 'gap-4'"
     >
       <!-- Left: Large Avatar -->
       <div class="flex-shrink-0">
@@ -248,7 +248,7 @@ const onAttributeUpdate = async (attr, newValue) => {
           <Avatar
             :src="contact.thumbnail"
             :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
-            :size="viewPrefs.density === 'compact' ? 48 : 56"
+            :size="viewPrefs.density === 'compact' ? 56 : 64"
             class="shadow-sm transition-transform group-hover:scale-105"
           />
           <div
@@ -259,9 +259,9 @@ const onAttributeUpdate = async (attr, newValue) => {
       </div>
 
       <!-- Right: All Content -->
-      <div class="min-w-0 flex-1 flex flex-col gap-2">
+      <div class="min-w-0 flex-1 flex flex-col gap-3">
         <!-- Top: Labels & Lead Score -->
-        <div class="flex items-start justify-between gap-2">
+        <div class="flex items-start justify-between gap-3">
           <div class="flex-1 min-w-0">
             <!-- Labels -->
             <div
@@ -269,7 +269,7 @@ const onAttributeUpdate = async (attr, newValue) => {
                 (conversationLabels.length && viewPrefs.showLabels) ||
                 (hasSlaPolicyId && viewPrefs.showSla)
               "
-              class="flex items-center gap-1.5 mb-1 flex-wrap"
+              class="flex items-center gap-2 mb-2 flex-wrap"
             >
               <CardLabels :labels="conversationLabels" class="flex-wrap">
                 <template v-if="hasSlaPolicyId && viewPrefs.showSla" #before>
@@ -319,14 +319,14 @@ const onAttributeUpdate = async (attr, newValue) => {
         </div>
 
         <!-- Name & Telefone -->
-        <div class="min-w-0">
+        <div class="min-w-0 space-y-1">
           <h4
             class="truncate font-bold text-n-slate-12 transition-colors group-hover:text-n-brand-primary"
-            :class="viewPrefs.density === 'compact' ? 'text-xs' : 'text-sm'"
+            :class="viewPrefs.density === 'compact' ? 'text-sm' : 'text-base'"
           >
             {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
           </h4>
-          <p class="truncate font-medium text-n-slate-11 text-[11px]">
+          <p class="truncate font-medium text-n-slate-11 text-xs">
             {{ contact.phone_number || contact.email || t('CRM.PHONE') }}
           </p>
         </div>
@@ -338,7 +338,7 @@ const onAttributeUpdate = async (attr, newValue) => {
             viewPrefs.showPriority ||
             viewPrefs.showChannel
           "
-          class="flex items-center gap-2 text-[10px] text-n-slate-10"
+          class="flex items-center gap-3 text-xs text-n-slate-10"
         >
           <p
             v-if="companyName && viewPrefs.showCompanyName"
@@ -377,11 +377,11 @@ const onAttributeUpdate = async (attr, newValue) => {
         <!-- Last Message Indicator (Quem mandou + Mensagens Pendentes) -->
         <div
           v-if="viewPrefs.showLastMessage"
-          class="rounded-lg border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-2 py-1.5 text-[10px] leading-tight group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors"
+          class="rounded-lg border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-3 py-2 text-xs leading-relaxed group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors space-y-1"
         >
-          <div class="flex items-center gap-1 mb-1">
+          <div class="flex items-center gap-2">
             <span
-              class="font-black tracking-tight uppercase whitespace-nowrap"
+              class="font-black tracking-tight uppercase whitespace-nowrap text-[10px]"
               :class="
                 lastMessage?.message_type === 1
                   ? 'text-n-slate-10'
@@ -392,12 +392,12 @@ const onAttributeUpdate = async (attr, newValue) => {
             </span>
             <span
               v-if="unreadCount > 0"
-              class="inline-flex items-center justify-center rounded-full bg-n-brand-primary text-[8px] font-bold text-white w-4 h-4 shrink-0"
+              class="inline-flex items-center justify-center rounded-full bg-n-brand-primary text-[9px] font-bold text-white w-5 h-5 shrink-0"
             >
               {{ unreadCount }}
             </span>
           </div>
-          <p class="line-clamp-1 italic text-n-slate-11">
+          <p class="line-clamp-2 italic text-n-slate-11 text-xs">
             {{ lastMessagePreview }}
           </p>
         </div>
@@ -450,7 +450,7 @@ const onAttributeUpdate = async (attr, newValue) => {
 
         <!-- Actions & Assignee Footer -->
         <div
-          class="flex items-center justify-between gap-2 border-t border-n-slate-2 pt-2 dark:border-n-slate-2"
+          class="flex items-center justify-between gap-3 border-t border-n-slate-2 pt-3 dark:border-n-slate-2"
         >
           <!-- Assignee (left) -->
           <div v-if="viewPrefs.showAssignee" class="flex-1 min-w-0">
@@ -491,18 +491,18 @@ const onAttributeUpdate = async (attr, newValue) => {
           </div>
 
           <!-- Action Buttons (right) -->
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-2">
             <button
               v-if="contact.id"
               type="button"
-              class="rounded-lg px-2 py-1 text-[9px] font-bold text-n-slate-11 transition-colors hover:bg-n-slate-2 dark:hover:bg-n-slate-2 whitespace-nowrap"
+              class="rounded-lg px-3 py-1.5 text-xs font-bold text-n-slate-11 transition-colors hover:bg-n-slate-2 dark:hover:bg-n-slate-2 whitespace-nowrap flex-1"
               @click.stop="emit('selectContact', conversation)"
             >
               {{ t('CRM.OPEN_CONTACT') }}
             </button>
             <button
               type="button"
-              class="rounded-lg bg-n-brand-primary-alpha-1 px-2 py-1 text-[9px] font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2 whitespace-nowrap"
+              class="rounded-lg bg-n-brand-primary-alpha-1 px-3 py-1.5 text-xs font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2 whitespace-nowrap flex-1"
               @click.stop="emit('select', conversation)"
             >
               {{ t('CRM.OPEN_CONVERSATION') }}
@@ -511,14 +511,14 @@ const onAttributeUpdate = async (attr, newValue) => {
         </div>
 
         <!-- Deal ID & Drag Handle -->
-        <div class="flex items-center justify-between text-[8px]">
+        <div class="flex items-center justify-between text-xs">
           <span
             class="font-black uppercase tracking-tight text-n-slate-8 dark:text-n-slate-9"
           >
             {{ `#${conversation.id}` }}
           </span>
           <span
-            class="i-lucide-grip-vertical text-n-slate-8 opacity-0 transition-opacity group-hover:opacity-100 dark:text-n-slate-9 text-xs"
+            class="i-lucide-grip-vertical text-n-slate-8 opacity-0 transition-opacity group-hover:opacity-100 dark:text-n-slate-9"
           />
         </div>
       </div>
