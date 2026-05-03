@@ -149,7 +149,10 @@ const badgeStyle = computed(() => {
           :style="badgeStyle"
         >
           <div class="flex items-center gap-2 truncate">
-            <span class="w-2 h-2 rounded-full" :style="{ backgroundColor: currentStage.color }" />
+            <span
+              class="w-2 h-2 rounded-full"
+              :style="{ backgroundColor: currentStage.color }"
+            />
             <span class="truncate">{{ currentStage.name }}</span>
           </div>
           <i
@@ -174,7 +177,10 @@ const badgeStyle = computed(() => {
             @action="handleStageAction($event, hide)"
           >
             <template #thumbnail="{ item }">
-              <div class="size-2 rounded-full" :style="{ backgroundColor: item.thumbnail.color }" />
+              <div
+                class="size-2 rounded-full"
+                :style="{ backgroundColor: item.thumbnail.color }"
+              />
             </template>
           </DropdownMenu>
         </template>

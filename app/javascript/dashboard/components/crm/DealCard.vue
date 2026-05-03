@@ -453,27 +453,29 @@ const onAttributeUpdate = async (attr, newValue) => {
           class="flex items-center justify-between gap-3 border-t border-n-slate-2 pt-3 dark:border-n-slate-2"
         >
           <!-- Assignee (left) -->
-          <div v-if="viewPrefs.showAssignee" class="flex-1 min-w-0">
+          <div v-if="viewPrefs.showAssignee" class="flex-shrink-0">
             <Popover align="start">
               <template #trigger>
                 <div
-                  class="flex items-center gap-1 cursor-pointer hover:bg-n-slate-2 p-1 rounded-lg transition-colors"
+                  class="flex items-center gap-1.5 cursor-pointer hover:bg-n-slate-2/50 px-2 py-1.5 rounded-lg transition-colors"
                   @click.stop
                 >
                   <Avatar
                     v-if="assignee.id"
                     :src="assignee.thumbnail"
                     :name="assignee.name"
-                    :size="16"
+                    :size="20"
                     rounded-full
                   />
                   <div
                     v-else
-                    class="w-4 h-4 rounded-full border border-dashed border-n-slate-4 flex items-center justify-center"
+                    class="w-5 h-5 rounded-full border border-dashed border-n-slate-4 flex items-center justify-center flex-shrink-0"
                   >
-                    <i class="i-lucide-user text-[8px] text-n-slate-10" />
+                    <i class="i-lucide-user text-[10px] text-n-slate-10" />
                   </div>
-                  <span class="truncate text-[9px] font-bold text-n-slate-11">
+                  <span
+                    class="truncate text-xs font-semibold text-n-slate-11 hidden sm:inline"
+                  >
                     {{ assignee.name || t('CRM.UNASSIGNED') }}
                   </span>
                 </div>
@@ -491,18 +493,18 @@ const onAttributeUpdate = async (attr, newValue) => {
           </div>
 
           <!-- Action Buttons (right) -->
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-1">
             <button
               v-if="contact.id"
               type="button"
-              class="rounded-lg px-3 py-1.5 text-xs font-bold text-n-slate-11 transition-colors hover:bg-n-slate-2 dark:hover:bg-n-slate-2 whitespace-nowrap flex-1"
+              class="rounded-lg px-3 py-2 text-xs font-bold text-n-slate-11 bg-n-slate-1/50 transition-colors hover:bg-n-slate-2 dark:bg-n-slate-2/30 dark:hover:bg-n-slate-2 whitespace-nowrap flex-1 text-center"
               @click.stop="emit('selectContact', conversation)"
             >
               {{ t('CRM.OPEN_CONTACT') }}
             </button>
             <button
               type="button"
-              class="rounded-lg bg-n-brand-primary-alpha-1 px-3 py-1.5 text-xs font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2 whitespace-nowrap flex-1"
+              class="rounded-lg bg-n-brand-primary-alpha-1 px-3 py-2 text-xs font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2 whitespace-nowrap flex-1 text-center"
               @click.stop="emit('select', conversation)"
             >
               {{ t('CRM.OPEN_CONVERSATION') }}

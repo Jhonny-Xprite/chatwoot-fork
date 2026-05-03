@@ -46,20 +46,21 @@ const isLoading = computed(() =>
   store.getters['crmPipeline/isStageLoading'](props.stage.id)
 );
 const dragOptions = computed(() => ({
-  animation: 300,
+  animation: 250,
   group: 'conversations',
   disabled: false,
-  ghostClass: 'sortable-ghost',
+  ghostClass: 'sortable-ghost opacity-50',
   dragClass: 'sortable-drag',
   chosenClass: 'sortable-chosen',
-  fallbackOnBody: true,
-  forceFallback: true,
-  fallbackTolerance: 4,
-  invertSwap: true,
-  emptyInsertThreshold: 120,
-  scrollSensitivity: 100,
-  scrollSpeed: 20,
-  swapThreshold: 0.65,
+  fallbackOnBody: false,
+  forceFallback: false,
+  emptyInsertThreshold: 100,
+  scrollSensitivity: 80,
+  scrollSpeed: 15,
+  swapThreshold: 0.5,
+  preventOnFilter: false,
+  delayOnTouchOnly: true,
+  delay: 200,
 }));
 
 const onDragChange = event => {
@@ -76,7 +77,7 @@ const onDragChange = event => {
 
 <template>
   <div
-    class="flex flex-col w-[320px] h-full bg-n-alpha-1 dark:bg-n-slate-1/50 rounded-2xl border border-n-slate-3 dark:border-n-slate-2 flex-shrink-0"
+    class="flex flex-col h-full bg-n-alpha-1 dark:bg-n-slate-1/50 rounded-2xl border border-n-slate-3 dark:border-n-slate-2 min-w-0 overflow-hidden"
   >
     <!-- Column Header -->
     <div
@@ -105,14 +106,9 @@ const onDragChange = event => {
       <draggable
         v-model="conversations"
         v-bind="dragOptions"
-        class="h-full overflow-y-auto overflow-x-hidden p-3 flex flex-col gap-2 custom-scrollbar"
+        class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar"
         item-key="id"
-        tag="transition-group"
-        :component-data="{
-          tag: 'div',
-          type: 'transition-group',
-          name: !isDragging ? 'flip-list' : null,
-        }"
+        tag="div"
         @start="isDragging = true"
         @end="isDragging = false"
         @change="onDragChange"
