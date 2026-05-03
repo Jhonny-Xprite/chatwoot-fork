@@ -240,6 +240,7 @@
       "DARK_MODE": "Dark",
       "SYSTEM_MODE": "System",
       "APPLE_MODE": "Apple",
+      "LINEAR_MODE": "Linear",
       "SNOOZE_NOTIFICATION": "Snooze Notification"
     }
   },

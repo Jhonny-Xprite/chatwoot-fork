@@ -5,7 +5,8 @@ import {
   ICON_LIGHT_MODE,
   ICON_DARK_MODE,
   ICON_SYSTEM_MODE,
-  ICON_SETTINGS_GEAR as ICON_APPLE_MODE,
+  ICON_APPEARANCE as ICON_APPLE_MODE,
+  ICON_APPS as ICON_LINEAR_MODE,
 } from 'dashboard/helper/commandbar/icons';
 import { LocalStorage } from 'shared/helpers/localStorage';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
@@ -31,6 +32,11 @@ const getThemeOptions = t => [
     key: 'apple',
     label: t('COMMAND_BAR.COMMANDS.APPLE_MODE'),
     icon: ICON_APPLE_MODE,
+  },
+  {
+    key: 'linear',
+    label: t('COMMAND_BAR.COMMANDS.LINEAR_MODE'),
+    icon: ICON_LINEAR_MODE,
   },
 ];
 

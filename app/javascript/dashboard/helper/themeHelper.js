@@ -12,6 +12,13 @@ export const setColorTheme = (isOSOnDarkMode, colorScheme) => {
     document.body.classList.remove('apple');
   }
 
+  // Apply Linear Theme
+  if (selectedColorScheme === 'linear') {
+    document.body.classList.add('linear');
+  } else {
+    document.body.classList.remove('linear');
+  }
+
   if (
     (selectedColorScheme === 'auto' && isOSOnDarkMode) ||
     selectedColorScheme === 'dark'
