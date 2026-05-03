@@ -130,6 +130,14 @@
         "FIELD_LABEL": "Campo / Atributo",
         "FIELD_PLACEHOLDER": "Selecione um campo...",
         "CONDITION_LABEL": "Condição",
+        "CONDITION_LABELS": {
+          "EQUAL_TO": "Igual a",
+          "NOT_EQUAL_TO": "Diferente de",
+          "CONTAINS": "Contém",
+          "DOES_NOT_CONTAIN": "Não contém",
+          "IS_PRESENT": "Está presente",
+          "IS_NOT_PRESENT": "Não está presente"
+        },
         "POINTS_LABEL": "Pontuação",
         "VALUES_LABEL": "Valores Esperados",
         "VALUES_PLACEHOLDER": "Digite os valores separados por vírgula",
