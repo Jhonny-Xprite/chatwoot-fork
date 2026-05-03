@@ -19,26 +19,32 @@ const { variant, orientation, inReplyTo, shouldGroupWithNext } =
   useMessageContext();
 const { t } = useI18n();
 
-const varaintBaseMap = {
-  [MESSAGE_VARIANTS.AGENT]: 'bg-n-solid-blue text-n-slate-12',
+const variantBaseMap = {
+  [MESSAGE_VARIANTS.AGENT]:
+    'bg-gradient-to-br from-n-brand-primary to-n-brand-primary-alt text-white shadow-lg shadow-n-brand-primary/10',
   [MESSAGE_VARIANTS.PRIVATE]:
-    'bg-n-solid-amber text-n-amber-12 [&_.prosemirror-mention-node]:font-semibold',
-  [MESSAGE_VARIANTS.USER]: 'bg-n-slate-4 text-n-slate-12',
-  [MESSAGE_VARIANTS.ACTIVITY]: 'bg-n-alpha-1 text-n-slate-11 text-sm',
-  [MESSAGE_VARIANTS.BOT]: 'bg-n-solid-iris text-n-slate-12',
-  [MESSAGE_VARIANTS.TEMPLATE]: 'bg-n-solid-iris text-n-slate-12',
-  [MESSAGE_VARIANTS.ERROR]: 'bg-n-ruby-4 text-n-ruby-12',
-  [MESSAGE_VARIANTS.EMAIL]: 'w-full',
+    'bg-n-solid-amber/10 dark:bg-n-solid-amber/20 border border-n-solid-amber/30 text-n-amber-12 [&_.prosemirror-mention-node]:font-semibold backdrop-blur-sm',
+  [MESSAGE_VARIANTS.USER]:
+    'bg-white/70 dark:bg-n-slate-3/40 backdrop-blur-md border border-white/20 dark:border-n-slate-2/10 text-n-slate-12 shadow-sm',
+  [MESSAGE_VARIANTS.ACTIVITY]:
+    'bg-n-slate-2/50 dark:bg-n-slate-1/50 text-n-slate-11 text-[11px] font-bold uppercase tracking-wider px-3 py-1',
+  [MESSAGE_VARIANTS.BOT]:
+    'bg-gradient-to-br from-n-solid-iris to-n-solid-iris-alt text-white shadow-lg shadow-n-solid-iris/10',
+  [MESSAGE_VARIANTS.TEMPLATE]:
+    'bg-gradient-to-br from-n-solid-iris to-n-solid-iris-alt text-white shadow-lg shadow-n-solid-iris/10',
+  [MESSAGE_VARIANTS.ERROR]: 'bg-n-ruby-4 text-n-ruby-12 border border-n-ruby-5',
+  [MESSAGE_VARIANTS.EMAIL]:
+    'w-full bg-white/50 dark:bg-n-slate-1/50 backdrop-blur-md border border-n-slate-3/30 dark:border-n-slate-2/10',
   [MESSAGE_VARIANTS.UNSUPPORTED]:
-    'bg-n-solid-amber/70 border border-dashed border-n-amber-12 text-n-amber-12',
+    'bg-n-solid-amber/10 border border-dashed border-n-amber-5 text-n-amber-11 backdrop-blur-sm',
 };
 
 const orientationMap = {
   [ORIENTATION.LEFT]:
-    'left-bubble rounded-xl ltr:rounded-bl-sm rtl:rounded-br-sm',
+    'left-bubble rounded-2xl ltr:rounded-bl-md rtl:rounded-br-md',
   [ORIENTATION.RIGHT]:
-    'right-bubble rounded-xl ltr:rounded-br-sm rtl:rounded-bl-sm',
-  [ORIENTATION.CENTER]: 'rounded-md',
+    'right-bubble rounded-2xl ltr:rounded-br-md rtl:rounded-bl-md',
+  [ORIENTATION.CENTER]: 'rounded-xl',
 };
 
 const flexOrientationClass = computed(() => {
@@ -52,12 +58,12 @@ const flexOrientationClass = computed(() => {
 });
 
 const messageClass = computed(() => {
-  const classToApply = [varaintBaseMap[variant.value]];
+  const classToApply = [variantBaseMap[variant.value]];
 
   if (variant.value !== MESSAGE_VARIANTS.ACTIVITY) {
     classToApply.push(orientationMap[orientation.value]);
   } else {
-    classToApply.push('rounded-lg');
+    classToApply.push('rounded-full mx-auto my-4');
   }
 
   return classToApply;
@@ -95,35 +101,52 @@ const replyToPreview = computed(() => {
 
 <template>
   <div
-    class="text-sm"
+    class="text-sm transition-all duration-300"
     :class="[
       messageClass,
       {
-        'max-w-lg': variant !== MESSAGE_VARIANTS.EMAIL,
+        'max-w-[85%] lg:max-w-lg': variant !== MESSAGE_VARIANTS.EMAIL,
+        'mb-1': shouldGroupWithNext,
+        'mb-4': !shouldGroupWithNext,
       },
     ]"
   >
     <div
       v-if="inReplyTo"
-      class="p-2 -mx-1 mb-2 rounded-lg cursor-pointer bg-n-alpha-black1"
+      class="p-2.5 mx-1 mt-1 mb-2 rounded-xl cursor-pointer bg-black/5 dark:bg-white/5 border-l-2 border-n-brand-primary"
       @click="scrollToMessage"
     >
       <div
         v-dompurify-html="replyToPreview"
-        class="prose prose-bubble line-clamp-2"
+        class="prose prose-bubble line-clamp-2 text-xs opacity-70"
       />
     </div>
-    <slot />
+    <div class="px-4 py-3">
+      <slot />
+    </div>
     <MessageMeta
       v-if="shouldShowMeta"
       :class="[
         flexOrientationClass,
-        variant === MESSAGE_VARIANTS.EMAIL ? 'px-3 pb-3' : '',
+        variant === MESSAGE_VARIANTS.EMAIL ? 'px-4 pb-4' : 'px-4 pb-2',
         variant === MESSAGE_VARIANTS.PRIVATE
-          ? 'text-n-amber-12/50'
-          : 'text-n-slate-11',
+          ? 'text-n-amber-12/60'
+          : variant === MESSAGE_VARIANTS.AGENT ||
+              variant === MESSAGE_VARIANTS.BOT ||
+              variant === MESSAGE_VARIANTS.TEMPLATE
+            ? 'text-white/70'
+            : 'text-n-slate-11',
       ]"
-      class="mt-2"
+      class="-mt-1"
     />
   </div>
 </template>
+
+<style scoped>
+.left-bubble {
+  border-bottom-left-radius: 4px !important;
+}
+.right-bubble {
+  border-bottom-right-radius: 4px !important;
+}
+</style>

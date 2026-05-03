@@ -128,9 +128,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div
-    class="flex flex-col justify-between flex-1 h-full m-0 overflow-auto bg-n-surface-1"
-  >
+  <div class="flex flex-col justify-between flex-1 h-full m-0 overflow-auto">
     <ContactsDetailsLayout
       :button-label="$t('CONTACTS_LAYOUT.HEADER.SEND_MESSAGE')"
       :selected-contact="selectedContact"
@@ -142,7 +140,7 @@ onMounted(() => {
     >
       <div
         v-if="showSpinner"
-        class="flex items-center justify-center py-10 text-n-slate-11"
+        class="flex items-center justify-center py-20 text-n-slate-11"
       >
         <Spinner />
       </div>
@@ -152,21 +150,21 @@ onMounted(() => {
         @go-to-contacts-list="goToContactsList"
       />
       <template #sidebar>
-        <div class="px-6">
+        <div class="px-6 mb-6">
           <TabBar
             :tabs="tabs"
             :initial-active-tab="activeTabIndex"
-            class="w-full [&>button]:w-full bg-n-alpha-black2"
+            class="w-full [&>button]:w-full !bg-n-slate-2/50 dark:!bg-n-slate-3/20 !p-1 !rounded-xl border border-n-slate-3/30 dark:border-n-slate-2/10"
             @tab-changed="handleTabChange"
           />
         </div>
         <div
           v-if="isFetchingItem"
-          class="flex items-center justify-center py-10 text-n-slate-11"
+          class="flex items-center justify-center py-20 text-n-slate-11"
         >
           <Spinner />
         </div>
-        <template v-else>
+        <div v-else class="space-y-6">
           <ContactCustomAttributes
             v-if="activeTab === 'attributes'"
             :selected-contact="selectedContact"
@@ -184,7 +182,7 @@ onMounted(() => {
             v-if="activeTab === 'crm'"
             :selected-contact="selectedContact"
           />
-        </template>
+        </div>
       </template>
     </ContactsDetailsLayout>
   </div>

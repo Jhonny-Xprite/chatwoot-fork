@@ -97,7 +97,7 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 <template>
   <div
     ref="conversationHeader"
-    class="flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-3 pt-3 pb-2 h-24 xl:h-12"
+    class="flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-4 py-3 h-auto xl:h-16 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md border-b border-n-slate-3/30 dark:border-n-slate-2/10 sticky top-0 z-20"
   >
     <div
       class="flex items-center justify-start w-full xl:w-auto max-w-full min-w-0 xl:flex-1"
@@ -105,22 +105,22 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
       <BackButton
         v-if="showBackButton"
         :back-url="backButtonUrl"
-        class="ltr:mr-2 rtl:ml-2"
+        class="ltr:mr-3 rtl:ml-3 bg-white dark:bg-n-slate-2 shadow-sm rounded-xl border border-n-slate-3 dark:border-n-slate-2/10"
       />
       <Avatar
         :name="currentContact.name"
         :src="currentContact.thumbnail"
-        :size="32"
+        :size="40"
         :status="currentContact.availability_status"
         hide-offline-status
-        rounded-full
+        class="!rounded-2xl shadow-md border-2 border-white dark:border-n-slate-2/50"
       />
       <div
-        class="flex flex-col items-start min-w-0 ml-2 overflow-hidden rtl:ml-0 rtl:mr-2"
+        class="flex flex-col items-start min-w-0 ml-3 overflow-hidden rtl:ml-0 rtl:mr-3"
       >
-        <div class="flex flex-row items-center max-w-full gap-1 p-0 m-0">
+        <div class="flex flex-row items-center max-w-full gap-2 p-0 m-0">
           <span
-            class="text-sm font-medium truncate leading-tight text-n-slate-12"
+            class="text-base font-black tracking-tight text-n-slate-12 truncate leading-none"
           >
             {{ currentContact.name }}
           </span>
@@ -128,6 +128,7 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
             :conversation-id="chat.id"
             :pipeline-id="chat.pipeline_id"
             :stage-id="chat.pipeline_stage_id"
+            class="scale-90 origin-left"
           />
           <fluent-icon
             v-if="!isHMACVerified"
@@ -139,26 +140,37 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
         </div>
 
         <div
-          class="flex items-center gap-2 overflow-hidden text-xs conversation--header--actions text-ellipsis whitespace-nowrap"
+          class="flex items-center gap-2 overflow-hidden text-[11px] font-bold uppercase tracking-widest text-n-slate-11 text-ellipsis whitespace-nowrap mt-1"
         >
-          <InboxName v-if="hasMultipleInboxes" :inbox="inbox" class="!mx-0" />
-          <span v-if="isSnoozed" class="font-medium text-n-amber-10">
+          <InboxName
+            v-if="hasMultipleInboxes"
+            :inbox="inbox"
+            class="!mx-0 bg-n-slate-2 dark:bg-n-slate-3/50 px-1.5 py-0.5 rounded-md"
+          />
+          <span
+            v-if="isSnoozed"
+            class="text-n-amber-10 bg-n-amber-10/10 px-1.5 py-0.5 rounded-md"
+          >
             {{ snoozedDisplayText }}
           </span>
         </div>
       </div>
     </div>
     <div
-      class="flex flex-row items-center justify-start xl:justify-end flex-shrink-0 gap-2 w-full xl:w-auto header-actions-wrap"
+      class="flex flex-row items-center justify-start xl:justify-end flex-shrink-0 gap-3 w-full xl:w-auto header-actions-wrap"
     >
       <SLACardLabel
         v-if="hasSlaPolicyId"
         :chat="chat"
         show-extended-info
         :parent-width="width"
-        class="hidden md:flex"
+        class="hidden md:flex scale-90"
       />
-      <MoreActions :conversation-id="currentChat.id" />
+      <div class="w-px h-6 bg-n-slate-3 dark:bg-n-slate-2/10 hidden xl:block" />
+      <MoreActions
+        :conversation-id="currentChat.id"
+        class="bg-white dark:bg-n-slate-2 shadow-sm rounded-xl border border-n-slate-3 dark:border-n-slate-2/10"
+      />
     </div>
   </div>
 </template>

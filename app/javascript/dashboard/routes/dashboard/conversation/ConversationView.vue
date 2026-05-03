@@ -195,7 +195,7 @@ export default {
 </script>
 
 <template>
-  <section class="flex w-full h-full min-w-0">
+  <section class="flex w-full h-full min-w-0 bg-immersive overflow-hidden">
     <ChatList
       :show-conversation-list="showConversationList"
       :conversation-inbox="inboxId"
@@ -204,16 +204,48 @@ export default {
       :conversation-type="conversationType"
       :folders-id="foldersId"
       :is-on-expanded-layout="isOnExpandedLayout"
+      class="border-r border-n-slate-3/30 dark:border-n-slate-2/10"
       @conversation-load="onConversationLoad"
     />
     <ConversationBox
       v-if="showMessageView"
       :inbox-id="inboxId"
       :is-on-expanded-layout="isOnExpandedLayout"
+      class="flex-1"
     >
       <SidepanelSwitch v-if="currentChat.id" />
     </ConversationBox>
-    <ConversationSidebar v-if="shouldShowSidebar" :current-chat="currentChat" />
+    <ConversationSidebar
+      v-if="shouldShowSidebar"
+      :current-chat="currentChat"
+      class="border-l border-n-slate-3/30 dark:border-n-slate-2/10 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md"
+    />
     <CmdBarConversationSnooze />
   </section>
 </template>
+
+<style scoped>
+.bg-immersive {
+  background: radial-gradient(
+      at 0% 0%,
+      rgba(var(--color-n-brand-primary-rgb), 0.08) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 0%,
+      rgba(var(--color-n-brand-primary-rgb), 0.05) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 100% 100%,
+      rgba(var(--color-n-brand-primary-rgb), 0.08) 0px,
+      transparent 50%
+    ),
+    radial-gradient(
+      at 0% 100%,
+      rgba(var(--color-n-brand-primary-rgb), 0.05) 0px,
+      transparent 50%
+    ),
+    var(--color-n-surface-1);
+}
+</style>

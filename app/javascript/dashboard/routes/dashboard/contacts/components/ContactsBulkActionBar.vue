@@ -93,74 +93,95 @@ const handleAssignLabels = labels => {
 
 <template>
   <div
-    class="sticky top-0 z-10 bg-gradient-to-b from-n-surface-1 from-90% to-transparent pt-1 pb-2"
+    class="sticky top-4 z-40 mx-auto w-full max-w-2xl px-4 pointer-events-none"
   >
-    <BulkSelectBar
-      v-model="selectionModel"
-      :all-items="allItems"
-      :select-all-label="selectAllLabel"
-      :selected-count-label="selectedCountLabel"
-      class="py-2 ltr:!pr-3 rtl:!pl-3 justify-between"
-    >
-      <template #secondary-actions>
-        <Button
-          sm
-          ghost
-          slate
-          :label="t('CONTACTS_BULK_ACTIONS.CLEAR_SELECTION')"
-          class="!px-1.5"
-          @click="emitClearSelection"
-        />
-      </template>
-      <template #actions>
-        <div class="flex items-center gap-2 ml-auto">
-          <div
-            v-on-click-outside="closeLabelSelector"
-            class="relative flex items-center"
-          >
-            <Button
-              sm
-              faded
-              slate
-              icon="i-lucide-tags"
-              :label="t('CONTACTS_BULK_ACTIONS.ASSIGN_LABELS')"
-              :disabled="!selectedCount || isLoading"
-              :is-loading="isLoading"
-              class="[&>span:nth-child(2)]:hidden sm:[&>span:nth-child(2)]:inline w-fit"
-              @click="toggleLabelSelector"
-            />
-            <transition
-              enter-active-class="transition ease-out duration-100"
-              enter-from-class="transform opacity-0 scale-95"
-              enter-to-class="transform opacity-100 scale-100"
-              leave-active-class="transition ease-in duration-75"
-              leave-from-class="transform opacity-100 scale-100"
-              leave-to-class="transform opacity-0 scale-95"
+    <div class="pointer-events-auto">
+      <BulkSelectBar
+        v-model="selectionModel"
+        :all-items="allItems"
+        :select-all-label="selectAllLabel"
+        :selected-count-label="selectedCountLabel"
+        class="premium-bulk-bar py-3 px-5 justify-between rounded-2xl border border-n-brand-primary/20 bg-white/60 dark:bg-n-slate-1/60 backdrop-blur-xl shadow-2xl shadow-n-brand-primary/10"
+      >
+        <template #secondary-actions>
+          <Button
+            variant="ghost"
+            color="slate"
+            size="sm"
+            :label="t('CONTACTS_BULK_ACTIONS.CLEAR_SELECTION')"
+            class="!px-3 !rounded-xl hover:!bg-n-slate-2 dark:hover:!bg-n-slate-2/50"
+            @click="emitClearSelection"
+          />
+        </template>
+        <template #actions>
+          <div class="flex items-center gap-3 ml-auto">
+            <div
+              v-on-click-outside="closeLabelSelector"
+              class="relative flex items-center"
             >
-              <LabelActions
-                v-if="showLabelSelector"
-                class="[&>.triangle]:!hidden [&>div>button]:!hidden ltr:!right-0 rtl:!left-0 top-8 mt-0.5"
-                @assign="handleAssignLabels"
+              <Button
+                variant="faded"
+                color="brand"
+                size="sm"
+                icon="i-lucide-tags"
+                :label="t('CONTACTS_BULK_ACTIONS.ASSIGN_LABELS')"
+                :disabled="!selectedCount || isLoading"
+                :is-loading="isLoading"
+                class="!rounded-xl transition-all shadow-sm"
+                @click="toggleLabelSelector"
               />
-            </transition>
+              <transition
+                enter-active-class="transition ease-out duration-200"
+                enter-from-class="transform opacity-0 -translate-y-2"
+                enter-to-class="transform opacity-100 translate-y-0"
+                leave-active-class="transition ease-in duration-150"
+                leave-from-class="transform opacity-100 translate-y-0"
+                leave-to-class="transform opacity-0 -translate-y-2"
+              >
+                <LabelActions
+                  v-if="showLabelSelector"
+                  class="premium-label-actions !absolute top-full mt-2 ltr:right-0 rtl:left-0 z-50 rounded-2xl shadow-2xl"
+                  @assign="handleAssignLabels"
+                />
+              </transition>
+            </div>
+            <Policy :permissions="['administrator']">
+              <Button
+                v-tooltip.bottom="t('CONTACTS_BULK_ACTIONS.DELETE_CONTACTS')"
+                variant="faded"
+                color="ruby"
+                size="sm"
+                icon="i-lucide-trash"
+                :disabled="!selectedCount || isLoading"
+                :is-loading="isLoading"
+                class="!rounded-xl !px-3 shadow-sm hover:!bg-red-500 hover:!text-white transition-all"
+                @click="emit('deleteSelected')"
+              />
+            </Policy>
           </div>
-          <Policy :permissions="['administrator']">
-            <Button
-              v-tooltip.bottom="t('CONTACTS_BULK_ACTIONS.DELETE_CONTACTS')"
-              sm
-              faded
-              ruby
-              icon="i-lucide-trash"
-              :label="t('CONTACTS_BULK_ACTIONS.DELETE_CONTACTS')"
-              :aria-label="t('CONTACTS_BULK_ACTIONS.DELETE_CONTACTS')"
-              :disabled="!selectedCount || isLoading"
-              :is-loading="isLoading"
-              class="!px-1.5 [&>span:nth-child(2)]:hidden"
-              @click="emit('deleteSelected')"
-            />
-          </Policy>
-        </div>
-      </template>
-    </BulkSelectBar>
+        </template>
+      </BulkSelectBar>
+    </div>
   </div>
 </template>
+
+<style scoped>
+.premium-bulk-bar {
+  animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.premium-label-actions :deep(.label-dropdown) {
+  @apply !rounded-2xl !border-n-slate-3/50 !bg-white/90 dark:!bg-n-slate-1/90 !backdrop-blur-xl !shadow-2xl;
+}
+</style>

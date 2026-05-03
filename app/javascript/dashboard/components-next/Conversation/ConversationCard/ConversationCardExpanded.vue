@@ -11,7 +11,6 @@ import TimeAgo from 'dashboard/components/ui/TimeAgo.vue';
 import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 import CardStatusIcon from './CardStatusIcon.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
-import Icon from 'dashboard/components-next/icon/Icon.vue';
 
 const props = defineProps({
   chat: { type: Object, required: true },
@@ -62,12 +61,11 @@ const selectedModel = computed({
 
 <template>
   <div
-    class="conversation relative cursor-pointer group grid gap-4 items-center px-3 h-12 border-b border-n-slate-3 hover:border-n-surface-1 hover:z-[1] before:content-[none] before:absolute before:-top-px before:inset-x-0 before:h-px before:bg-n-surface-1 before:pointer-events-none hover:before:content-['']"
+    class="conversation relative cursor-pointer group grid gap-4 items-center px-4 h-14 border-b border-n-slate-3/30 dark:border-n-slate-2/10 hover:bg-white/40 dark:hover:bg-n-slate-3/10 transition-all duration-200"
     :class="{
-      'active animate-card-select bg-n-alpha-1 dark:bg-n-alpha-3 !border-n-surface-1':
+      'active-premium bg-white dark:bg-n-slate-1 shadow-xl shadow-n-brand-primary/5 z-10':
         isActiveChat,
-      'selected bg-n-slate-2 dark:bg-n-slate-3 !border-n-surface-1': selected,
-      'hover:bg-n-alpha-1': !isActiveChat && !selected,
+      'selected bg-n-brand-primary/5': selected,
       'grid-cols-[minmax(0,2fr)_minmax(0,1fr)]': showLabelsSection,
       'grid-cols-[minmax(0,2fr)_max-content]': !showLabelsSection,
     }"
@@ -75,18 +73,22 @@ const selectedModel = computed({
     @contextmenu="$emit('contextmenu', $event)"
   >
     <!-- LEFT SECTION -->
-    <div class="flex items-center gap-2 min-w-0 flex-1">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
       <div class="flex items-center justify-center flex-shrink-0" @click.stop>
-        <Checkbox v-model="selectedModel" />
+        <Checkbox v-model="selectedModel" class="scale-110" />
       </div>
 
-      <div class="w-px h-3 bg-n-slate-6 flex-shrink-0" />
+      <div class="w-px h-4 bg-n-slate-3 dark:bg-n-slate-3/30 flex-shrink-0" />
 
-      <div class="w-4 flex items-center justify-center flex-shrink-0">
-        <CardPriorityIcon :priority="chat.priority" show-empty />
+      <div class="w-5 flex items-center justify-center flex-shrink-0">
+        <CardPriorityIcon
+          :priority="chat.priority"
+          show-empty
+          class="!size-4"
+        />
       </div>
 
-      <div class="w-4 flex items-center justify-center flex-shrink-0">
+      <div class="w-5 flex items-center justify-center flex-shrink-0">
         <Avatar
           v-if="showAssignee && assignee.name"
           v-tooltip.top="{
@@ -95,30 +97,31 @@ const selectedModel = computed({
           }"
           :name="assignee.name"
           :src="assignee.thumbnail"
-          :size="14"
+          :size="18"
           :status="assignee.availability_status"
           hide-offline-status
+          class="!rounded-lg"
         />
-        <Icon
-          v-else
-          icon="i-woot-empty-assignee"
-          class="size-4 text-n-slate-7"
-        />
+        <span v-else class="i-lucide-user-plus text-n-slate-7 size-4" />
       </div>
 
-      <div class="w-4 flex items-center justify-center flex-shrink-0">
-        <CardStatusIcon :status="chat.status" show-empty />
+      <div class="w-5 flex items-center justify-center flex-shrink-0">
+        <CardStatusIcon :status="chat.status" show-empty class="!size-4" />
       </div>
 
-      <div class="w-px h-3 bg-n-slate-6 flex-shrink-0" />
+      <div class="w-px h-4 bg-n-slate-3 dark:bg-n-slate-3/30 flex-shrink-0" />
 
-      <div v-if="!isInboxView && showInboxName" class="w-20 flex-shrink-0">
-        <InboxName v-if="showInboxName" :inbox="inbox" class="min-w-0" />
+      <div v-if="!isInboxView && showInboxName" class="w-24 flex-shrink-0">
+        <InboxName
+          v-if="showInboxName"
+          :inbox="inbox"
+          class="min-w-0 scale-90 origin-left"
+        />
       </div>
 
       <div
         v-if="!isInboxView && showInboxName"
-        class="w-px h-3 bg-n-slate-6 flex-shrink-0"
+        class="w-px h-4 bg-n-slate-3 dark:bg-n-slate-3/30 flex-shrink-0"
       />
 
       <div
@@ -126,14 +129,12 @@ const selectedModel = computed({
           content: chat.id,
           delay: { show: 500, hide: 0 },
         }"
-        class="h-6 flex items-center gap-1 max-w-20 w-full min-w-0 flex-shrink-0"
+        class="flex items-center gap-1.5 max-w-24 w-full min-w-0 flex-shrink-0"
       >
-        <Icon
-          icon="i-woot-hash"
-          class="size-3.5 text-n-slate-10 flex-shrink-0"
-        />
-        <span class="text-body-main text-n-slate-11 truncate">
-          {{ chat.id }}
+        <span
+          class="text-[10px] font-black text-n-slate-10 tracking-widest bg-n-slate-2 dark:bg-n-slate-3/30 px-1.5 py-0.5 rounded-md"
+        >
+          #{{ chat.id }}
         </span>
       </div>
 
@@ -142,10 +143,11 @@ const selectedModel = computed({
         :selected="false"
         :enable-selection="false"
         :hide-thumbnail="false"
+        class="!size-8 !rounded-xl shadow-sm"
       />
 
       <h4
-        class="text-heading-3 my-0 capitalize truncate text-n-slate-12 font-medium w-32 flex-shrink-0"
+        class="text-sm font-black tracking-tight text-n-slate-12 truncate w-40 flex-shrink-0"
       >
         {{ currentContact.name }}
       </h4>
@@ -156,31 +158,60 @@ const selectedModel = computed({
         :voice-call-direction="voiceCallData.direction"
         :unread-count="unreadCount"
         :show-expanded-preview="false"
+        class="flex-1 text-xs"
       />
     </div>
 
     <!-- RIGHT SECTION -->
-    <div class="flex items-center justify-end gap-1.5 flex-shrink-0">
-      <div v-if="showLabelsSection" class="min-w-0 w-full">
+    <div class="flex items-center justify-end gap-3 flex-shrink-0">
+      <div v-if="showLabelsSection" class="min-w-0 w-full flex justify-end">
         <CardLabels
           :labels="chat.labels"
           disable-toggle
-          class="my-0 [&>div]:justify-end justify-end"
+          class="my-0 scale-90 origin-right"
         />
       </div>
 
-      <div v-if="hasSlaPolicyId" class="flex-shrink-0">
+      <div v-if="hasSlaPolicyId" class="flex-shrink-0 scale-90">
         <SLACardLabel ref="slaCardLabel" :chat="chat" />
       </div>
 
-      <div class="flex-shrink-0 w-[4.375rem] text-end">
+      <div class="flex-shrink-0 w-20 text-end">
         <TimeAgo
           :conversation-id="chat.id"
           :last-activity-timestamp="chat.timestamp"
           :created-at-timestamp="chat.created_at"
-          class="font-440 !text-xs text-n-slate-11"
+          class="font-black text-[10px] text-n-slate-11 uppercase tracking-tighter"
         />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+.active-premium {
+  position: relative;
+}
+
+.active-premium::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 3px;
+  background: var(--color-n-brand-primary);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px var(--color-n-brand-primary);
+}
+
+.conversation {
+  transition:
+    transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 0.2s ease;
+}
+
+.conversation:hover:not(.active-premium) {
+  transform: translateX(2px);
+}
+</style>

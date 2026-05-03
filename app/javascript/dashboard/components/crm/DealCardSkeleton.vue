@@ -1,25 +1,35 @@
 <template>
   <div
-    class="p-4 mb-3 bg-n-alpha-3 dark:bg-n-slate-1 border border-n-slate-3 dark:border-n-slate-2 rounded-xl shadow-sm overflow-hidden relative shimmer-container flex flex-col gap-3"
+    class="p-3.5 bg-n-alpha-3 dark:bg-n-slate-1 border border-n-slate-3 dark:border-n-slate-2 rounded-xl shadow-sm overflow-hidden relative shimmer-container flex flex-col gap-2.5"
   >
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div class="h-3 w-16 rounded bg-n-slate-3 dark:bg-n-slate-2" />
+      <div class="h-4 w-4 rounded-full bg-n-slate-3 dark:bg-n-slate-2" />
+    </div>
+
+    <!-- Main -->
     <div class="flex items-start gap-3">
       <div
-        class="w-10 h-10 rounded-full bg-n-slate-3 dark:bg-n-slate-2 flex-shrink-0"
+        class="w-9 h-9 rounded-full bg-n-slate-3 dark:bg-n-slate-2 shrink-0"
       />
-      <div class="flex-1 min-w-0 py-1">
-        <div class="h-4 w-3/4 rounded bg-n-slate-3 dark:bg-n-slate-2 mb-2" />
+      <div class="flex-1 space-y-2 py-0.5">
+        <div class="h-3.5 w-3/4 rounded bg-n-slate-3 dark:bg-n-slate-2" />
         <div class="h-3 w-1/2 rounded bg-n-slate-3/60 dark:bg-n-slate-2/60" />
       </div>
     </div>
-    <div class="h-10 w-full rounded-lg bg-n-slate-2/50 dark:bg-n-slate-2/30" />
-    <div class="flex gap-1">
-      <div class="h-5 w-12 rounded-md bg-n-slate-3 dark:bg-n-slate-2" />
-      <div class="h-5 w-16 rounded-md bg-n-slate-3 dark:bg-n-slate-2" />
+
+    <!-- Tags -->
+    <div class="flex gap-1.5">
+      <div class="h-5 w-14 rounded-md bg-n-slate-3/40 dark:bg-n-slate-2/40" />
+      <div class="h-5 w-10 rounded-md bg-n-slate-3/40 dark:bg-n-slate-2/40" />
     </div>
+
+    <!-- Footer -->
     <div class="h-px bg-n-slate-2 w-full mt-1" />
     <div class="flex items-center justify-between">
-      <div class="h-6 w-24 rounded-lg bg-n-slate-3 dark:bg-n-slate-2" />
-      <div class="h-4 w-12 rounded bg-n-slate-3 dark:bg-n-slate-2" />
+      <div class="h-5.5 w-5.5 rounded-full bg-n-slate-3 dark:bg-n-slate-2" />
+      <div class="h-6 w-20 rounded-lg bg-n-slate-3 dark:bg-n-slate-2" />
     </div>
 
     <!-- Shimmer Overlay -->

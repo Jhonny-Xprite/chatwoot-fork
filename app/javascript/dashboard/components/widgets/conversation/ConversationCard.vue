@@ -43,14 +43,6 @@ const voiceCallData = computed(() => ({
   direction: props.chat.additional_attributes?.call_direction,
 }));
 
-const showMetaSection = computed(() => {
-  return (
-    props.showInboxName ||
-    (props.showAssignee && props.assignee.name) ||
-    props.chat.priority
-  );
-});
-
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 
 const showLabelsSection = computed(() => {
@@ -96,149 +88,188 @@ watch(
 
 <template>
   <div
-    class="relative flex items-start flex-grow-0 flex-shrink-0 w-auto max-w-full py-0 cursor-pointer conversation border-b border-n-slate-3 hover:border-n-surface-1 hover:bg-n-alpha-1 dark:hover:bg-n-alpha-3 group hover:z-[1] before:content-[none] before:absolute before:-top-px before:inset-x-0 before:h-px before:bg-n-surface-1 before:pointer-events-none hover:before:content-['']"
+    class="relative flex flex-col w-full px-4 py-3 cursor-pointer conversation border-b border-n-slate-3/20 dark:border-n-slate-2/10 transition-all duration-300 group"
     :class="{
-      'active animate-card-select bg-n-background !border-n-surface-1':
+      'active-premium bg-white/60 dark:bg-n-slate-1/60 shadow-2xl shadow-n-brand-primary/10 z-20':
         isActiveChat,
-      'selected bg-n-slate-2 !border-n-surface-1': selected,
-      'px-0': compact,
-      'px-3': !compact,
+      'selected bg-n-brand-primary/5': selected,
+      '!px-2 !py-2': compact,
     }"
     @click="$emit('click', $event)"
     @contextmenu="$emit('contextmenu', $event)"
   >
+    <!-- Background Blur Effect for Active Chat -->
     <div
-      class="relative"
-      @mouseenter="onThumbnailHover"
-      @mouseleave="onThumbnailLeave"
-    >
-      <Avatar
-        v-if="!hideThumbnail"
-        :name="currentContact.name"
-        :src="currentContact.thumbnail"
-        :size="32"
-        :status="currentContact.availability_status"
-        :class="!showInboxName ? 'mt-4' : 'mt-8'"
-        hide-offline-status
-      >
-        <template #overlay="{ size }">
-          <label
-            v-if="hovered || selected"
-            class="flex items-center justify-center rounded-full cursor-pointer absolute inset-0 z-10 backdrop-blur-[2px]"
-            :style="{ width: `${size}px`, height: `${size}px` }"
-            @click.stop
-          >
-            <Checkbox v-model="selectedModel" />
-          </label>
-        </template>
-      </Avatar>
-    </div>
-    <div class="px-0 py-3 flex-1 min-w-0 border-line">
+      v-if="isActiveChat"
+      class="absolute inset-0 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-xl -z-10 rounded-xl"
+    />
+
+    <div class="flex items-start gap-3">
+      <!-- Avatar Section -->
       <div
-        v-if="showMetaSection"
-        class="flex items-center min-w-0 gap-1"
-        :class="{
-          'ltr:ml-2 rtl:mr-2': !compact,
-          'mx-2': compact,
-        }"
+        class="relative flex-shrink-0 mt-1"
+        @mouseenter="onThumbnailHover"
+        @mouseleave="onThumbnailLeave"
       >
-        <InboxName v-if="showInboxName" :inbox="inbox" class="flex-1 min-w-0" />
-        <div
-          class="flex items-baseline gap-2 flex-shrink-0"
-          :class="{
-            'flex-1 justify-between': !showInboxName,
-          }"
+        <Avatar
+          v-if="!hideThumbnail"
+          :name="currentContact.name"
+          :src="currentContact.thumbnail"
+          :size="compact ? 32 : 44"
+          :status="currentContact.availability_status"
+          class="!rounded-2xl shadow-sm border border-white dark:border-n-slate-2/50 group-hover:scale-105 transition-transform duration-300"
+          hide-offline-status
         >
-          <div v-if="chat.pipeline_stage" class="flex items-center gap-1">
+          <template #overlay="{ size }">
+            <label
+              v-if="hovered || selected"
+              class="flex items-center justify-center rounded-2xl cursor-pointer absolute inset-0 z-10 backdrop-blur-md bg-white/40 dark:bg-black/40 border border-white/20"
+              :style="{ width: `${size}px`, height: `${size}px` }"
+              @click.stop
+            >
+              <Checkbox v-model="selectedModel" class="scale-110" />
+            </label>
+          </template>
+        </Avatar>
+      </div>
+
+      <!-- Main Content -->
+      <div class="flex-1 min-w-0 flex flex-col gap-1">
+        <!-- Top Metadata Row -->
+        <div class="flex items-center justify-between gap-2 h-5">
+          <div class="flex items-center gap-2 overflow-hidden">
             <div
-              class="size-1.5 rounded-full"
-              :style="{
-                backgroundColor:
-                  chat.pipeline_stage.color || 'var(--n-slate-4)',
-              }"
+              v-if="chat.pipeline_stage"
+              class="flex items-center gap-1.5 bg-n-brand-primary/10 dark:bg-n-brand-primary/20 px-2 py-0.5 rounded-full border border-n-brand-primary/20"
+            >
+              <div
+                class="size-1.5 rounded-full animate-pulse"
+                :style="{
+                  backgroundColor:
+                    chat.pipeline_stage.color || 'var(--color-n-brand-primary)',
+                }"
+              />
+              <span
+                class="text-[9px] font-black text-n-brand-primary uppercase tracking-widest truncate max-w-[100px]"
+                :title="`${chat.pipeline_name} › ${chat.pipeline_stage.name}`"
+              >
+                {{ chat.pipeline_stage.name }}
+              </span>
+            </div>
+            <InboxName
+              v-if="showInboxName"
+              :inbox="inbox"
+              class="scale-90 origin-left"
+            />
+          </div>
+          <div class="flex items-center gap-1.5">
+            <CardPriorityIcon
+              v-if="chat.priority"
+              :priority="chat.priority"
+              class="!size-3.5 opacity-80"
             />
             <span
-              class="text-[10px] font-bold text-n-slate-11 uppercase tracking-tight truncate max-w-[80px]"
-              :title="`${chat.pipeline_name} › ${chat.pipeline_stage.name}`"
+              class="text-[10px] font-bold text-n-slate-10 tracking-tight uppercase group-hover:text-n-slate-12 transition-colors"
             >
-              {{ chat.pipeline_stage.name }}
+              <TimeAgo
+                :last-activity-timestamp="chat.timestamp"
+                :created-at-timestamp="chat.created_at"
+                :conversation-id="chat.id"
+              />
             </span>
-            <span class="w-px h-2.5 bg-n-slate-3 mx-0.5" />
           </div>
-          <span
-            v-if="showAssignee && assignee.name"
-            class="text-n-slate-11 text-xs font-medium leading-3 py-0.5 px-0 inline-flex items-center truncate"
+        </div>
+
+        <!-- Name/Title Row -->
+        <div class="flex items-center justify-between gap-2 mt-0.5">
+          <h4
+            class="text-[15px] font-black tracking-tight text-n-slate-12 truncate flex-1 leading-none group-hover:text-n-brand-primary transition-colors"
           >
-            <fluent-icon icon="person" size="12" class="text-n-slate-11" />
-            {{ assignee.name }}
-          </span>
-          <CardPriorityIcon
-            :priority="chat.priority"
-            class="flex-shrink-0 !size-3.5"
+            {{ currentContact.name }}
+          </h4>
+          <UnreadBadge
+            v-if="hasUnread"
+            :count="unreadCount"
+            class="shadow-xl shadow-n-brand-primary/20 scale-90"
           />
         </div>
-      </div>
-      <h4
-        class="conversation--user text-sm my-0 mx-2 capitalize pt-0.5 text-ellipsis overflow-hidden whitespace-nowrap flex-1 min-w-0 ltr:pr-16 rtl:pl-16 text-n-slate-12"
-        :class="hasUnread ? 'font-semibold' : 'font-medium'"
-      >
-        {{ currentContact.name }}
-      </h4>
-      <VoiceCallStatus
-        v-if="voiceCallData.status"
-        key="voice-status-row"
-        :status="voiceCallData.status"
-        :direction="voiceCallData.direction"
-        :message-preview-class="messagePreviewClass"
-      />
-      <MessagePreview
-        v-else-if="lastMessageInChat"
-        key="message-preview"
-        :message="lastMessageInChat"
-        class="my-0 mx-2 leading-6 h-6 flex-1 min-w-0 text-sm"
-        :class="messagePreviewClass"
-      />
-      <p
-        v-else
-        key="no-messages"
-        class="text-n-slate-11 text-sm my-0 mx-2 leading-6 h-6 flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
-        :class="messagePreviewClass"
-      >
-        <fluent-icon
-          size="16"
-          class="-mt-0.5 align-middle inline-block text-n-slate-10"
-          icon="info"
-        />
-        <span class="mx-0.5">
-          {{ $t(`CHAT_LIST.NO_MESSAGES`) }}
-        </span>
-      </p>
-      <div
-        class="absolute flex flex-col ltr:right-3 rtl:left-3"
-        :class="showMetaSection ? 'top-8' : 'top-4'"
-      >
-        <span class="ml-auto font-normal leading-4 text-xxs">
-          <TimeAgo
-            :last-activity-timestamp="chat.timestamp"
-            :created-at-timestamp="chat.created_at"
-            :conversation-id="chat.id"
+
+        <!-- Message Preview Row -->
+        <div class="flex items-start gap-1.5 h-4 overflow-hidden">
+          <VoiceCallStatus
+            v-if="voiceCallData.status"
+            key="voice-status-row"
+            :status="voiceCallData.status"
+            :direction="voiceCallData.direction"
+            :message-preview-class="messagePreviewClass"
+            class="flex-1 min-w-0"
           />
-        </span>
-        <UnreadBadge
-          v-if="hasUnread"
-          :count="unreadCount"
-          class="ltr:ml-auto rtl:mr-auto mt-1"
-        />
+          <MessagePreview
+            v-else-if="lastMessageInChat"
+            key="message-preview"
+            :message="lastMessageInChat"
+            class="flex-1 min-w-0 text-[12px] leading-tight"
+            :class="messagePreviewClass"
+          />
+        </div>
+
+        <!-- Bottom Row: Tags/SLA -->
+        <div
+          v-if="showLabelsSection"
+          class="flex items-center justify-between gap-2 mt-1"
+        >
+          <CardLabels
+            :conversation-labels="chat.labels"
+            class="scale-90 origin-left"
+          >
+            <template v-if="hasSlaPolicyId" #before>
+              <SLACardLabel :chat="chat" class="ltr:mr-1 rtl:ml-1" />
+            </template>
+          </CardLabels>
+          <div
+            v-if="showAssignee && assignee.name"
+            class="flex items-center gap-1 bg-n-slate-3/50 dark:bg-n-slate-2/30 px-1.5 py-0.5 rounded-lg border border-n-slate-3/20"
+          >
+            <span
+              class="text-[9px] font-bold text-n-slate-11 uppercase tracking-wider"
+            >
+              {{ assignee.name }}
+            </span>
+          </div>
+        </div>
       </div>
-      <CardLabels
-        v-if="showLabelsSection"
-        :conversation-labels="chat.labels"
-        class="mt-0.5 mx-2 mb-0"
-      >
-        <template v-if="hasSlaPolicyId" #before>
-          <SLACardLabel :chat="chat" class="ltr:mr-1 rtl:ml-1" />
-        </template>
-      </CardLabels>
     </div>
   </div>
 </template>
+
+<style scoped>
+.conversation {
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.conversation:hover:not(.active-premium) {
+  @apply bg-white/20 dark:bg-n-slate-3/10;
+  transform: translateX(4px);
+}
+
+.active-premium {
+  @apply rounded-xl mx-2 my-1 border-none;
+}
+
+.active-premium::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  background: var(--color-n-brand-primary);
+  border-radius: 99px;
+  box-shadow: 0 0 15px var(--color-n-brand-primary);
+  transition: all 0.3s ease;
+}
+
+.selected {
+  @apply ring-2 ring-n-brand-primary/30 ring-inset;
+}
+</style>

@@ -1442,19 +1442,23 @@ export default {
 }
 
 .reply-box {
-  @apply relative mb-2 mx-2 border border-n-weak rounded-xl bg-n-solid-1;
+  @apply relative mb-6 mx-6 border border-n-slate-3/30 dark:border-n-slate-2/10 rounded-2xl bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-xl shadow-xl shadow-black/5 transition-all duration-300;
+
+  &:focus-within {
+    @apply shadow-2xl shadow-n-brand-primary/10 border-n-brand-primary/40 dark:border-n-brand-primary/30;
+  }
 
   &.is-private {
-    @apply bg-n-solid-amber dark:border-n-amber-3/10 border-n-amber-12/5;
+    @apply bg-n-solid-amber/10 dark:bg-n-solid-amber/20 border-n-solid-amber/40 dark:border-n-solid-amber/20 backdrop-blur-xl;
   }
 }
 
 .send-button {
-  @apply mb-0;
+  @apply mb-0 shadow-lg shadow-n-brand-primary/20 hover:shadow-n-brand-primary/40 transition-all active:scale-95;
 }
 
 .reply-box__top {
-  @apply relative py-0 px-3 -mt-px;
+  @apply relative py-2 px-4 -mt-px;
 }
 
 .emoji-dialog {

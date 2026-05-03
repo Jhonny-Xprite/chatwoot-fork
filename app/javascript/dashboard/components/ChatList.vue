@@ -866,7 +866,7 @@ watch(conversationFilters, (newVal, oldVal) => {
 
 <template>
   <div
-    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-n-surface-1"
+    class="flex flex-col flex-shrink-0 conversations-list-wrap bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md border-r border-n-slate-3/30 dark:border-n-slate-2/10 shadow-xl"
     :class="[
       { hidden: !showConversationList },
       isOnExpandedLayout ? 'basis-full' : 'w-[340px] 2xl:w-[412px]',

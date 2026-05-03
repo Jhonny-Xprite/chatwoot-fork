@@ -91,23 +91,21 @@ export default {
 
 <template>
   <div
-    class="conversation-details-wrap flex flex-col min-w-0 w-full bg-n-surface-1 relative"
+    class="conversation-details-wrap flex flex-col min-w-0 w-full bg-transparent relative h-full overflow-hidden"
     :class="{
-      'border-l rtl:border-l-0 rtl:border-r border-n-weak': !isOnExpandedLayout,
+      'border-l rtl:border-l-0 rtl:border-r border-n-slate-3/30 dark:border-n-slate-2/10':
+        !isOnExpandedLayout,
     }"
   >
     <ConversationHeader
       v-if="currentChat.id"
       :chat="currentChat"
       :show-back-button="isOnExpandedLayout && !isInboxView"
-      :class="{
-        'border-b border-b-n-weak !pt-2': !dashboardApps.length,
-      }"
     />
     <woot-tabs
       v-if="dashboardApps.length && currentChat.id"
       :index="activeIndex"
-      class="h-10"
+      class="h-10 bg-white/20 dark:bg-n-slate-1/20 backdrop-blur-sm border-b border-n-slate-3/30 dark:border-n-slate-2/10"
       @change="onDashboardAppTabChange"
     >
       <woot-tabs-item
@@ -119,11 +117,12 @@ export default {
         is-compact
       />
     </woot-tabs>
-    <div v-show="!activeIndex" class="flex h-full min-h-0 m-0">
+    <div v-show="!activeIndex" class="flex-1 flex min-h-0 m-0 overflow-hidden">
       <MessagesView
         v-if="currentChat.id"
         :inbox-id="inboxId"
         :is-inbox-view="isInboxView"
+        class="flex-1"
       />
       <EmptyState
         v-if="!currentChat.id && !isInboxView"

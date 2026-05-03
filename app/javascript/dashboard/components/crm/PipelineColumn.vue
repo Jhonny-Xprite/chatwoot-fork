@@ -3,7 +3,6 @@ import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
-import { useColorStyle } from 'dashboard/composables/useColorStyle';
 import DealCard from './DealCard.vue';
 import DealCardSkeleton from './DealCardSkeleton.vue';
 
@@ -14,17 +13,12 @@ const props = defineProps({
   },
 });
 
-defineEmits(['select', 'selectContact']);
+defineEmits(['select', 'selectContact', 'addDeal']);
 
 const store = useStore();
 const { t } = useI18n();
-const { getColorDotStyle } = useColorStyle();
 
 const isDragging = ref(false);
-
-const stageColorStyle = computed(
-  () => getColorDotStyle(props.stage.color).value
-);
 
 const conversations = computed({
   get: () =>
@@ -77,45 +71,46 @@ const onDragChange = event => {
 
 <template>
   <div
-    class="flex flex-col h-full bg-n-alpha-1 dark:bg-n-slate-1/50 rounded-2xl border border-n-slate-3 dark:border-n-slate-2 min-w-0 overflow-hidden"
+    class="flex flex-col h-full bg-n-slate-2/40 dark:bg-n-slate-2/10 rounded-3xl border border-n-slate-3 dark:border-n-slate-2/50 min-w-0 w-[340px] flex-shrink-0 overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-n-brand-primary/5 hover:border-n-brand-primary/20"
   >
-    <!-- Column Header -->
+    <!-- Column Header: Floating Glass Style -->
     <div
-      class="p-4 flex items-center justify-between border-b border-n-slate-3 dark:border-n-slate-2 bg-n-alpha-2 rounded-t-2xl"
+      class="flex items-center justify-between px-5 py-4 shrink-0 border-b border-n-slate-3/50 dark:border-n-slate-2/30 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md"
     >
-      <div class="flex items-center gap-2 overflow-hidden">
-        <div class="w-2 h-6 rounded-full" :style="stageColorStyle" />
-        <h3 class="text-sm font-bold text-n-slate-12 truncate">
+      <div class="flex items-center gap-3 min-w-0">
+        <h3
+          class="text-sm font-black text-n-slate-12 truncate tracking-tight uppercase"
+        >
           {{ stage.name }}
         </h3>
         <span
-          class="px-2 py-0.5 rounded-full bg-n-slate-3 text-[10px] font-bold text-n-slate-11"
+          class="flex h-5 items-center justify-center rounded-full bg-n-slate-2 dark:bg-n-slate-3 px-1.5 text-[10px] font-black text-n-slate-11 ring-1 ring-n-slate-3 dark:ring-n-slate-2"
         >
           {{ stageCount }}
         </span>
       </div>
       <div
-        class="drag-handle flex-shrink-0 cursor-grab active:cursor-grabbing p-1 text-slate-400 hover:text-slate-600"
+        class="column-drag-handle flex-shrink-0 cursor-grab active:cursor-grabbing p-1.5 rounded-lg text-n-slate-8 hover:text-n-brand-primary hover:bg-n-slate-2 dark:hover:bg-n-slate-2/50 transition-all"
       >
         <i class="i-woot-drag text-lg" />
       </div>
     </div>
 
     <!-- Draggable Area -->
-    <div class="flex-1 min-h-0 relative">
+    <div class="flex-1 min-h-0 relative flex flex-col">
       <draggable
         v-model="conversations"
         v-bind="dragOptions"
-        class="flex-1 overflow-y-auto p-4 flex flex-col gap-3 custom-scrollbar"
+        class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar scroll-smooth"
         item-key="id"
         tag="div"
         @start="isDragging = true"
         @end="isDragging = false"
         @change="onDragChange"
       >
-        <template #item="{ element }">
+        <template #item="{ element: conversation }">
           <DealCard
-            :conversation="element"
+            :conversation="conversation"
             @select="$emit('select', $event)"
             @select-contact="$emit('selectContact', $event)"
           />
@@ -125,15 +120,15 @@ const onDragChange = event => {
       <!-- Empty State -->
       <div
         v-if="!conversations.length && !isLoading"
-        class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center pointer-events-none opacity-40"
+        class="absolute inset-0 flex flex-col items-center justify-center p-8 opacity-40 grayscale pointer-events-none"
       >
-        <div
-          class="w-12 h-12 rounded-full bg-n-slate-2 dark:bg-n-slate-3 flex items-center justify-center mb-2"
-        >
-          <span class="i-lucide-layout-list text-xl text-n-slate-10" />
+        <div class="mb-4 rounded-full bg-n-slate-2 p-5 dark:bg-n-slate-3">
+          <i class="i-lucide-box text-3xl text-n-slate-8" />
         </div>
-        <p class="text-[11px] font-medium text-n-slate-10">
-          {{ t('CRM.NO_LEADS_HERE') }}
+        <p
+          class="text-center text-[11px] font-black uppercase tracking-widest text-n-slate-9"
+        >
+          {{ t('CRM.NO_DEALS') }}
         </p>
       </div>
 
@@ -141,6 +136,19 @@ const onDragChange = event => {
       <div v-if="isLoading" class="p-3 flex flex-col gap-2">
         <DealCardSkeleton v-for="i in 3" :key="i" />
       </div>
+    </div>
+
+    <!-- Column Footer: Quick Add -->
+    <div class="p-3 border-t border-n-slate-3/30 dark:border-n-slate-2/20">
+      <button
+        class="group flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-[10px] font-black uppercase tracking-widest text-n-slate-9 transition-all hover:bg-n-brand-primary hover:text-white hover:shadow-lg hover:shadow-n-brand-primary/20"
+        @click="$emit('addDeal', stage.id)"
+      >
+        <i
+          class="i-lucide-plus text-sm transition-transform group-hover:rotate-90"
+        />
+        <span>{{ t('CRM.ADD_DEAL') }}</span>
+      </button>
     </div>
   </div>
 </template>

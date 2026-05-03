@@ -11,7 +11,7 @@ const props = defineProps({
   },
 });
 
-defineEmits(['select', 'selectContact', 'addStage']);
+const emit = defineEmits(['select', 'selectContact', 'addStage']);
 
 const store = useStore();
 const isFetchingStages = computed(
@@ -27,115 +27,105 @@ const stagesList = computed({
   },
 });
 
-const boardGridStyle = computed(() => ({
-  display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))',
-  gap: '1.5rem',
-  padding: '1.5rem',
-  height: '100%',
-  alignItems: 'start',
-}));
+const dragOptions = {
+  animation: 250,
+  group: 'pipeline',
+  ghostClass: 'opacity-30',
+};
 </script>
 
 <template>
-  <div class="relative flex flex-col flex-1 overflow-hidden bg-n-alpha-1">
-    <!-- Board Body - CSS Grid Responsive -->
+  <div
+    class="flex-1 flex flex-col min-h-0 overflow-hidden bg-n-surface-1 relative"
+  >
+    <!-- Premium Board Background Gradient -->
     <div
-      class="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar"
-    >
-      <div v-if="!isFetchingStages" :style="boardGridStyle">
-        <draggable
-          v-model="stagesList"
-          tag="div"
-          item-key="id"
-          class="stage-draggable"
-          handle=".column-drag-handle"
-          ghost-class="opacity-50"
-          :animation="200"
-        >
-          <template #item="{ element: stage }">
-            <PipelineColumn
-              :stage="stage"
-              @select="$emit('select', $event)"
-              @select-contact="$emit('selectContact', $event)"
-            />
-          </template>
-        </draggable>
+      class="absolute inset-0 bg-gradient-to-br from-n-slate-1 via-n-slate-1 to-n-brand-primary-alpha-1/5 pointer-events-none"
+    />
 
-        <!-- Add Stage Placeholder -->
-        <div
-          v-if="!isFetchingStages && stages.length > 0"
-          class="flex items-start"
-        >
-          <button
-            class="group w-full flex items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-n-slate-3 py-8 text-n-slate-10 transition-all hover:border-n-brand-primary/50 hover:bg-n-brand-primary-alpha-1 hover:text-n-brand-primary dark:border-n-slate-2"
-            @click="$emit('addStage')"
+    <main class="flex-1 flex flex-col min-h-0 relative z-10">
+      <div
+        v-if="!isFetchingStages"
+        class="flex-1 overflow-x-auto overflow-y-hidden custom-horizontal-scrollbar"
+      >
+        <div class="h-full inline-flex p-6 gap-6 min-w-full">
+          <draggable
+            v-model="stagesList"
+            item-key="id"
+            class="flex gap-6 h-full items-start"
+            handle=".column-drag-handle"
+            v-bind="dragOptions"
           >
-            <span class="i-lucide-plus-circle text-lg" />
-            <span class="text-sm font-semibold italic">{{
-              $t('CRM.ADD_STAGE')
-            }}</span>
-          </button>
+            <template #item="{ element: stage }">
+              <PipelineColumn
+                :stage="stage"
+                @select="emit('select', $event)"
+                @select-contact="emit('selectContact', $event)"
+              />
+            </template>
+          </draggable>
+
+          <!-- Add Stage Placeholder -->
+          <div class="w-[320px] flex-shrink-0 pt-2">
+            <button
+              class="group w-full flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-n-slate-3 py-16 text-n-slate-10 transition-all hover:border-n-brand-primary/50 hover:bg-n-brand-primary-alpha-1 hover:text-n-brand-primary dark:border-n-slate-2"
+              @click="emit('addStage')"
+            >
+              <div
+                class="flex h-12 w-12 items-center justify-center rounded-full bg-n-slate-2 transition-colors group-hover:bg-n-brand-primary group-hover:text-white"
+              >
+                <i class="i-lucide-plus text-xl" />
+              </div>
+              <span class="text-xs font-black uppercase tracking-widest">{{
+                $t('CRM.ADD_STAGE')
+              }}</span>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Loading State -->
-      <div v-else :style="boardGridStyle">
+      <div v-else class="flex h-full min-w-max items-start gap-6 p-6">
         <div
           v-for="i in 4"
           :key="i"
-          class="h-full w-[320px] animate-pulse rounded-2xl bg-n-slate-2 dark:bg-n-slate-3"
+          class="h-full w-[320px] animate-pulse rounded-2xl bg-n-slate-2 dark:bg-n-slate-2/50"
         />
       </div>
-    </div>
+    </main>
   </div>
 </template>
 
 <style scoped>
-/* Make draggable transparent to CSS Grid layout */
-.stage-draggable {
-  display: contents;
-}
-
-/* Estilização agressiva do Scrollbar Horizontal para facilitar a usabilidade */
-.custom-horizontal-scrollbar {
-  display: flex;
-  flex-direction: column;
-  overscroll-behavior-x: contain;
-}
-
+/* Ultra-thin Premium Scrollbar */
 .custom-horizontal-scrollbar::-webkit-scrollbar {
-  height: 12px; /* Aumentado para facilitar o clique */
+  height: 6px;
 }
+
 .custom-horizontal-scrollbar::-webkit-scrollbar-track {
-  background: var(--n-alpha-1);
-  border-radius: 0;
+  background: transparent;
 }
+
 .custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--n-slate-5);
-  border: 3px solid var(--n-alpha-1);
-  border-radius: 9999px;
-  transition: background 0.2s ease;
-}
-.custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--n-brand-primary);
+  background: rgba(var(--n-slate-5-rgb), 0.2);
+  border-radius: 10px;
+  transition: background 0.3s;
 }
 
-:global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-track {
-  background: var(--n-slate-1);
+.custom-horizontal-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: rgba(var(--n-slate-5-rgb), 0.4);
 }
 
-:global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--n-slate-3);
-  border-color: var(--n-slate-1);
+/* Apple/Linear Theme Overrides */
+:global(.apple-theme) .bg-n-surface-1 {
+  background: #fbfbfd;
 }
 
-:global(.dark) .custom-horizontal-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--n-brand-primary);
+:global(.dark.apple-theme) .bg-n-surface-1 {
+  background: #000000;
 }
 
-/* Garante que o container do board ocupe a altura total disponível */
-:deep(.draggable-container) {
-  height: 100%;
+:global(.linear-theme) .bg-n-surface-1 {
+  background: #080809;
 }
 </style>

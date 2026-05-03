@@ -34,6 +34,9 @@
     "REPLY_NEEDED": "Reply needed",
     "OPEN_CONTACT": "Contact",
     "OPEN_CONVERSATION": "Conversation",
+    "OPEN": "Open",
+    "ADD_DEAL": "Add Deal",
+    "NO_DEALS": "No deals here",
     "MESSAGE_SENDER": {
       "LEAD": "Lead",
       "TEAM": "Team"

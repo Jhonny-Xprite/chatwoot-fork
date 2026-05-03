@@ -73,21 +73,24 @@ const closeMobileSidebar = () => {
 
 <template>
   <section
-    class="flex w-full h-full overflow-hidden justify-evenly bg-n-surface-1"
+    class="flex w-full h-full overflow-hidden justify-evenly bg-immersive"
   >
     <div
       class="flex flex-col w-full h-full transition-all duration-300 ltr:2xl:ml-56 rtl:2xl:mr-56"
     >
-      <header class="sticky top-0 z-10 px-6 3xl:px-0">
-        <div class="w-full mx-auto max-w-[40.625rem]">
+      <header
+        class="sticky top-0 z-10 px-6 3xl:px-0 bg-white/60 dark:bg-n-slate-1/60 backdrop-blur-xl border-b border-n-slate-3/30 dark:border-n-slate-2/10"
+      >
+        <div class="w-full mx-auto max-w-[50rem]">
           <div
-            class="flex flex-col xs:flex-row items-start xs:items-center justify-between w-full py-7 gap-2"
+            class="flex flex-col xs:flex-row items-start xs:items-center justify-between w-full py-5 gap-4"
           >
             <Breadcrumb
               :items="breadcrumbItems"
+              class="!text-n-slate-12 font-medium"
               @click="handleBreadcrumbClick"
             />
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-3">
               <Button
                 :label="
                   !isContactBlocked
@@ -95,7 +98,9 @@ const closeMobileSidebar = () => {
                     : $t('CONTACTS_LAYOUT.HEADER.UNBLOCK_CONTACT')
                 "
                 size="sm"
-                slate
+                variant="ghost"
+                color="slate"
+                class="!rounded-xl hover:!bg-red-500/10 hover:!text-red-500 transition-all"
                 :is-loading="isUpdating"
                 :disabled="isUpdating"
                 @click="toggleBlock"
@@ -105,12 +110,16 @@ const closeMobileSidebar = () => {
                 :contact-id="contactId"
                 :label="$t('CONTACT_PANEL.CALL')"
                 size="sm"
+                class="!rounded-xl"
               />
               <ComposeConversation :contact-id="contactId">
                 <template #trigger>
                   <Button
                     :label="$t('CONTACTS_LAYOUT.HEADER.SEND_MESSAGE')"
                     size="sm"
+                    variant="solid"
+                    color="brand"
+                    class="!rounded-xl shadow-lg shadow-n-brand-primary/20"
                   />
                 </template>
               </ComposeConversation>
@@ -118,8 +127,8 @@ const closeMobileSidebar = () => {
           </div>
         </div>
       </header>
-      <main class="flex-1 px-6 overflow-y-auto 3xl:px-px">
-        <div class="w-full py-4 mx-auto max-w-[40.625rem]">
+      <main class="flex-1 px-6 overflow-y-auto 3xl:px-px custom-scrollbar">
+        <div class="w-full py-8 mx-auto max-w-[50rem]">
           <slot name="default" />
         </div>
       </main>
@@ -128,7 +137,7 @@ const closeMobileSidebar = () => {
     <!-- Desktop sidebar -->
     <div
       v-if="slots.sidebar"
-      class="hidden lg:block overflow-y-auto justify-end min-w-52 w-full py-6 max-w-md border-l border-n-weak bg-n-solid-2"
+      class="hidden lg:block overflow-y-auto justify-end min-w-52 w-full py-8 max-w-md border-l border-n-slate-3/30 dark:border-n-slate-2/10 bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md"
     >
       <slot name="sidebar" />
     </div>
@@ -145,17 +154,17 @@ const closeMobileSidebar = () => {
           closeMobileSidebar,
           { ignore: ['#contact-sidebar-content'] },
         ]"
-        class="flex items-start p-1 w-fit h-fit relative order-1 xs:top-24 top-28 transition-all bg-n-solid-2 border border-n-weak duration-500 ease-in-out"
+        class="flex items-start p-2 w-fit h-fit relative order-1 xs:top-24 top-28 transition-all bg-white/80 dark:bg-n-slate-1/80 border border-n-slate-3/30 dark:border-n-slate-2/10 backdrop-blur-xl shadow-2xl duration-500 ease-in-out"
         :class="[
           isContactSidebarOpen
-            ? 'justify-end ltr:rounded-l-full rtl:rounded-r-full ltr:rounded-r-none rtl:rounded-l-none'
-            : 'justify-center rounded-full ltr:mr-6 rtl:ml-6',
+            ? 'justify-end ltr:rounded-l-2xl rtl:rounded-r-2xl ltr:rounded-r-none rtl:rounded-l-none'
+            : 'justify-center rounded-2xl ltr:mr-6 rtl:ml-6',
         ]"
       >
         <Button
-          ghost
-          slate
-          sm
+          variant="ghost"
+          color="slate"
+          size="sm"
           class="!rounded-full rtl:rotate-180"
           :class="{ 'bg-n-alpha-2': isContactSidebarOpen }"
           :icon="
@@ -169,8 +178,8 @@ const closeMobileSidebar = () => {
       </div>
 
       <Transition
-        enter-active-class="transition-transform duration-200 ease-in-out"
-        leave-active-class="transition-transform duration-200 ease-in-out"
+        enter-active-class="transition-transform duration-300 ease-out"
+        leave-active-class="transition-transform duration-200 ease-in"
         enter-from-class="ltr:translate-x-full rtl:-translate-x-full"
         enter-to-class="ltr:translate-x-0 rtl:-translate-x-0"
         leave-from-class="ltr:translate-x-0 rtl:-translate-x-0"
@@ -179,7 +188,7 @@ const closeMobileSidebar = () => {
         <div
           v-if="isContactSidebarOpen"
           id="contact-sidebar-content"
-          class="order-2 w-[85%] sm:w-[50%] bg-n-solid-2 ltr:border-l rtl:border-r border-n-weak overflow-y-auto py-6 shadow-lg"
+          class="order-2 w-[85%] sm:w-[50%] bg-white/95 dark:bg-n-slate-1/95 ltr:border-l rtl:border-r border-n-slate-3/30 dark:border-n-slate-2/10 backdrop-blur-2xl overflow-y-auto py-8 shadow-2xl"
         >
           <slot name="sidebar" />
         </div>
@@ -187,3 +196,33 @@ const closeMobileSidebar = () => {
     </div>
   </section>
 </template>
+
+<style scoped>
+.bg-immersive {
+  background: radial-gradient(
+      circle at top left,
+      rgba(var(--color-n-brand-primary-rgb), 0.03),
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at bottom right,
+      rgba(var(--color-n-brand-primary-rgb), 0.02),
+      transparent 40%
+    ),
+    var(--color-n-surface-1);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(var(--color-n-slate-11-rgb), 0.1);
+  border-radius: 10px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--color-n-slate-11-rgb), 0.2);
+}
+</style>
