@@ -46,8 +46,9 @@ const boardGridStyle = computed(() => ({
       <div v-if="!isFetchingStages" :style="boardGridStyle">
         <draggable
           v-model="stagesList"
+          tag="div"
           item-key="id"
-          class="contents"
+          class="stage-draggable"
           handle=".column-drag-handle"
           ghost-class="opacity-50"
           :animation="200"
@@ -91,6 +92,11 @@ const boardGridStyle = computed(() => ({
 </template>
 
 <style scoped>
+/* Make draggable transparent to CSS Grid layout */
+.stage-draggable {
+  display: contents;
+}
+
 /* Estilização agressiva do Scrollbar Horizontal para facilitar a usabilidade */
 .custom-horizontal-scrollbar {
   display: flex;
