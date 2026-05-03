@@ -1,5 +1,6 @@
 <script setup>
 import Button from 'dashboard/components-next/button/Button.vue';
+import { computed } from 'vue';
 
 const props = defineProps({
   identifier: {
@@ -13,6 +14,10 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['unlinkIssue']);
+
+const linearIconColor = computed(() => ({
+  color: 'rgb(var(--violet-9))',
+}));
 
 const unlinkIssue = () => {
   emit('unlinkIssue');
@@ -32,7 +37,7 @@ const openIssue = () => {
         <fluent-icon
           icon="linear"
           size="16"
-          class="text-[#5E6AD2]"
+          :style="linearIconColor"
           view-box="0 0 19 19"
         />
         <span class="text-xs font-medium text-n-slate-12">

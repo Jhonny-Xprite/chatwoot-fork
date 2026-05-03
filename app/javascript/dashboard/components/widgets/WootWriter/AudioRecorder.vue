@@ -36,10 +36,15 @@ const formatTimeProgress = time => {
 };
 
 const initWaveSurfer = () => {
+  // Get token colors from CSS variables
+  const computedStyle = getComputedStyle(document.documentElement);
+  const waveColor = `rgb(${computedStyle.getPropertyValue('--iris-9').trim()})`;
+  const progressColor = `rgb(${computedStyle.getPropertyValue('--slate-10').trim()})`;
+
   wavesurfer.value = WaveSurfer.create({
     container: waveformContainer.value,
-    waveColor: '#1F93FF',
-    progressColor: '#6E6F73',
+    waveColor,
+    progressColor,
     height: 100,
     barWidth: 2,
     barGap: 1,
