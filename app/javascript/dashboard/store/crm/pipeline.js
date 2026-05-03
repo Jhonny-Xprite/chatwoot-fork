@@ -162,6 +162,9 @@ const mutations = {
   SET_META(_state, { stageId, meta }) {
     _state.metaByStage[stageId] = meta;
   },
+  REORDER_CONVERSATIONS(_state, { stageId, conversations }) {
+    _state.conversationsByStage[stageId] = conversations;
+  },
   RESET_STAGE_DATA(_state) {
     _state.conversationsByStage = {};
     _state.metaByStage = {};

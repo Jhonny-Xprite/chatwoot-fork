@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import draggable from 'vuedraggable';
@@ -19,6 +19,8 @@ defineEmits(['select', 'selectContact']);
 const store = useStore();
 const { t } = useI18n();
 const { getColorDotStyle } = useColorStyle();
+
+const isDragging = ref(false);
 
 const stageColorStyle = computed(
   () => getColorDotStyle(props.stage.color).value
@@ -106,6 +108,14 @@ const onDragChange = event => {
         v-bind="dragOptions"
         class="h-full overflow-y-auto overflow-x-hidden p-3 flex flex-col gap-2 custom-scrollbar"
         item-key="id"
+        tag="transition-group"
+        :component-data="{
+          tag: 'div',
+          type: 'transition-group',
+          name: !isDragging ? 'flip-list' : null,
+        }"
+        @start="isDragging = true"
+        @end="isDragging = false"
         @change="onDragChange"
       >
         <template #item="{ element }">
@@ -178,6 +188,16 @@ const onDragChange = event => {
 .sortable-chosen {
   background: var(--n-alpha-2) !important;
   border-color: var(--n-brand-primary) !important;
+  /* CRITICAL: Ensure the chosen element itself doesn't animate its move during drag */
+  transition: none !important;
+}
+
+.flip-list-move {
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.no-move {
+  transition: transform 0s;
 }
 
 :global(.dark) .custom-scrollbar::-webkit-scrollbar-thumb {
