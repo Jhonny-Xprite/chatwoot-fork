@@ -218,7 +218,7 @@ const onAttributeUpdate = async (attr, newValue) => {
     tabindex="0"
     class="group relative cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-n-brand-primary/40 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1 overflow-hidden"
     :class="[
-      viewPrefs.density === 'compact' ? 'p-3' : 'p-4',
+      viewPrefs.density === 'compact' ? 'p-4' : 'p-5',
       isHotLead ? 'ring-1 ring-n-brand-primary/20' : '',
       showReplyNeeded
         ? 'bg-n-brand-primary-alpha-1/10 border-n-brand-primary-alpha-2'
@@ -248,8 +248,8 @@ const onAttributeUpdate = async (attr, newValue) => {
           <Avatar
             :src="contact.thumbnail"
             :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
-            :size="viewPrefs.density === 'compact' ? 56 : 64"
-            class="shadow-sm transition-transform group-hover:scale-105"
+            :size="viewPrefs.density === 'compact' ? 64 : 72"
+            class="shadow-md transition-transform group-hover:scale-105"
           />
           <div
             v-if="showReplyNeeded"
@@ -306,27 +306,27 @@ const onAttributeUpdate = async (attr, newValue) => {
           <!-- Lead Score (Right corner) -->
           <div
             v-if="leadScore > 0"
-            class="flex items-center gap-0.5 rounded-md px-2 py-1 text-[10px] font-black shrink-0 whitespace-nowrap"
+            class="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-black shrink-0 whitespace-nowrap shadow-sm"
             :class="
               isHotLead
                 ? 'bg-n-brand-primary-alpha-1 text-n-brand-primary'
                 : 'bg-n-slate-2 text-n-slate-11'
             "
           >
-            <i v-if="isHotLead" class="i-lucide-flame text-xs" />
+            <i v-if="isHotLead" class="i-lucide-flame" />
             {{ leadScore }}
           </div>
         </div>
 
         <!-- Name & Telefone -->
-        <div class="min-w-0 space-y-1">
+        <div class="min-w-0 space-y-1.5">
           <h4
             class="truncate font-bold text-n-slate-12 transition-colors group-hover:text-n-brand-primary"
-            :class="viewPrefs.density === 'compact' ? 'text-sm' : 'text-base'"
+            :class="viewPrefs.density === 'compact' ? 'text-base' : 'text-lg'"
           >
             {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
           </h4>
-          <p class="truncate font-medium text-n-slate-11 text-xs">
+          <p class="truncate font-medium text-n-slate-10 text-sm">
             {{ contact.phone_number || contact.email || t('CRM.PHONE') }}
           </p>
         </div>
