@@ -259,12 +259,11 @@ describe PhoneFormatter do
         ['+5_511_987_654_321', '+5_511_987_654_321'],           # Scenario 2
         ['(11) 9 8765-4321', '+5_511_987_654_321'],         # Scenario 3
         ['+55 11 9 8765-4321', '+5_511_987_654_321'],       # Scenario 4
-        ['11 98765-4321', '+5_511_987_654_321'],            # Scenario 5
+        ['11 98765-4321', '+5_511_987_654_321']             # Scenario 5
       ]
 
       scenarios.each do |input, expected|
-        expect(described_class.format(input)).to eq(expected),
-          "Failed for input: #{input}"
+        expect(described_class.format(input)).to eq(expected)
       end
     end
 
@@ -272,13 +271,12 @@ describe PhoneFormatter do
       invalid_scenarios = [
         ['999', 'too short'],
         ['111_111_111_111_111_111', 'too long'],
-        ['abc123', 'invalid format'],
+        ['abc123', 'invalid format']
       ]
 
       invalid_scenarios.each do |input, error_type|
         expect { described_class.format(input) }
-          .to raise_error(PhoneFormatter::PhoneFormatterError, /#{error_type}/),
-          "Failed for input: #{input}"
+          .to raise_error(PhoneFormatter::PhoneFormatterError, /#{error_type}/)
       end
     end
   end
