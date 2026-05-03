@@ -4,6 +4,7 @@
 #
 #  id                :bigint           not null, primary key
 #  data_type         :string           not null
+#  mapping           :json             default({})
 #  processed_records :integer
 #  processing_errors :text
 #  status            :integer          default("pending"), not null
@@ -20,7 +21,6 @@ class DataImport < ApplicationRecord
   belongs_to :account
   validates :data_type, inclusion: { in: ['contacts'], message: I18n.t('errors.data_import.data_type.invalid') }
   enum status: { pending: 0, processing: 1, completed: 2, failed: 3 }
-  serialize :mapping, JSON
 
 
   has_one_attached :import_file
