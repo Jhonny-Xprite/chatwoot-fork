@@ -1,20 +1,20 @@
-# --- CHATWOOT AUTO-CONFIG (EASYPANEL) ---
-# Este arquivo é otimizado para o fluxo "Create from Schema" do EasyPanel.
-# As variáveis ${...} são preenchidas automaticamente pelo formulário do Schema.
+# --- CHATWOOT COMPOSE ---
+# Configuração otimizada para deploy via "Compose" no EasyPanel.
+# As variáveis de ambiente devem ser configuradas na aba "Environment" do seu projeto.
 
 services:
   # --- Banco de Dados PostgreSQL ---
   postgres:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_DB: ${postgresDatabase:-chatwoot_production}
-      POSTGRES_USER: ${postgresUser:-chatwoot_prod}
-      POSTGRES_PASSWORD: ${postgresPassword}
+      POSTGRES_DB: ${POSTGRES_DATABASE:-chatwoot_production}
+      POSTGRES_USER: ${POSTGRES_USERNAME:-chatwoot_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chatwoot_prod}
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${postgresUser:-chatwoot_prod} -d ${postgresDatabase:-chatwoot_production}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-chatwoot_prod} -d ${POSTGRES_DATABASE:-chatwoot_production}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,33 +39,33 @@ services:
       context: .
       dockerfile: ./Dockerfile
     environment:
-      - RAILS_ENV=production
-      - NODE_ENV=production
+      - RAILS_ENV=${RAILS_ENV:-production}
+      - NODE_ENV=${NODE_ENV:-production}
       - INSTALLATION_ENV=docker
       
-      # URLs e Segurança (Puxados do Schema)
-      - FRONTEND_URL=${frontendUrl}
-      - SECRET_KEY_BASE=${secretKeyBase}
+      # URLs e Segurança
+      - FRONTEND_URL=${FRONTEND_URL}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
       
-      # Banco de Dados (Puxados do Schema)
+      # Banco de Dados
       - POSTGRES_HOST=postgres
-      - POSTGRES_DATABASE=${postgresDatabase:-chatwoot_production}
-      - POSTGRES_USERNAME=${postgresUser:-chatwoot_prod}
-      - POSTGRES_PASSWORD=${postgresPassword}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
       
       # Redis
-      - REDIS_URL=redis://redis:6379
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
       
-      # IAs (Puxados do Schema)
-      - OPENAI_API_KEY=${openaiApiKey}
-      - ANTHROPIC_API_KEY=${anthropicApiKey}
-      - GEMINI_API_KEY=${geminiApiKey}
+      # IAs
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
       
-      # Outros
-      - RAILS_LOG_TO_STDOUT=true
-      - RAILS_SERVE_STATIC_FILES=true
-      - DEFAULT_LOCALE=pt_BR
-      - ENABLE_ACCOUNT_SIGNUP=false
+      # Configurações Padrão
+      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-true}
+      - RAILS_SERVE_STATIC_FILES=${RAILS_SERVE_STATIC_FILES:-true}
+      - DEFAULT_LOCALE=${DEFAULT_LOCALE:-pt_BR}
+      - ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}
       
     depends_on:
       postgres:
@@ -88,17 +88,20 @@ services:
   sidekiq:
     image: clientes-tools-chatwoot:crm
     environment:
-      - RAILS_ENV=production
-      - NODE_ENV=production
-      - SECRET_KEY_BASE=${secretKeyBase}
+      - RAILS_ENV=${RAILS_ENV:-production}
+      - NODE_ENV=${NODE_ENV:-production}
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      
       - POSTGRES_HOST=postgres
-      - POSTGRES_DATABASE=${postgresDatabase:-chatwoot_production}
-      - POSTGRES_USERNAME=${postgresUser:-chatwoot_prod}
-      - POSTGRES_PASSWORD=${postgresPassword}
-      - REDIS_URL=redis://redis:6379
-      - OPENAI_API_KEY=${openaiApiKey}
-      - ANTHROPIC_API_KEY=${anthropicApiKey}
-      - GEMINI_API_KEY=${geminiApiKey}
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
+      
+      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     depends_on:
       postgres:
         condition: service_healthy
