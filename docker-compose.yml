@@ -1,16 +1,15 @@
 services:
-  # --- Banco de Dados PostgreSQL ---
   postgres:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_DB: chatwoot_production
-      POSTGRES_USER: chatwoot_prod
-      POSTGRES_PASSWORD: chatwoot_prod_secure_pass_2026
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_secure_2024
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U chatwoot_prod -d chatwoot_production"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chatwoot"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,7 +37,7 @@ services:
       # ═══════════════════════════════════════════════════════════════════════════════
       # 🔴 OBRIGATÓRIAS - PRÉ-CONFIGURADAS (STANDALONE)
       # ═══════════════════════════════════════════════════════════════════════════════
-      DATABASE_URL: postgresql://chatwoot_prod:chatwoot_prod_secure_pass_2026@postgres:5432/chatwoot_production
+      DATABASE_URL: postgresql://postgres:postgres_secure_2024@postgres:5432/chatwoot
       REDIS_URL: redis://redis:6379
       SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
       RAILS_ENV: production
@@ -83,7 +82,7 @@ services:
   sidekiq:
     image: clientes-tools-chatwoot:crm
     environment:
-      DATABASE_URL: postgresql://chatwoot_prod:chatwoot_prod_secure_pass_2026@postgres:5432/chatwoot_production
+      DATABASE_URL: postgresql://postgres:postgres_secure_2024@postgres:5432/chatwoot
       REDIS_URL: redis://redis:6379
       SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
       RAILS_ENV: production
