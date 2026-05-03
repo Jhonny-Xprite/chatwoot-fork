@@ -169,6 +169,8 @@ const onDragChange = event => {
   cursor: grabbing !important;
   opacity: 1 !important;
   pointer-events: none;
+  /* CRITICAL: Disable all transitions while dragging to prevent lag */
+  transition: none !important;
 }
 
 .sortable-chosen {
