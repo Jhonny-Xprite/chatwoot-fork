@@ -83,10 +83,54 @@ const foldersQuery = ref({});
 const showAddFoldersModal = ref(false);
 const showDeleteFoldersModal = ref(false);
 const appliedFilter = ref([]);
-const advancedFilterTypes = ref(
+
+const translateFilterAttribute = attributeI18nKey => {
+  switch (attributeI18nKey) {
+    case 'STATUS':
+      return t('FILTER.ATTRIBUTES.STATUS');
+    case 'ASSIGNEE_NAME':
+      return t('FILTER.ATTRIBUTES.ASSIGNEE_NAME');
+    case 'PRIORITY':
+      return t('FILTER.ATTRIBUTES.PRIORITY');
+    case 'INBOX_NAME':
+      return t('FILTER.ATTRIBUTES.INBOX_NAME');
+    case 'TEAM_NAME':
+      return t('FILTER.ATTRIBUTES.TEAM_NAME');
+    case 'CONVERSATION_IDENTIFIER':
+      return t('FILTER.ATTRIBUTES.CONVERSATION_IDENTIFIER');
+    case 'CAMPAIGN_NAME':
+      return t('FILTER.ATTRIBUTES.CAMPAIGN_NAME');
+    case 'LABELS':
+      return t('FILTER.ATTRIBUTES.LABELS');
+    case 'BROWSER_LANGUAGE':
+      return t('FILTER.ATTRIBUTES.BROWSER_LANGUAGE');
+    case 'REFERER_LINK':
+      return t('FILTER.ATTRIBUTES.REFERER_LINK');
+    case 'CREATED_AT':
+      return t('FILTER.ATTRIBUTES.CREATED_AT');
+    case 'LAST_ACTIVITY':
+      return t('FILTER.ATTRIBUTES.LAST_ACTIVITY');
+    default:
+      return t('FILTER.ATTRIBUTES.STATUS');
+  }
+};
+
+const translateAssigneeTab = key => {
+  switch (key) {
+    case 'me':
+      return t('CHAT_LIST.ASSIGNEE_TYPE_TABS.me');
+    case 'unassigned':
+      return t('CHAT_LIST.ASSIGNEE_TYPE_TABS.unassigned');
+    case 'all':
+    default:
+      return t('CHAT_LIST.ASSIGNEE_TYPE_TABS.all');
+  }
+};
+
+const advancedFilterTypes = computed(() =>
   advancedFilterOptions.map(filter => ({
     ...filter,
-    attributeName: t(`FILTER.ATTRIBUTES.${filter.attributeI18nKey}`),
+    attributeName: translateFilterAttribute(filter.attributeI18nKey),
   }))
 );
 
@@ -181,7 +225,7 @@ const assigneeTabItems = computed(() => {
     item => item.permissions
   ).map(({ key, count: countKey }) => ({
     key,
-    name: t(`CHAT_LIST.ASSIGNEE_TYPE_TABS.${key}`),
+    name: translateAssigneeTab(key),
     count: conversationStats.value[countKey] || 0,
   }));
 });
