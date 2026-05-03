@@ -226,7 +226,7 @@ const onAttributeUpdate = async (attr, newValue) => {
   <div
     role="button"
     tabindex="0"
-    class="group relative cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-n-brand-primary/40 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
+    class="group relative cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-n-brand-primary/40 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
     :class="[
       viewPrefs.density === 'compact' ? 'p-3 gap-3' : 'p-4 gap-4',
       isHotLead ? 'ring-1 ring-n-brand-primary/20' : '',

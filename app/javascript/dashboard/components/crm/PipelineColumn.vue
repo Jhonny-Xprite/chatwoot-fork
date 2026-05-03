@@ -46,7 +46,7 @@ const dragOptions = computed(() => ({
   dragClass: 'sortable-drag',
   chosenClass: 'sortable-chosen',
   fallbackOnBody: true,
-  forceFallback: true,
+  forceFallback: false,
   invertSwap: true,
   emptyInsertThreshold: 120,
   scrollSensitivity: 100,

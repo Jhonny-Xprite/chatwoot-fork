@@ -162,6 +162,24 @@ watch(
           />
         </div>
       </div>
+      <div v-if="chat.pipeline_stage" class="flex items-center gap-1 mx-2 mb-1">
+        <div
+          class="flex items-center gap-1 px-1 py-0.5 rounded bg-n-alpha-1 border border-n-strong"
+        >
+          <div
+            class="size-1 rounded-full"
+            :style="{
+              backgroundColor: chat.pipeline_stage.color || 'var(--n-slate-4)',
+            }"
+          />
+          <span
+            class="text-[9px] font-bold text-n-slate-11 uppercase tracking-tight truncate max-w-[120px]"
+            :title="`${chat.pipeline_name} › ${chat.pipeline_stage.name}`"
+          >
+            {{ chat.pipeline_stage.name }}
+          </span>
+        </div>
+      </div>
       <h4
         class="conversation--user text-sm my-0 mx-2 capitalize pt-0.5 text-ellipsis overflow-hidden whitespace-nowrap flex-1 min-w-0 ltr:pr-16 rtl:pl-16 text-n-slate-12"
         :class="hasUnread ? 'font-semibold' : 'font-medium'"
