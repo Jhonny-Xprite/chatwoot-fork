@@ -39,6 +39,8 @@ services:
       RAILS_ENV: production
       NODE_ENV: production
       INSTALLATION_ENV: docker
+      FORCE_SSL: "false"
+      TRUSTED_PROXIES: "*"
       RAILS_LOG_TO_STDOUT: "true"
       RAILS_SERVE_STATIC_FILES: "true"
       FEATURE_CRM_ENABLED: "true"
@@ -72,6 +74,8 @@ services:
       RAILS_ENV: production
       NODE_ENV: production
       INSTALLATION_ENV: docker
+      FORCE_SSL: "false"
+      TRUSTED_PROXIES: "*"
       RAILS_LOG_TO_STDOUT: "true"
       FEATURE_CRM_ENABLED: "true"
       ENABLE_ACCOUNT_SIGNUP: ${ENABLE_ACCOUNT_SIGNUP:-false}
