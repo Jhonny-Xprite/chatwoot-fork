@@ -10,6 +10,8 @@ import NextButton from 'dashboard/components-next/button/Button.vue';
 import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
 import TagInput from 'dashboard/components-next/taginput/TagInput.vue';
+import Select from 'dashboard/components-next/select/Select.vue';
+import Icon from 'dashboard/components-next/icon/Icon.vue';
 
 const store = useStore();
 const { t } = useI18n();
@@ -97,15 +99,11 @@ const availableAttributes = computed(() => {
 
 // Busca as regras existentes no backend
 const fetchRules = async () => {
-  // eslint-disable-next-line no-console
-  console.log('[CRM] Buscando regras de lead scoring...');
   try {
     const response = await window.axios.get(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules`
     );
     rules.value = response.data;
-    // eslint-disable-next-line no-console
-    console.log('[CRM] Regras carregadas:', rules.value.length);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[CRM] Erro ao buscar regras:', error);
@@ -114,19 +112,13 @@ const fetchRules = async () => {
 
 // Dispara o recálculo total de pontos para todos os contatos (Job em background)
 const recalculateAll = async () => {
-  // eslint-disable-next-line no-console
-  console.log('[CRM] Iniciando recálculo total de leads...');
   isRecalculating.value = true;
   try {
     await window.axios.post(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules/recalculate`
     );
-    // eslint-disable-next-line no-console
-    console.log('[CRM] Recálculo enfileirado com sucesso');
     useAlert(t('CRM.SCORING.RECALCULATE_SUCCESS'));
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[CRM] Erro ao disparar recálculo:', error);
     useAlert(t('CRM.SCORING.RECALCULATE_ERROR'));
   } finally {
     isRecalculating.value = false;
@@ -154,8 +146,6 @@ const openCreateModal = () => {
 
 // Salva a nova regra no banco
 const createRule = async () => {
-  // eslint-disable-next-line no-console
-  console.log('[CRM] Criando nova regra:', newRule.value);
   try {
     await window.axios.post(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules`,
@@ -163,14 +153,10 @@ const createRule = async () => {
         lead_scoring_rule: newRule.value,
       }
     );
-    // eslint-disable-next-line no-console
-    console.log('[CRM] Regra criada com sucesso');
     createRuleDialogRef.value?.close();
     fetchRules();
     useAlert(t('CRM.SCORING.CREATE_SUCCESS'));
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[CRM] Erro ao criar regra:', error);
     useAlert(t('CRM.SCORING.CREATE_ERROR'));
   }
 };
@@ -198,125 +184,135 @@ const getOperatorLabel = value =>
 const labelMenuItems = computed(() => {
   return labels.value.map(l => ({ label: l.title, value: l.title }));
 });
+
+const getRuleIcon = model => {
+  if (model === 'contact_attribute') return 'i-lucide-user';
+  if (model === 'conversation_attribute') return 'i-lucide-message-square';
+  return 'i-lucide-tag';
+};
 </script>
 
 <template>
-  <div class="flex-1 p-6 overflow-auto bg-n-surface-1">
-    <div class="max-w-6xl mx-auto">
-      <div class="flex items-center justify-between mb-8">
-        <div>
-          <h2 class="text-2xl font-bold text-n-slate-12">
+  <div class="flex-1 overflow-auto bg-n-surface-1">
+    <div class="max-w-5xl px-8 py-10 mx-auto">
+      <header class="flex items-end justify-between mb-12">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-3xl font-bold tracking-tight text-n-slate-12">
             {{ t('CRM.SCORING.TITLE') }}
           </h2>
-          <p class="text-n-slate-11">
+          <p class="text-base text-n-slate-11">
             {{ t('CRM.SCORING.SUBTITLE') }}
           </p>
         </div>
-        <div class="flex gap-2">
+        <div class="flex items-center gap-3">
           <NextButton
-            :label="t('CRM.SCORING.RECALCULATE_ALL')"
             variant="faded"
             color="slate"
             icon="i-lucide-refresh-cw"
             :is-loading="isRecalculating"
+            class="!bg-white dark:!bg-n-slate-2"
             @click="recalculateAll"
-          />
+          >
+            {{ t('CRM.SCORING.RECALCULATE_ALL') }}
+          </NextButton>
           <NextButton
-            :label="t('CRM.SCORING.ADD_RULE')"
             icon="i-lucide-plus"
             color="blue"
+            size="lg"
             @click="openCreateModal"
-          />
+          >
+            {{ t('CRM.SCORING.ADD_RULE') }}
+          </NextButton>
         </div>
-      </div>
+      </header>
 
-      <div
-        class="overflow-hidden bg-white border dark:bg-n-slate-1 border-n-weak rounded-2xl shadow-sm"
-      >
-        <table class="w-full text-left">
-          <thead class="border-b bg-n-alpha-1 border-n-weak">
-            <tr>
-              <th
-                class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11"
-              >
-                {{ t('CRM.SCORING.TABLE.SOURCE') }}
-              </th>
-              <th
-                class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11"
-              >
-                {{ t('CRM.SCORING.TABLE.FIELD') }}
-              </th>
-              <th
-                class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11"
-              >
-                {{ t('CRM.SCORING.TABLE.CONDITION') }}
-              </th>
-              <th
-                class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11"
-              >
-                {{ t('CRM.SCORING.TABLE.VALUE') }}
-              </th>
-              <th
-                class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11 text-center"
-              >
-                {{ t('CRM.SCORING.TABLE.POINTS') }}
-              </th>
-              <th
-                class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-n-slate-11"
-              />
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-n-weak">
-            <tr
-              v-for="rule in rules"
-              :key="rule.id"
-              class="transition-colors hover:bg-n-alpha-1"
+      <div class="flex flex-col gap-4">
+        <div
+          v-for="rule in rules"
+          :key="rule.id"
+          class="group relative flex items-center justify-between p-5 transition-all bg-white border border-n-weak rounded-2xl hover:border-n-brand-primary/30 hover:shadow-md dark:bg-n-slate-1"
+        >
+          <div class="flex items-center flex-1 gap-6 min-w-0">
+            <div
+              class="flex items-center justify-center flex-shrink-0 size-12 rounded-xl bg-n-alpha-1 text-n-slate-11 group-hover:text-n-brand-primary group-hover:bg-n-brand-primary-alpha-1 transition-colors"
             >
-              <td class="px-6 py-4 text-sm text-n-slate-12">
-                {{ getModelLabel(rule.attribute_model) }}
-              </td>
-              <td class="px-6 py-4 text-sm font-medium text-n-slate-12">
-                {{ rule.attribute_key }}
-              </td>
-              <td class="px-6 py-4 text-sm text-n-slate-11">
-                {{ getOperatorLabel(rule.filter_operator) }}
-              </td>
-              <td class="px-6 py-4">
-                <div class="flex flex-wrap gap-1">
+              <Icon :icon="getRuleIcon(rule.attribute_model)" class="size-6" />
+            </div>
+
+            <div class="flex flex-col gap-0.5 min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span
+                  class="text-[10px] font-black uppercase tracking-widest text-n-slate-9"
+                >
+                  {{ getModelLabel(rule.attribute_model) }}
+                </span>
+                <span class="size-1 rounded-full bg-n-slate-4" />
+                <span class="text-sm font-bold text-n-slate-12 truncate">
+                  {{ rule.attribute_key }}
+                </span>
+              </div>
+              <div class="flex items-center gap-2 text-sm text-n-slate-11">
+                <span class="italic">{{
+                  getOperatorLabel(rule.filter_operator)
+                }}</span>
+                <div v-if="rule.values.length" class="flex flex-wrap gap-1.5">
                   <span
                     v-for="v in rule.values"
                     :key="v"
-                    class="px-2 py-0.5 bg-n-alpha-2 rounded-full text-xs text-n-slate-12"
+                    class="px-2 py-0.5 bg-n-alpha-2 border border-n-strong rounded-md text-[11px] font-bold text-n-slate-12"
                   >
                     {{ v }}
                   </span>
                 </div>
-              </td>
-              <td class="px-6 py-4 text-center">
-                <span
-                  class="font-black"
-                  :class="rule.score >= 0 ? 'text-n-teal-11' : 'text-n-ruby-11'"
-                >
-                  {{ rule.score > 0 ? `+${rule.score}` : rule.score }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-right">
-                <NextButton
-                  icon="i-lucide-trash-2"
-                  variant="ghost"
-                  color="ruby"
-                  size="sm"
-                  @click="deleteRule(rule.id)"
-                />
-              </td>
-            </tr>
-            <tr v-if="rules.length === 0">
-              <td colspan="6" class="px-6 py-12 text-center text-n-slate-11">
-                {{ t('CRM.SCORING.TABLE.EMPTY') }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </div>
+
+            <div class="flex flex-col items-end pr-4 border-r border-n-weak">
+              <span
+                class="text-2xl font-black tabular-nums tracking-tighter"
+                :class="rule.score >= 0 ? 'text-n-teal-11' : 'text-n-ruby-11'"
+              >
+                {{ rule.score > 0 ? `+${rule.score}` : rule.score }}
+              </span>
+              <span class="text-[9px] font-black uppercase text-n-slate-9">
+                {{ t('CRM.SCORING.MODAL.POINTS_UNIT') }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center pl-4">
+            <NextButton
+              icon="i-lucide-trash-2"
+              variant="ghost"
+              color="ruby"
+              size="sm"
+              class="opacity-0 group-hover:opacity-100 transition-opacity"
+              @click="deleteRule(rule.id)"
+            />
+          </div>
+        </div>
+
+        <div
+          v-if="rules.length === 0"
+          class="flex flex-col items-center justify-center py-20 bg-n-alpha-1 border border-dashed border-n-strong rounded-3xl"
+        >
+          <div
+            class="flex items-center justify-center size-16 mb-4 rounded-full bg-n-alpha-2 text-n-slate-9"
+          >
+            <Icon icon="i-lucide-scroll-text" class="size-8" />
+          </div>
+          <p class="text-base font-medium text-n-slate-11 text-center max-w-sm">
+            {{ t('CRM.SCORING.TABLE.EMPTY') }}
+          </p>
+          <NextButton
+            variant="ghost"
+            color="blue"
+            class="mt-4"
+            @click="openCreateModal"
+          >
+            {{ t('CRM.SCORING.MODAL.START_NOW') }}
+          </NextButton>
+        </div>
       </div>
     </div>
 
@@ -328,100 +324,170 @@ const labelMenuItems = computed(() => {
       width="md"
       @confirm="createRule"
     >
-      <div class="flex flex-col gap-5 py-4">
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold uppercase text-n-slate-11">
-              {{ t('CRM.SCORING.MODAL.SOURCE_LABEL') }}
-            </label>
-            <select
-              v-model="newRule.attribute_model"
-              class="w-full h-10 px-3 border outline-none bg-n-alpha-1 border-n-weak rounded-xl text-sm focus:border-n-brand-primary"
-            >
-              <option
-                v-for="m in attributeModels"
-                :key="m.value"
-                :value="m.value"
-              >
-                {{ m.label }}
-              </option>
-            </select>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold uppercase text-n-slate-11">
-              {{ t('CRM.SCORING.MODAL.FIELD_LABEL') }}
-            </label>
-            <select
-              v-model="newRule.attribute_key"
-              class="w-full h-10 px-3 border outline-none bg-n-alpha-1 border-n-weak rounded-xl text-sm focus:border-n-brand-primary"
-            >
-              <option value="" disabled>
-                {{ t('CRM.SCORING.MODAL.FIELD_PLACEHOLDER') }}
-              </option>
-              <option
-                v-for="a in availableAttributes"
-                :key="a.value"
-                :value="a.value"
-              >
-                {{ a.label }}
-              </option>
-            </select>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold uppercase text-n-slate-11">
-              {{ t('CRM.SCORING.MODAL.CONDITION_LABEL') }}
-            </label>
-            <select
-              v-model="newRule.filter_operator"
-              class="w-full h-10 px-3 border outline-none bg-n-alpha-1 border-n-weak rounded-xl text-sm focus:border-n-brand-primary"
-            >
-              <option v-for="o in operators" :key="o.value" :value="o.value">
-                {{ o.label }}
-              </option>
-            </select>
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-xs font-bold uppercase text-n-slate-11">
-              {{ t('CRM.SCORING.MODAL.POINTS_LABEL') }}
-            </label>
-            <Input v-model="newRule.score" type="number" placeholder="Ex: 10" />
-          </div>
-        </div>
-
+      <div class="flex flex-col gap-6 py-6">
+        <!-- Passo 1: Origem e Campo -->
         <div
-          v-if="
-            !['is_present', 'is_not_present'].includes(newRule.filter_operator)
-          "
-          class="flex flex-col gap-1.5"
+          class="flex flex-col gap-4 p-4 rounded-2xl bg-n-alpha-1 border border-n-strong"
         >
-          <label class="text-xs font-bold uppercase text-n-slate-11">
-            {{ t('CRM.SCORING.MODAL.VALUES_LABEL') }}
-          </label>
-          <div v-if="newRule.attribute_model === 'label'">
-            <TagInput
-              v-model="newRule.values"
-              :menu-items="labelMenuItems"
-              :placeholder="t('CRM.SCORING.MODAL.LABELS_PLACEHOLDER')"
-              show-dropdown
-            />
+          <div class="flex items-center gap-2 mb-1">
+            <span
+              class="flex items-center justify-center size-5 rounded-full bg-n-brand-primary text-[10px] font-bold text-white"
+            >
+              {{ 1 }}
+            </span>
+            <h4
+              class="text-xs font-black uppercase tracking-tight text-n-slate-12"
+            >
+              {{ t('CRM.SCORING.MODAL.STEP_1') }}
+            </h4>
           </div>
-          <div v-else>
-            <Input
-              :value="newRule.values.join(', ')"
-              :placeholder="t('CRM.SCORING.MODAL.VALUES_PLACEHOLDER')"
-              @input="
-                e =>
-                  (newRule.values = e.target.value
-                    .split(',')
-                    .map(v => v.trim()))
+
+          <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[11px] font-bold text-n-slate-11 ml-1">
+                {{ t('CRM.SCORING.MODAL.SOURCE_LABEL') }}
+              </label>
+              <Select
+                v-model="newRule.attribute_model"
+                :options="attributeModels"
+                class="!w-full"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[11px] font-bold text-n-slate-11 ml-1">
+                {{ t('CRM.SCORING.MODAL.FIELD_LABEL') }}
+              </label>
+              <Select
+                v-model="newRule.attribute_key"
+                :options="availableAttributes"
+                :placeholder="t('CRM.SCORING.MODAL.FIELD_PLACEHOLDER')"
+                class="!w-full"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Passo 2: Condição -->
+        <div
+          class="flex flex-col gap-4 p-4 rounded-2xl bg-n-alpha-1 border border-n-strong"
+        >
+          <div class="flex items-center gap-2 mb-1">
+            <span
+              class="flex items-center justify-center size-5 rounded-full bg-n-brand-primary text-[10px] font-bold text-white"
+            >
+              {{ 2 }}
+            </span>
+            <h4
+              class="text-xs font-black uppercase tracking-tight text-n-slate-12"
+            >
+              {{ t('CRM.SCORING.MODAL.STEP_2') }}
+            </h4>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[11px] font-bold text-n-slate-11 ml-1">
+                {{ t('CRM.SCORING.MODAL.CONDITION_LABEL') }}
+              </label>
+              <Select
+                v-model="newRule.filter_operator"
+                :options="operators"
+                class="!w-full"
+              />
+            </div>
+
+            <div
+              v-if="
+                !['is_present', 'is_not_present'].includes(
+                  newRule.filter_operator
+                )
               "
-            />
+              class="flex flex-col gap-1.5"
+            >
+              <label class="text-[11px] font-bold text-n-slate-11 ml-1">
+                {{ t('CRM.SCORING.MODAL.VALUES_LABEL') }}
+              </label>
+              <div v-if="newRule.attribute_model === 'label'">
+                <TagInput
+                  v-model="newRule.values"
+                  :menu-items="labelMenuItems"
+                  :placeholder="t('CRM.SCORING.MODAL.LABELS_PLACEHOLDER')"
+                  show-dropdown
+                  class="!rounded-xl"
+                />
+              </div>
+              <div v-else>
+                <Input
+                  :value="newRule.values.join(', ')"
+                  :placeholder="t('CRM.SCORING.MODAL.VALUES_PLACEHOLDER')"
+                  class="!rounded-xl"
+                  @input="
+                    e =>
+                      (newRule.values = e.target.value
+                        .split(',')
+                        .map(v => v.trim()))
+                  "
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passo 3: Pontuação -->
+        <div
+          class="flex flex-col gap-4 p-4 rounded-2xl bg-n-teal-1/30 border border-n-teal-3 dark:bg-n-teal-9/10 dark:border-n-teal-8/30"
+        >
+          <div class="flex items-center gap-2 mb-1">
+            <span
+              class="flex items-center justify-center size-5 rounded-full bg-n-teal-9 text-[10px] font-bold text-white"
+            >
+              {{ 3 }}
+            </span>
+            <h4
+              class="text-xs font-black uppercase tracking-tight text-n-teal-11"
+            >
+              {{ t('CRM.SCORING.MODAL.STEP_3') }}
+            </h4>
+          </div>
+
+          <div class="flex items-center gap-4">
+            <div class="flex-1 flex flex-col gap-1.5">
+              <label class="text-[11px] font-bold text-n-teal-11 ml-1">
+                {{ t('CRM.SCORING.MODAL.POINTS_LABEL') }}
+              </label>
+              <Input
+                v-model="newRule.score"
+                type="number"
+                placeholder="Ex: 10"
+                class="!bg-white dark:!bg-n-slate-1 !border-n-teal-4/50 !rounded-xl"
+              />
+            </div>
+            <div
+              class="flex items-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-n-slate-1 border border-n-weak shadow-sm self-end h-[42px]"
+            >
+              <span class="text-sm font-bold text-n-slate-11">
+                {{ t('CRM.SCORING.MODAL.RESULT') }}
+              </span>
+              <span
+                class="text-lg font-black"
+                :class="
+                  newRule.score >= 0 ? 'text-n-teal-11' : 'text-n-ruby-11'
+                "
+              >
+                {{ newRule.score > 0 ? `+${newRule.score}` : newRule.score }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
     </Dialog>
   </div>
 </template>
+
+<style scoped>
+/* Transição suave para os cards */
+.group {
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+</style>

@@ -133,7 +133,13 @@
         "POINTS_LABEL": "Pontuação",
         "VALUES_LABEL": "Valores Esperados",
         "VALUES_PLACEHOLDER": "Digite os valores separados por vírgula",
-        "LABELS_PLACEHOLDER": "Selecione as etiquetas..."
+        "LABELS_PLACEHOLDER": "Selecione as etiquetas...",
+        "STEP_1": "Definição do Alvo",
+        "STEP_2": "Regra de Validação",
+        "STEP_3": "Impacto no Score",
+        "POINTS_UNIT": "pontos",
+        "RESULT": "Resultado:",
+        "START_NOW": "Começar agora"
       },
       "MODELS": {
         "CONTACT": "Atributo de Contato",
