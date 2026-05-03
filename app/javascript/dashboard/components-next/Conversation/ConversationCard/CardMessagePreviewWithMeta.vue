@@ -75,21 +75,39 @@ defineExpose({
       </div>
     </div>
 
-    <div
-      class="grid items-center gap-2.5 h-7"
-      :class="
-        hasSlaThreshold
-          ? 'grid-cols-[auto_auto_1fr_20px]'
-          : 'grid-cols-[1fr_20px]'
-      "
-    >
+    <div class="flex items-center gap-2.5 h-7">
       <SLACardLabel
         v-show="hasSlaThreshold"
         ref="slaCardLabelRef"
         :conversation="conversation"
       />
       <div v-if="hasSlaThreshold" class="w-px h-3 bg-n-slate-4" />
-      <div class="overflow-hidden">
+
+      <div
+        v-if="conversation.pipeline_stage"
+        class="flex items-center gap-1.5 px-1.5 py-0.5 rounded-md bg-n-alpha-1 border border-n-strong flex-shrink-0"
+      >
+        <div
+          class="size-1.5 rounded-full"
+          :style="{
+            backgroundColor:
+              conversation.pipeline_stage.color || 'var(--n-slate-4)',
+          }"
+        />
+        <span
+          class="text-[10px] font-bold text-n-slate-11 uppercase tracking-tight truncate max-w-[100px]"
+          :title="`${conversation.pipeline_name} › ${conversation.pipeline_stage.name}`"
+        >
+          {{ conversation.pipeline_stage.name }}
+        </span>
+      </div>
+
+      <div
+        v-if="conversation.pipeline_stage"
+        class="w-px h-3 bg-n-slate-4 flex-shrink-0"
+      />
+
+      <div class="overflow-hidden flex-1">
         <CardLabels
           :conversation-labels="conversation.labels"
           :account-labels="accountLabels"
@@ -102,6 +120,7 @@ defineExpose({
         :size="20"
         :status="assignee.status"
         rounded-full
+        class="flex-shrink-0"
       />
     </div>
   </div>

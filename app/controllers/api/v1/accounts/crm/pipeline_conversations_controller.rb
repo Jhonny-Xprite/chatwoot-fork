@@ -3,7 +3,7 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
 
   def index
     authorize @stage, :show?
-    @conversations = @stage.conversations.includes(:contact, :inbox, :assignee)
+    @conversations = @stage.conversations.includes(:contact, :inbox, :assignee, :pipeline_stage, :pipeline)
     @conversations = @conversations.search_by_contact_name(params[:q]) if params[:q].present?
     @conversations = @conversations.where(assignee_id: params[:assignee_id]) if params[:assignee_id].present?
     @conversations = @conversations.tagged_with(params[:labels], any: true) if params[:labels].present?

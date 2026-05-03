@@ -59,6 +59,18 @@ json.last_activity_at conversation.last_activity_at.to_i
 json.priority conversation.priority
 json.pipeline_id conversation.pipeline_id
 json.pipeline_stage_id conversation.pipeline_stage_id
+
+if conversation.pipeline_stage_id
+  json.pipeline_stage do
+    json.name conversation.pipeline_stage&.name
+    json.color conversation.pipeline_stage&.color
+  end
+end
+
+if conversation.pipeline_id
+  json.pipeline_name conversation.pipeline&.name
+end
+
 json.waiting_since conversation.waiting_since.to_i.to_i
 json.sla_policy_id conversation.sla_policy_id
 json.partial! 'enterprise/api/v1/conversations/partials/conversation', conversation: conversation if ChatwootApp.enterprise?
