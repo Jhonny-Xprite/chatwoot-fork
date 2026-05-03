@@ -10,9 +10,10 @@ import helpcenterRoutes from './helpcenter/helpcenter.routes';
 import campaignsRoutes from './campaigns/campaigns.routes';
 import crmRoutes from './crm/crm.routes';
 import { routes as captainRoutes } from './captain/captain.routes';
-import AppContainer from './Dashboard.vue';
-import Suspended from './suspended/Index.vue';
-import NoAccounts from './noAccounts/Index.vue';
+
+const AppContainer = () => import('./Dashboard.vue');
+const Suspended = () => import('./suspended/Index.vue');
+const NoAccounts = () => import('./noAccounts/Index.vue');
 
 export default {
   routes: [
