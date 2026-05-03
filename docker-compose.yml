@@ -1,20 +1,16 @@
-# --- CHATWOOT COMPOSE ---
-# Configuração otimizada para deploy via "Compose" no EasyPanel.
-# As variáveis de ambiente devem ser configuradas na aba "Environment" do seu projeto.
-
 services:
   # --- Banco de Dados PostgreSQL ---
   postgres:
     image: pgvector/pgvector:pg17
     environment:
-      POSTGRES_DB: ${POSTGRES_DATABASE:-chatwoot_production}
-      POSTGRES_USER: ${POSTGRES_USERNAME:-chatwoot_prod}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chatwoot_prod}
+      POSTGRES_DB: chatwoot_production
+      POSTGRES_USER: chatwoot_prod
+      POSTGRES_PASSWORD: chatwoot_prod_secure_pass_2026
     volumes:
       - postgres-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-chatwoot_prod} -d ${POSTGRES_DATABASE:-chatwoot_production}"]
+      test: ["CMD-SHELL", "pg_isready -U chatwoot_prod -d chatwoot_production"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -39,34 +35,33 @@ services:
       context: .
       dockerfile: ./Dockerfile
     environment:
-      - RAILS_ENV=${RAILS_ENV:-production}
-      - NODE_ENV=${NODE_ENV:-production}
-      - INSTALLATION_ENV=docker
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🔴 OBRIGATÓRIAS - PRÉ-CONFIGURADAS (STANDALONE)
+      # ═══════════════════════════════════════════════════════════════════════════════
+      DATABASE_URL: postgresql://chatwoot_prod:chatwoot_prod_secure_pass_2026@postgres:5432/chatwoot_production
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
+      RAILS_ENV: production
+      NODE_ENV: production
+      INSTALLATION_ENV: docker
       
-      # URLs e Segurança
-      - FRONTEND_URL=${FRONTEND_URL}
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🟢 DOMÍNIO & CONFIGURAÇÕES PADRÃO CHATWOOT
+      # ═══════════════════════════════════════════════════════════════════════════════
+      FRONTEND_URL: https://clientes-tools-chatwoot-stage.am5xdk.easypanel.host
+      RAILS_LOG_TO_STDOUT: "true"
+      RAILS_SERVE_STATIC_FILES: "true"
+      DEFAULT_LOCALE: pt_BR
+      ENABLE_ACCOUNT_SIGNUP: "false"
+      FEATURE_CRM_ENABLED: "true"
       
-      # Banco de Dados
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
-      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
-      
-      # Redis
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      
-      # IAs
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
-      
-      # Configurações Padrão
-      - RAILS_LOG_TO_STDOUT=${RAILS_LOG_TO_STDOUT:-true}
-      - RAILS_SERVE_STATIC_FILES=${RAILS_SERVE_STATIC_FILES:-true}
-      - DEFAULT_LOCALE=${DEFAULT_LOCALE:-pt_BR}
-      - ENABLE_ACCOUNT_SIGNUP=${ENABLE_ACCOUNT_SIGNUP:-false}
-      
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # 🧠 CHAVES DE IA (Substitua as chaves reais pelo painel, se preferir, ou deixe hardcoded aqui)
+      # ═══════════════════════════════════════════════════════════════════════════════
+      OPENAI_API_KEY: "sk-proj-SUA_CHAVE_AQUI"
+      GEMINI_API_KEY: "AIzaSySUA_CHAVE_AQUI"
+      ANTHROPIC_API_KEY: "sk-ant-api03-SUA_CHAVE_AQUI"
+
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +71,7 @@ services:
       - chatwoot-storage:/app/storage
       - chatwoot-logs:/app/log
     restart: always
-    command: sh -c "bundle exec rails db:prepare && bundle exec rails s -p 3000 -b 0.0.0.0"
+    command: sh -c "bundle exec rails db:chatwoot_prepare && bundle exec rails s -p 3000 -b 0.0.0.0"
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
       interval: 60s
@@ -88,20 +83,17 @@ services:
   sidekiq:
     image: clientes-tools-chatwoot:crm
     environment:
-      - RAILS_ENV=${RAILS_ENV:-production}
-      - NODE_ENV=${NODE_ENV:-production}
-      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      DATABASE_URL: postgresql://chatwoot_prod:chatwoot_prod_secure_pass_2026@postgres:5432/chatwoot_production
+      REDIS_URL: redis://redis:6379
+      SECRET_KEY_BASE: 840420d98e0aeb2e4f77fc20d99508987cd46d061bc3f041e6c9319fe4358a4eed9bfbea9d8deab4cbae2db329361708ffbe2ef343150c8f2fbfe28a1e23247d
+      RAILS_ENV: production
+      NODE_ENV: production
+      RAILS_LOG_TO_STDOUT: "true"
+      FEATURE_CRM_ENABLED: "true"
       
-      - POSTGRES_HOST=postgres
-      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
-      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
-      
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
-      
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
-      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      OPENAI_API_KEY: "sk-proj-SUA_CHAVE_AQUI"
+      GEMINI_API_KEY: "AIzaSySUA_CHAVE_AQUI"
+      ANTHROPIC_API_KEY: "sk-ant-api03-SUA_CHAVE_AQUI"
     depends_on:
       postgres:
         condition: service_healthy
