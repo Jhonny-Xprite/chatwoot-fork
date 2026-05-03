@@ -225,8 +225,12 @@ export const colors = {
       12: 'rgb(var(--violet-12) / <alpha-value>)',
     },
 
-    black: '#000000',
-    brand: '#2781F6',
+    black: 'rgb(0 0 0 / <alpha-value>)',
+    brand: {
+      DEFAULT: 'rgb(var(--blue-9) / <alpha-value>)',
+      primary: 'rgb(var(--blue-9) / <alpha-value>)',
+      'primary-alt': 'rgb(var(--blue-10) / <alpha-value>)',
+    },
     background: 'rgb(var(--background-color) / <alpha-value>)',
     'input-background': 'rgba(var(--background-input-box))',
     surface: {

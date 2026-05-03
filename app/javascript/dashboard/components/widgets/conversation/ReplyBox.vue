@@ -1442,7 +1442,7 @@ export default {
 }
 
 .reply-box {
-  @apply relative mb-6 mx-6 border border-n-slate-3/30 dark:border-n-slate-2/10 rounded-2xl bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-xl shadow-xl shadow-black/5 transition-all duration-300;
+  @apply relative mb-6 mx-6 border border-n-slate-3/30 dark:border-n-slate-2/10 rounded-2xl bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-xl shadow-xl shadow-n-black/5 transition-all duration-300;
 
   &:focus-within {
     @apply shadow-2xl shadow-n-brand-primary/10 border-n-brand-primary/40 dark:border-n-brand-primary/30;

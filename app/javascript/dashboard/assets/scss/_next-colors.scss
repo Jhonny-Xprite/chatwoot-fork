@@ -145,6 +145,13 @@
     --black-alpha-2: 0, 0, 0, 0.04;
     --border-blue: 39, 129, 246, 0.5;
     --white-alpha: 255, 255, 255, 0.8;
+
+    // Brand Colors
+    --n-brand-primary: var(--blue-9);
+    --n-brand-primary-rgb: var(--blue-9);
+    --n-brand-primary-alt: var(--blue-10);
+    --color-n-brand-primary: rgb(var(--blue-9));
+    --color-n-brand-primary-rgb: var(--blue-9);
   }
 
   .dark {
@@ -291,6 +298,13 @@
     --border-blue: 39, 129, 246, 0.5;
     --border-container: 255, 255, 255, 0;
     --white-alpha: 255, 255, 255, 0.1;
+
+    // Brand Colors (Dark mode)
+    --n-brand-primary: var(--blue-9);
+    --n-brand-primary-rgb: var(--blue-9);
+    --n-brand-primary-alt: var(--blue-10);
+    --color-n-brand-primary: rgb(var(--blue-9));
+    --color-n-brand-primary-rgb: var(--blue-9);
   }
 }
 // NEXT COLORS END
