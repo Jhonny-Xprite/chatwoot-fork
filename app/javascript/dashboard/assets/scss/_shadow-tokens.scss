@@ -1,0 +1,116 @@
+// scss-lint:disable PropertySortOrder
+// ═══════════════════════════════════════════════════════════════════════════
+// SHADOW & ELEVATION TOKENS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// 4-level elevation system for visual hierarchy.
+// Each level includes box-shadow and optional backdrop-filter.
+//
+// Levels: subtle (1), normal (2), strong (3), floating (4)
+// ═══════════════════════════════════════════════════════════════════════════
+
+@layer base {
+  :root {
+    // ─────────────────────────────────────────────────────────────────────
+    // ELEVATION 1: SUBTLE
+    // Light shadow for minimal elevation. Used for cards, inputs at rest.
+    // ─────────────────────────────────────────────────────────────────────
+    --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-blur-subtle: 2px;
+    --elevation-subtle: var(--shadow-subtle);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ELEVATION 2: NORMAL (default)
+    // Standard shadow. Used for default card state, buttons on hover.
+    // ─────────────────────────────────────────────────────────────────────
+    --shadow-normal: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+                     0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-blur-normal: 4px;
+    --elevation-normal: var(--shadow-normal);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ELEVATION 3: STRONG
+    // Prominent shadow. Used for dropdowns, popovers, sticky headers.
+    // ─────────────────────────────────────────────────────────────────────
+    --shadow-strong: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+                     0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-blur-strong: 6px;
+    --elevation-strong: var(--shadow-strong);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // ELEVATION 4: FLOATING
+    // Heavy shadow for maximum elevation. Used for modals, dialogs, toasts.
+    // ─────────────────────────────────────────────────────────────────────
+    --shadow-floating: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+                       0 8px 10px -6px rgb(0 0 0 / 0.1);
+    --shadow-blur-floating: 8px;
+    --elevation-floating: var(--shadow-floating);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // GLASS MORPHISM SUPPORT
+    // Backdrop filters for frosted glass effect (optional overlay).
+    // ─────────────────────────────────────────────────────────────────────
+    --glass-blur: blur(10px);
+    --glass-backdrop: var(--glass-blur) brightness(1.1);
+
+    // ─────────────────────────────────────────────────────────────────────
+    // COMPONENT-SPECIFIC SHADOWS
+    // ─────────────────────────────────────────────────────────────────────
+    --shadow-card: var(--shadow-subtle);           // Card at rest
+    --shadow-card-hover: var(--shadow-normal);     // Card on hover
+    --shadow-button: var(--shadow-subtle);         // Button at rest
+    --shadow-button-active: var(--shadow-normal);  // Button pressed
+    --shadow-input: var(--shadow-subtle);          // Input at rest
+    --shadow-input-focus: 0 0 0 3px rgb(91 91 214 / 0.1);  // Focus ring (iris color)
+    --shadow-dropdown: var(--shadow-strong);       // Dropdown menu
+    --shadow-modal: var(--shadow-floating);        // Modal dialog
+    --shadow-toast: var(--shadow-strong);          // Toast notification
+    --shadow-sticky-header: 0 1px 3px 0 rgb(0 0 0 / 0.1);  // Sticky header (subtle)
+  }
+
+  .dark {
+    // Dark mode shadows: slightly stronger due to darker background
+    --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.2);
+    --shadow-normal: 0 4px 6px -1px rgb(0 0 0 / 0.3),
+                     0 2px 4px -2px rgb(0 0 0 / 0.2);
+    --shadow-strong: 0 10px 15px -3px rgb(0 0 0 / 0.4),
+                     0 4px 6px -4px rgb(0 0 0 / 0.3);
+    --shadow-floating: 0 20px 25px -5px rgb(0 0 0 / 0.5),
+                       0 8px 10px -6px rgb(0 0 0 / 0.4);
+
+    // Component shadows in dark mode (inherit from updated values above)
+    --shadow-card: var(--shadow-subtle);
+    --shadow-card-hover: var(--shadow-normal);
+    --shadow-button: var(--shadow-subtle);
+    --shadow-button-active: var(--shadow-normal);
+    --shadow-input: var(--shadow-subtle);
+    --shadow-input-focus: 0 0 0 3px rgb(91 91 214 / 0.2);
+    --shadow-dropdown: var(--shadow-strong);
+    --shadow-modal: var(--shadow-floating);
+    --shadow-toast: var(--shadow-strong);
+    --shadow-sticky-header: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// ANIMATION SUPPORT
+// ═════════════════════════════════════════════════════════════════════════
+// Elevation transitions use spring physics for natural feel.
+// (See _motion-tokens.scss for animation definitions)
+
+// ═════════════════════════════════════════════════════════════════════════
+// TAILWIND INTEGRATION REFERENCE
+// ═════════════════════════════════════════════════════════════════════════
+//
+// Mapping to Tailwind shadow-* classes:
+//   shadow-sm     → --shadow-subtle
+//   shadow-md     → --shadow-normal
+//   shadow-lg     → --shadow-strong
+//   shadow-xl     → --shadow-floating
+//
+// Usage:
+//   class="shadow-md"              → Apply --shadow-normal (Tailwind default)
+//   style="box-shadow: var(--shadow-normal)"  → Use token explicitly
+//   class="shadow-lg dark:shadow-lg"  → Proper dark mode support
+//
+// ═════════════════════════════════════════════════════════════════════════

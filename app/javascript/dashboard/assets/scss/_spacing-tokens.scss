@@ -1,0 +1,89 @@
+// scss-lint:disable PropertySortOrder
+// ═══════════════════════════════════════════════════════════════════════════
+// SPACING TOKENS — 4px Baseline Scale
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Semantic spacing scale derived from 4px baseline.
+// Used across padding, margin, gap, and sizing.
+//
+// Scale: 0, 0.5, 1, 2, 3, 4, 6, 8, 12, 16, 24, 32 (rem units @ 16px base)
+// ═══════════════════════════════════════════════════════════════════════════
+
+@layer base {
+  :root {
+    // Numeric scale (direct rem values)
+    --space-0: 0;
+    --space-0-5: 0.125rem;    // 2px  — micro
+    --space-1: 0.25rem;       // 4px  — xs
+    --space-2: 0.5rem;        // 8px  — sm
+    --space-3: 0.75rem;       // 12px — base
+    --space-4: 1rem;          // 16px — md
+    --space-6: 1.5rem;        // 24px — lg
+    --space-8: 2rem;          // 32px — xl
+    --space-12: 3rem;         // 48px — 2xl
+    --space-16: 4rem;         // 64px — 3xl
+    --space-24: 6rem;         // 96px — 4xl
+    --space-32: 8rem;         // 128px — 5xl
+
+    // Semantic scale (recommended)
+    --space-xs: var(--space-1);      // 4px   — tight spacing
+    --space-sm: var(--space-2);      // 8px   — compact
+    --space-md: var(--space-4);      // 16px  — comfortable (default)
+    --space-lg: var(--space-6);      // 24px  — spacious
+    --space-xl: var(--space-8);      // 32px  — generous
+    --space-2xl: var(--space-12);    // 48px  — extra
+    --space-3xl: var(--space-16);    // 64px  — hero
+    --space-4xl: var(--space-24);    // 96px  — section
+    --space-5xl: var(--space-32);    // 128px — page margin
+
+    // Component-specific scales
+    // Padding (internal element spacing)
+    --padding-xs: var(--space-1);    // 4px
+    --padding-sm: var(--space-2);    // 8px
+    --padding-md: var(--space-4);    // 16px
+    --padding-lg: var(--space-6);    // 24px
+    --padding-xl: var(--space-8);    // 32px
+
+    // Gap (flex/grid spacing)
+    --gap-xs: var(--space-1);        // 4px
+    --gap-sm: var(--space-2);        // 8px
+    --gap-md: var(--space-4);        // 16px
+    --gap-lg: var(--space-6);        // 24px
+    --gap-xl: var(--space-8);        // 32px
+
+    // Margin (external element spacing)
+    --margin-xs: var(--space-1);     // 4px
+    --margin-sm: var(--space-2);     // 8px
+    --margin-md: var(--space-4);     // 16px
+    --margin-lg: var(--space-6);     // 24px
+    --margin-xl: var(--space-8);     // 32px
+
+    // Radius spacing (for box model calculations)
+    --radius-spacing-xs: var(--space-1);   // 4px
+    --radius-spacing-sm: var(--space-2);   // 8px
+    --radius-spacing-md: var(--space-4);   // 16px
+  }
+
+  // Dark mode uses same spacing (no changes needed)
+  .dark {
+    // Spacing is theme-agnostic; inherit from :root
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// UTILITY: Helper for Tailwind conversion
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Reference mapping (for developers):
+//   --space-0   → p-0, m-0, gap-0
+//   --space-1   → p-1, m-1, gap-1    (Tailwind default: 0.25rem)
+//   --space-2   → p-2, m-2, gap-2    (Tailwind default: 0.5rem)
+//   --space-4   → p-4, m-4, gap-4    (Tailwind default: 1rem)
+//   --space-8   → p-8, m-8, gap-8    (Tailwind default: 2rem)
+//   --space-16  → p-16, m-16, gap-16 (Tailwind default: 4rem)
+//
+// Usage in Vue components:
+//   class="p-4"         → 16px padding (from Tailwind default)
+//   style="padding: var(--padding-md)"  → Use token explicitly
+//
+// ═══════════════════════════════════════════════════════════════════════════

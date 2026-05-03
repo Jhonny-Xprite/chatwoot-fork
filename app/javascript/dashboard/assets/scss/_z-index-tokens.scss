@@ -1,0 +1,165 @@
+// scss-lint:disable PropertySortOrder
+// ═══════════════════════════════════════════════════════════════════════════
+// Z-INDEX HIERARCHY TOKENS
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Layered stacking context for predictable z-ordering.
+// Each layer has 10-unit spacing to allow for variations within the layer.
+//
+// Layers: auto (default), content (10), dropdown (20), popover (30), modal (40), toast (50)
+// ═══════════════════════════════════════════════════════════════════════════
+
+@layer base {
+  :root {
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 0: BASE / AUTO
+    // Default stacking context. No explicit z-index applied.
+    // Used for: body content, main layout, normal document flow
+    // ─────────────────────────────────────────────────────────────────────
+    --z-auto: auto;
+    --z-base: 0;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 1: CONTENT (10)
+    // Content above base. Floating elements, sticky headers, badges.
+    // Range: 10-19 (space for variations)
+    // ─────────────────────────────────────────────────────────────────────
+    --z-content: 10;
+    --z-sticky: 11;            // Sticky header/footer
+    --z-floating: 12;          // Floating action button (FAB)
+    --z-badge: 13;             // Badge overlay
+    --z-scroll-anchor: 14;     // Scroll-to-top button
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 2: DROPDOWN (20)
+    // Dropdown menus, select options, command palette.
+    // Range: 20-29
+    // ─────────────────────────────────────────────────────────────────────
+    --z-dropdown: 20;
+    --z-menu: 20;              // Main menu
+    --z-select-options: 21;    // Select dropdown options
+    --z-autocomplete: 21;      // Autocomplete list
+    --z-context-menu: 22;      // Right-click context menu
+    --z-command-palette: 23;   // Command palette / quick nav
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 3: POPOVER (30)
+    // Popovers, tooltips, date pickers, color pickers.
+    // Range: 30-39
+    // ─────────────────────────────────────────────────────────────────────
+    --z-popover: 30;
+    --z-tooltip: 30;           // Tooltip (same as popover)
+    --z-date-picker: 31;       // Date/time picker
+    --z-color-picker: 31;      // Color picker
+    --z-code-highlight: 32;    // Code syntax highlight overlay
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 4: MODAL (40)
+    // Modal dialogs, drawers, sidebars that block interaction.
+    // Range: 40-49
+    // ─────────────────────────────────────────────────────────────────────
+    --z-modal-backdrop: 40;    // Modal semi-transparent overlay
+    --z-modal: 41;             // Modal dialog itself
+    --z-drawer: 41;            // Drawer panel (same as modal)
+    --z-sidebar: 42;           // Slide-out sidebar
+    --z-fullscreen: 43;        // Fullscreen element
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 5: TOAST (50)
+    // Toast notifications, alerts, snackbars that appear on top of modal.
+    // Range: 50-59
+    // ─────────────────────────────────────────────────────────────────────
+    --z-toast: 50;
+    --z-notification: 50;      // Notification toast
+    --z-snackbar: 50;          // Snackbar message
+    --z-alert: 51;             // Alert banner (sticks above toast if needed)
+    --z-loading-spinner: 51;   // Full-page loading spinner
+
+    // ─────────────────────────────────────────────────────────────────────
+    // LAYER 6: DEBUG (999)
+    // Highest layer for debugging. Never use in production.
+    // ─────────────────────────────────────────────────────────────────────
+    --z-debug: 999;            // Debug/dev tools
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SEMANTIC ALIASES (for clarity in component usage)
+    // ─────────────────────────────────────────────────────────────────────
+    --z-standard: var(--z-base);           // Standard element
+    --z-elevated: var(--z-content);        // Elevated element
+    --z-overlay: var(--z-modal-backdrop);  // Overlay/scrim
+    --z-top: var(--z-toast);               // Topmost element
+  }
+
+  .dark {
+    // Z-index is theme-agnostic; no changes needed for dark mode
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STACKING CONTEXT DOCUMENTATION
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Visual stack (bottom to top):
+//
+//   50  │ Toast, Notification, Alert
+//   49  │
+//   48  │
+//   47  │
+//   46  │
+//   45  │
+//   44  │
+//   43  │ Fullscreen
+//   42  │ Sidebar
+//   41  │ Modal, Drawer
+//   40  │ Modal Backdrop
+//   39  │
+//   38  │
+//   37  │
+//   36  │
+//   35  │
+//   34  │
+//   33  │
+//   32  │ Code Highlight
+//   31  │ Date Picker, Color Picker
+//   30  │ Popover, Tooltip
+//   29  │
+//   28  │
+//   27  │
+//   26  │
+//   25  │
+//   24  │
+//   23  │ Command Palette
+//   22  │ Context Menu
+//   21  │ Select Options, Autocomplete
+//   20  │ Dropdown, Menu
+//   19  │
+//   18  │
+//   17  │
+//   16  │
+//   15  │
+//   14  │ Scroll Anchor
+//   13  │ Badge
+//   12  │ Floating Button
+//   11  │ Sticky Header/Footer
+//   10  │ Content
+//    0  │ Base Content
+//   ─   │ Page Background
+//
+// ═══════════════════════════════════════════════════════════════════════════
+// TAILWIND INTEGRATION REFERENCE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mapping to Tailwind z-* classes:
+//   z-0      → --z-base (0)
+//   z-10     → --z-content (10)
+//   z-20     → --z-dropdown (20)
+//   z-30     → --z-popover (30)
+//   z-40     → --z-modal (41)
+//   z-50     → --z-toast (50)
+//
+// Usage in Vue components:
+//   class="z-40"                           → Apply --z-modal (default Tailwind)
+//   style="z-index: var(--z-dropdown)"    → Use specific token
+//   class="z-50"                           → Apply --z-toast (highest)
+//
+// ═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,142 @@
+// scss-lint:disable PropertySortOrder
+// ═══════════════════════════════════════════════════════════════════════════
+// TYPOGRAPHY TOKENS — Scale & Metrics
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// 6-point typographic scale:
+// xs (12px), sm (14px), base (16px), lg (18px), xl (20px), 2xl (24px)
+//
+// Each size includes: font-size, line-height, letter-spacing
+// ═══════════════════════════════════════════════════════════════════════════
+
+@layer base {
+  :root {
+    // Font Family Tokens
+    --font-sans: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto,
+      'Helvetica Neue', Tahoma, Arial, sans-serif;
+    --font-mono: 'Monaco', 'Courier New', monospace;
+    --font-display: 'Inter Display', var(--font-sans);
+
+    // Font Weight Tokens
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: XS (12px) — Labels, badges, small UI text
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-xs: 0.75rem;        // 12px
+    --line-height-xs: 1.25;         // 15px (natural breathing room)
+    --letter-spacing-xs: 0;         // Standard
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: SM (14px) — Secondary text, helper text, small UI
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-sm: 0.875rem;       // 14px
+    --line-height-sm: 1.375;        // 19.25px
+    --letter-spacing-sm: 0;         // Standard
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: BASE (16px) — Body text, default (default)
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-base: 1rem;         // 16px
+    --line-height-base: 1.5;        // 24px (optimal readability)
+    --letter-spacing-base: 0;       // Standard
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: LG (18px) — Large UI, callouts, emphasis
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-lg: 1.125rem;       // 18px
+    --line-height-lg: 1.5;          // 27px
+    --letter-spacing-lg: 0;         // Standard
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: XL (20px) — Section headings, secondary titles
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-xl: 1.25rem;        // 20px
+    --line-height-xl: 1.4;          // 28px (tighter for headlines)
+    --letter-spacing-xl: -0.01em;   // Slight tightening
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: 2XL (24px) — Main headings, page titles
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-2xl: 1.5rem;        // 24px
+    --line-height-2xl: 1.4;         // 33.6px
+    --letter-spacing-2xl: -0.02em;  // Tighter for large text
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: 3XL (30px) — Hero headings, section titles (optional)
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-3xl: 1.875rem;      // 30px
+    --line-height-3xl: 1.4;         // 42px
+    --letter-spacing-3xl: -0.02em;  // Tighter
+
+    // ─────────────────────────────────────────────────────────────────────
+    // SIZE: 4XL (36px) — Page hero (optional)
+    // ─────────────────────────────────────────────────────────────────────
+    --font-size-4xl: 2.25rem;       // 36px
+    --line-height-4xl: 1.3;         // 46.8px
+    --letter-spacing-4xl: -0.02em;  // Tighter
+
+    // ─────────────────────────────────────────────────────────────────────
+    // Preset Combinations (shorthand for components)
+    // ─────────────────────────────────────────────────────────────────────
+
+    // Button text (sm, medium weight)
+    --text-button: var(--font-size-sm) / var(--line-height-sm)
+      var(--font-weight-semibold);
+
+    // Label text (xs, medium weight)
+    --text-label: var(--font-size-xs) / var(--line-height-xs)
+      var(--font-weight-semibold);
+
+    // Body text (base, regular weight)
+    --text-body: var(--font-size-base) / var(--line-height-base)
+      var(--font-weight-regular);
+
+    // Small body (sm, regular weight)
+    --text-small: var(--font-size-sm) / var(--line-height-sm)
+      var(--font-weight-regular);
+
+    // Heading 1 (2xl, bold weight)
+    --text-h1: var(--font-size-2xl) / var(--line-height-2xl)
+      var(--font-weight-bold);
+
+    // Heading 2 (xl, bold weight)
+    --text-h2: var(--font-size-xl) / var(--line-height-xl)
+      var(--font-weight-bold);
+
+    // Heading 3 (lg, semibold weight)
+    --text-h3: var(--font-size-lg) / var(--line-height-lg)
+      var(--font-weight-semibold);
+
+    // Code text (sm, mono font)
+    --text-code: var(--font-size-sm) / var(--line-height-sm) var(--font-mono);
+  }
+
+  // Dark mode uses same typography (no changes needed)
+  .dark {
+    // Typography is theme-agnostic; inherit from :root
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TAILWIND INTEGRATION REFERENCE
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Mapping to Tailwind text-* classes:
+//   text-xs   → --font-size-xs, --line-height-xs
+//   text-sm   → --font-size-sm, --line-height-sm
+//   text-base → --font-size-base, --line-height-base
+//   text-lg   → --font-size-lg, --line-height-lg
+//   text-xl   → --font-size-xl, --line-height-xl
+//   text-2xl  → --font-size-2xl, --line-height-2xl
+//
+// Mapping to Tailwind font-* classes:
+//   font-normal    → --font-weight-regular
+//   font-medium    → --font-weight-medium
+//   font-semibold  → --font-weight-semibold
+//   font-bold      → --font-weight-bold
+//
+// ═══════════════════════════════════════════════════════════════════════════
