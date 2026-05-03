@@ -1,83 +1,44 @@
 # Configurações reutilizáveis (Anchors) para evitar repetição de código
-x-chatwoot-image: &chatwoot-image clientes-tools-a2-chatwoot:crm
+x-chatwoot-image: &chatwoot-image clientes-tools-chatwoot:crm
 x-chatwoot-build: &chatwoot-build
   context: .
   dockerfile: ./Dockerfile
 
 services:
   # --- Banco de Dados PostgreSQL ---
-  a2-postgres:
-    image: pgvector/pgvector:pg17 # Versão 17 com suporte a vetores (importante para IA/Busca)
+  postgres:
+    container_name: chatwoot-postgres
+    image: pgvector/pgvector:pg17 # Versão 17 com suporte a vetores
     environment:
-      POSTGRES_DB: chatwoot
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: f28aa46c7224d75d34aeb80085912030
+      POSTGRES_DB: ${POSTGRES_DATABASE:-chatwoot_production}
+      POSTGRES_USER: ${POSTGRES_USERNAME:-chatwoot_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-chatwoot_prod}
     volumes:
-      - a2-postgres-data:/var/lib/postgresql/data # Volume persistente para não perder dados ao reiniciar
+      - postgres-data:/var/lib/postgresql/data
     restart: always
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"] # Verifica se o banco está pronto para conexões
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-chatwoot_prod} -d ${POSTGRES_DATABASE:-chatwoot_production}"]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  # --- Cache e Filas Redis (Valkey) ---
-  a2-redis:
-    image: valkey/valkey:7.2.5-alpine # Alternativa moderna e performática ao Redis
-    command: valkey-server --appendonly yes # Ativa persistência de dados no Redis
+  # --- Cache e Filas Redis ---
+  redis:
+    container_name: chatwoot-redis
+    image: valkey/valkey:7.2.5-alpine
+    command: valkey-server --appendonly yes
     volumes:
-      - a2-redis-data:/data
+      - redis-data:/data
     restart: always
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"] # Verifica se o Redis está respondendo
+      test: ["CMD", "valkey-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # --- Servidor Principal do Chatwoot (Web) ---
-  a2-chatwoot:
-    image: *chatwoot-image
-    build: *chatwoot-build
-    env_file:
-      - .env # Carrega variáveis adicionais do arquivo .env
-    environment:
-      - RAILS_ENV=production # Define o modo de execução como Produção (mais rápido e seguro)
-      - NODE_ENV=production
-      
-      # Automação de Usuário e Onboarding
-      - INSTALLATION_OWNER_EMAIL=contato@aiox.com.br # E-mail do Super Administrador
-      - INSTALLATION_OWNER_PASSWORD=Chatwoot123! # Senha do Super Administrador
-      - INSTALLATION_OWNER_NAME=Admin AIOX # Nome exibido do administrador
-      - DEFAULT_LOCALE=pt_BR # Define o idioma padrão do sistema como Português Brasil
-      - ENABLE_ACCOUNT_SIGNUP=false # Desativa o cadastro público por segurança
-      
-      # Segurança e Conectividade
-      - SECRET_KEY_BASE=f28aa46c7224d75d34aeb80085912030f28aa46c7224d75d34aeb80085912030 # Chave mestra de criptografia
-      - POSTGRES_HOST=a2-postgres # Aponta para o container do banco de dados acima
-      - POSTGRES_DB=chatwoot
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=f28aa46c7224d75d34aeb80085912030
-      - REDIS_URL=redis://a2-redis:6379 # Aponta para o container do Redis acima
-    depends_on:
-      a2-postgres:
-        condition: service_healthy # Só sobe se o banco estiver saudável
-      a2-redis:
-        condition: service_healthy # Só sobe se o Redis estiver saudável
-    volumes:
-      - a2-chatwoot-storage:/app/storage # Onde ficam as fotos e anexos enviados no chat
-      - a2-chatwoot-logs:/app/log
-    restart: always
-    command: bundle exec rails s -p 3000 -b 0.0.0.0 # Inicia o servidor Rails diretamente para acelerar o boot
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"] # Monitora se o app está respondendo
-      interval: 60s
-      timeout: 20s
-      retries: 5
-      start_period: 60s
-
-  # --- Processador de Fundo (Sidekiq) ---
-  # Responsável por enviar e-mails, processar webhooks e automações
-  a2-sidekiq:
+  chatwoot:
+    container_name: chatwoot-web
     image: *chatwoot-image
     build: *chatwoot-build
     env_file:
@@ -85,33 +46,70 @@ services:
     environment:
       - RAILS_ENV=production
       - NODE_ENV=production
-      - INSTALLATION_OWNER_EMAIL=contato@aiox.com.br
-      - INSTALLATION_OWNER_PASSWORD=Chatwoot123!
-      - INSTALLATION_OWNER_NAME=Admin AIOX
+      
+      # Automação de Usuário e Onboarding
+      - INSTALLATION_OWNER_EMAIL=${INSTALLATION_OWNER_EMAIL:-contato@aiox.com.br}
+      - INSTALLATION_OWNER_PASSWORD=${INSTALLATION_OWNER_PASSWORD:-Chatwoot123!}
+      - INSTALLATION_OWNER_NAME=${INSTALLATION_OWNER_NAME:-Admin AIOX}
       - DEFAULT_LOCALE=pt_BR
       - ENABLE_ACCOUNT_SIGNUP=false
-      - SECRET_KEY_BASE=f28aa46c7224d75d34aeb80085912030f28aa46c7224d75d34aeb80085912030
-      - POSTGRES_HOST=a2-postgres
-      - POSTGRES_DB=chatwoot
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=f28aa46c7224d75d34aeb80085912030
-      - REDIS_URL=redis://a2-redis:6379
+      
+      # Segurança e Conectividade
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
+      - REDIS_URL=redis://redis:6379
     depends_on:
-      a2-postgres:
+      postgres:
         condition: service_healthy
-      a2-redis:
+      redis:
         condition: service_healthy
-      a2-chatwoot:
-        condition: service_healthy # Sidekiq aguarda o servidor web estar pronto
     volumes:
-      - a2-chatwoot-storage:/app/storage
-      - a2-chatwoot-logs:/app/log
+      - chatwoot-storage:/app/storage
+      - chatwoot-logs:/app/log
+    restart: always
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 60s
+      timeout: 20s
+      retries: 5
+      start_period: 60s
+
+  # --- Processador de Fundo (Sidekiq) ---
+  sidekiq:
+    container_name: chatwoot-sidekiq
+    image: *chatwoot-image
+    build: *chatwoot-build
+    env_file:
+      - .env
+    environment:
+      - RAILS_ENV=production
+      - NODE_ENV=production
+      - SECRET_KEY_BASE=${SECRET_KEY_BASE}
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DATABASE=${POSTGRES_DATABASE:-chatwoot_production}
+      - POSTGRES_USERNAME=${POSTGRES_USERNAME:-chatwoot_prod}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-chatwoot_prod}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chatwoot:
+        condition: service_healthy
+    volumes:
+      - chatwoot-storage:/app/storage
+      - chatwoot-logs:/app/log
     restart: always
     command: bundle exec sidekiq -C config/sidekiq.yml
 
-# Definição dos Volumes de Dados para persistência em disco
+# Definição dos Volumes de Dados
 volumes:
-  a2-postgres-data: # Dados do banco de dados
-  a2-redis-data:    # Dados do cache/filas
-  a2-chatwoot-storage: # Arquivos de mídia (fotos, áudios, PDFs)
-  a2-chatwoot-logs:    # Registros de erros e acessos
+  postgres-data:
+  redis-data:
+  chatwoot-storage:
+  chatwoot-logs:

@@ -13,25 +13,25 @@
     "appServiceName": {
       "type": "string",
       "title": "Nome do Serviço App",
-      "default": "a2-chatwoot",
+      "default": "chatwoot",
       "description": "Nome do container do aplicativo"
     },
     "postgresServiceName": {
       "type": "string",
       "title": "Nome do Serviço PostgreSQL",
-      "default": "a2-postgres",
+      "default": "postgres",
       "description": "Nome do container do banco de dados"
     },
     "redisServiceName": {
       "type": "string",
       "title": "Nome do Serviço Redis",
-      "default": "a2-redis",
+      "default": "redis",
       "description": "Nome do container do cache"
     },
     "sidekiqServiceName": {
       "type": "string",
       "title": "Nome do Serviço Sidekiq",
-      "default": "a2-sidekiq",
+      "default": "sidekiq",
       "description": "Nome do container de jobs"
     },
     "postgresPassword": {
