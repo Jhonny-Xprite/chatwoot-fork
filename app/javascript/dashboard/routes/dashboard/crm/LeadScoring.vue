@@ -74,33 +74,35 @@ const attributeModels = computed(() => [
   { label: t('CRM.SCORING.MODELS.LABEL'), value: 'label' },
 ]);
 
-// Filtra os atributos baseados na origem selecionada
+// Filtra os atributos baseados na origem selecionada com separação clara
 const availableAttributes = computed(() => {
   if (newRule.value.attribute_model === 'contact_attribute') {
-    const customAttrs = contactAttributes.value.map(a => ({
-      label: a.attributeDisplayName,
-      value: a.attributeKey,
-    }));
     const standardAttrs = [
-      { label: 'Email', value: 'email' },
-      { label: 'Phone Number', value: 'phone_number' },
-      { label: 'Name', value: 'name' },
-      { label: 'Identifier', value: 'identifier' },
-      { label: 'City', value: 'city' },
-      { label: 'Country', value: 'country_code' },
+      { label: '📋 Email', value: 'email', group: 'standard' },
+      { label: '📋 Phone Number', value: 'phone_number', group: 'standard' },
+      { label: '📋 Name', value: 'name', group: 'standard' },
+      { label: '📋 Identifier', value: 'identifier', group: 'standard' },
+      { label: '📋 City', value: 'city', group: 'standard' },
+      { label: '📋 Country', value: 'country_code', group: 'standard' },
     ];
+    const customAttrs = (contactAttributes.value || []).map(a => ({
+      label: `🎯 ${a.attributeDisplayName}`,
+      value: a.attributeKey,
+      group: 'custom',
+    }));
     return [...standardAttrs, ...customAttrs];
   }
   if (newRule.value.attribute_model === 'conversation_attribute') {
-    const customAttrs = conversationAttributes.value.map(a => ({
-      label: a.attributeDisplayName,
-      value: a.attributeKey,
-    }));
     const standardAttrs = [
-      { label: 'Status', value: 'status' },
-      { label: 'Channel', value: 'channel' },
-      { label: 'Priority', value: 'priority' },
+      { label: '📋 Status', value: 'status', group: 'standard' },
+      { label: '📋 Channel', value: 'channel', group: 'standard' },
+      { label: '📋 Priority', value: 'priority', group: 'standard' },
     ];
+    const customAttrs = (conversationAttributes.value || []).map(a => ({
+      label: `🎯 ${a.attributeDisplayName}`,
+      value: a.attributeKey,
+      group: 'custom',
+    }));
     return [...standardAttrs, ...customAttrs];
   }
   return [{ label: t('CRM.LABELS'), value: 'labels' }];
@@ -126,10 +128,17 @@ const fetchRules = async () => {
     const response = await window.axios.get(
       `/api/v1/accounts/${store.getters.getCurrentAccountId}/crm/lead_scoring_rules`
     );
-    rules.value = response.data;
+    rules.value = response.data || [];
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('[CRM] Erro ao buscar regras:', error);
+    rules.value = [];
+    if (error.response?.status === 502) {
+      useAlert(
+        'Servidor indisponível. Tente novamente em alguns segundos.',
+        'error'
+      );
+    }
   }
 };
 
@@ -205,6 +214,7 @@ const getOperatorLabel = value =>
 
 // Formata as etiquetas para o componente TagInput
 const labelMenuItems = computed(() => {
+  if (!labels.value || !Array.isArray(labels.value)) return [];
   return labels.value.map(l => ({ label: l.title, value: l.title }));
 });
 
@@ -446,9 +456,10 @@ const getRuleIcon = model => {
                   class="!rounded-xl"
                   @input="
                     e =>
-                      (newRule.values = e.target.value
+                      (newRule.values = (e?.target?.value || '')
                         .split(',')
-                        .map(v => v.trim()))
+                        .map(v => v.trim())
+                        .filter(v => v.length > 0))
                   "
                 />
               </div>
