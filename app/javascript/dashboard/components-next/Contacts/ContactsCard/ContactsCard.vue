@@ -11,7 +11,6 @@ import Flag from 'dashboard/components-next/flag/Flag.vue';
 import ContactDeleteSection from 'dashboard/components-next/Contacts/ContactsCard/ContactDeleteSection.vue';
 import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
 import countries from 'shared/constants/countries';
-import Tooltip from 'dashboard/components-next/tooltip/Tooltip.vue';
 
 const props = defineProps({
   id: { type: Number, required: true },
@@ -239,30 +238,25 @@ const startConversation = () => {
       <div
         class="flex items-center gap-2 opacity-0 transform translate-x-4 transition-all duration-500 group-hover/contact-card:opacity-100 group-hover/contact-card:translate-x-0"
       >
-        <Tooltip
-          :content="t('CONTACTS_LAYOUT.HEADER.ACTIVE_TITLE')"
-          placement="top"
-        >
-          <Button
-            icon="i-lucide-message-square"
-            variant="ghost"
-            color="slate"
-            size="sm"
-            class="!rounded-xl hover:!bg-n-brand-primary hover:!text-white"
-            @click="startConversation"
-          />
-        </Tooltip>
+        <Button
+          v-tooltip.top="t('CONTACTS_LAYOUT.HEADER.ACTIVE_TITLE')"
+          icon="i-lucide-message-square"
+          variant="ghost"
+          color="slate"
+          size="sm"
+          class="!rounded-xl hover:!bg-n-brand-primary hover:!text-white"
+          @click="startConversation"
+        />
 
-        <Tooltip :content="t('CRM.PIPELINE')" placement="top">
-          <Button
-            icon="i-lucide-kanban"
-            variant="ghost"
-            color="slate"
-            size="sm"
-            class="!rounded-xl hover:!bg-n-brand-primary hover:!text-white"
-            @click="onClickViewDetails"
-          />
-        </Tooltip>
+        <Button
+          v-tooltip.top="t('CRM.PIPELINE')"
+          icon="i-lucide-kanban"
+          variant="ghost"
+          color="slate"
+          size="sm"
+          class="!rounded-xl hover:!bg-n-brand-primary hover:!text-white"
+          @click="onClickViewDetails"
+        />
 
         <div class="w-px h-6 bg-n-slate-3 dark:bg-n-slate-2/30 mx-1" />
 

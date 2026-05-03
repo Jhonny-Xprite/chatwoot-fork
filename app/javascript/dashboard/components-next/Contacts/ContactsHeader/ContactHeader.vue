@@ -1,7 +1,6 @@
 <script setup>
 import Button from 'dashboard/components-next/button/Button.vue';
 import Input from 'dashboard/components-next/input/Input.vue';
-import Tooltip from 'dashboard/components-next/tooltip/Tooltip.vue';
 import ContactSortMenu from './components/ContactSortMenu.vue';
 import ContactMoreActions from './components/ContactMoreActions.vue';
 import ComposeConversation from 'dashboard/components-next/NewConversation/ComposeConversation.vue';
@@ -75,68 +74,56 @@ const { t } = useI18n();
           class="flex items-center flex-shrink-0 gap-3 bg-n-slate-2/50 dark:bg-n-slate-3/20 p-1 rounded-2xl border border-n-slate-3/30 dark:border-n-slate-2/10"
         >
           <div v-if="!isLabelView && !isActiveView" class="relative">
-            <Tooltip
-              :content="t('CONTACTS_LAYOUT.HEADER.ACTIONS.FILTERS.TITLE')"
-              placement="top"
-            >
-              <Button
-                id="toggleContactsFilterButton"
-                :icon="
-                  isSegmentsView ? 'i-lucide-pen-line' : 'i-lucide-list-filter'
-                "
-                color="slate"
-                size="sm"
-                class="!rounded-xl transition-all"
-                :class="
-                  hasActiveFilters
-                    ? '!text-n-brand-primary !bg-n-brand-primary/10'
-                    : 'variant-ghost'
-                "
-                variant="ghost"
-                @click="emit('filter')"
-              />
-            </Tooltip>
+            <Button
+              id="toggleContactsFilterButton"
+              v-tooltip.top="t('CONTACTS_LAYOUT.HEADER.ACTIONS.FILTERS.TITLE')"
+              :icon="
+                isSegmentsView ? 'i-lucide-pen-line' : 'i-lucide-list-filter'
+              "
+              color="slate"
+              size="sm"
+              class="!rounded-xl transition-all"
+              :class="
+                hasActiveFilters
+                  ? '!text-n-brand-primary !bg-n-brand-primary/10'
+                  : 'variant-ghost'
+              "
+              variant="ghost"
+              @click="emit('filter')"
+            />
             <slot name="filter" />
           </div>
 
-          <Tooltip
+          <Button
             v-if="
               hasActiveFilters &&
               !isSegmentsView &&
               !isLabelView &&
               !isActiveView
             "
-            :content="
+            v-tooltip.top="
               t('CONTACTS_LAYOUT.HEADER.ACTIONS.FILTERS.CREATE_SEGMENT.TITLE')
             "
-            placement="top"
-          >
-            <Button
-              icon="i-lucide-save"
-              color="slate"
-              size="sm"
-              variant="ghost"
-              class="!rounded-xl"
-              @click="emit('createSegment')"
-            />
-          </Tooltip>
+            icon="i-lucide-save"
+            color="slate"
+            size="sm"
+            variant="ghost"
+            class="!rounded-xl"
+            @click="emit('createSegment')"
+          />
 
-          <Tooltip
+          <Button
             v-if="isSegmentsView && !isLabelView && !isActiveView"
-            :content="
+            v-tooltip.top="
               t('CONTACTS_LAYOUT.HEADER.ACTIONS.FILTERS.DELETE_SEGMENT.TITLE')
             "
-            placement="top"
-          >
-            <Button
-              icon="i-lucide-trash"
-              color="slate"
-              size="sm"
-              variant="ghost"
-              class="!rounded-xl hover:!text-red-500"
-              @click="emit('deleteSegment')"
-            />
-          </Tooltip>
+            icon="i-lucide-trash"
+            color="slate"
+            size="sm"
+            variant="ghost"
+            class="!rounded-xl hover:!text-red-500"
+            @click="emit('deleteSegment')"
+          />
 
           <ContactSortMenu
             :active-sort="activeSort"
