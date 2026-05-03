@@ -11,6 +11,7 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
     @conversations = @conversations.where(inbox_id: params[:inbox_id]) if params[:inbox_id].present?
     @conversations = @conversations.where(team_id: params[:team_id]) if params[:team_id].present?
     @conversations = @conversations.where(priority: params[:priority]) if params[:priority].present?
+    @conversations = filter_by_score_band(@conversations)
 
     @conversations = @conversations.page(params[:page])
                                    .per(params[:per_page] || 25)
@@ -31,5 +32,20 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
 
   def set_stage
     @stage = current_account.crm_pipeline_stages.find(params[:stage_id])
+  end
+
+  def filter_by_score_band(scope)
+    return scope unless params[:score_band].present?
+
+    case params[:score_band]
+    when 'hot'
+      scope.joins(:contact).where('contacts.lead_score >= ?', 70)
+    when 'warm'
+      scope.joins(:contact).where(contacts: { lead_score: 40..69 })
+    when 'cold'
+      scope.joins(:contact).where('contacts.lead_score < ?', 40)
+    else
+      scope
+    end
   end
 end

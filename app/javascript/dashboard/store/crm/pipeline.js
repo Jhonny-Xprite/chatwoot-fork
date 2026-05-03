@@ -36,6 +36,7 @@ const state = {
     inboxId: null,
     teamId: null,
     priority: '',
+    scoreBand: '',
   },
   uiFlags: {
     isFetchingPipelines: false,
@@ -115,6 +116,7 @@ const mutations = {
       inboxId: null,
       teamId: null,
       priority: '',
+      scoreBand: '',
     };
   },
   REPLACE_FILTERS(_state, filters) {
@@ -126,6 +128,7 @@ const mutations = {
       inboxId: null,
       teamId: null,
       priority: '',
+      scoreBand: '',
       ...filters,
     };
   },
@@ -334,6 +337,7 @@ const actions = {
         inbox_id: _state.filters.inboxId,
         team_id: _state.filters.teamId,
         priority: _state.filters.priority,
+        score_band: _state.filters.scoreBand,
       });
       const { payload, meta: responseMeta } = response.data.data;
       commit('SET_CONVERSATIONS', { stageId, conversations: payload, page });

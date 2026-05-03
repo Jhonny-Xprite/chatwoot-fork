@@ -1,11 +1,11 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { getLastMessage } from 'dashboard/helper/conversationHelper';
 import Avatar from 'next/avatar/Avatar.vue';
 import MessagePreview from './MessagePreview.vue';
 import InboxName from '../InboxName.vue';
 import TimeAgo from 'dashboard/components/ui/TimeAgo.vue';
-import CardLabels from './conversationCardComponents/CardLabels.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
 import UnreadBadge from 'dashboard/components-next/Conversation/ConversationCard/UnreadBadge.vue';
 import SLACardLabel from './components/SLACardLabel.vue';
@@ -31,6 +31,7 @@ const emit = defineEmits([
   'selectConversation',
   'deSelectConversation',
 ]);
+const { t } = useI18n();
 
 const hovered = ref(false);
 
@@ -45,16 +46,50 @@ const voiceCallData = computed(() => ({
 
 const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 
-const showLabelsSection = computed(() => {
-  return props.chat.labels?.length > 0 || hasSlaPolicyId.value;
+const activeLabels = computed(() => {
+  const labels = props.chat.labels || [];
+  return labels.slice(0, 2);
+});
+
+const hiddenLabelsCount = computed(() => {
+  const labels = props.chat.labels || [];
+  return Math.max(labels.length - activeLabels.value.length, 0);
+});
+
+const showMetaRow = computed(() => {
+  return (
+    activeLabels.value.length > 0 || hasSlaPolicyId.value || props.showAssignee
+  );
 });
 
 const messagePreviewClass = computed(() => {
   return [
     hasUnread.value ? 'font-medium text-n-slate-12' : 'text-n-slate-11',
-    !props.compact && hasUnread.value ? 'ltr:pr-4 rtl:pl-4' : '',
-    props.compact && hasUnread.value ? 'ltr:pr-6 rtl:pl-6' : '',
+    'block w-full overflow-hidden text-ellipsis whitespace-nowrap',
   ];
+});
+
+const lastMessageToneClass = computed(() => {
+  if (lastMessageInChat.value?.private) {
+    return 'text-n-amber-11';
+  }
+
+  if (hasUnread.value || lastMessageInChat.value?.message_type === 0) {
+    return 'text-n-brand-primary';
+  }
+
+  return 'text-n-slate-10';
+});
+
+const lastMessageMetaLabel = computed(() => {
+  if (!lastMessageInChat.value) return '';
+  if (lastMessageInChat.value.private) {
+    return t('CRM.MESSAGE_SENDER.PRIVATE');
+  }
+
+  return lastMessageInChat.value.message_type === 1
+    ? t('CRM.MESSAGE_SENDER.TEAM')
+    : t('CRM.MESSAGE_SENDER.LEAD');
 });
 
 const onThumbnailHover = () => {
@@ -195,37 +230,58 @@ watch(
         </div>
 
         <!-- Message Preview Row -->
-        <div class="flex items-start gap-1.5 h-4 overflow-hidden">
+        <div
+          class="mt-1 rounded-xl border border-n-slate-3/20 bg-n-slate-2/40 px-2.5 py-2 transition-colors group-hover:bg-white/60 dark:border-n-slate-2/20 dark:bg-n-slate-2/20 dark:group-hover:bg-n-slate-2/40"
+        >
           <VoiceCallStatus
             v-if="voiceCallData.status"
             key="voice-status-row"
             :status="voiceCallData.status"
             :direction="voiceCallData.direction"
             :message-preview-class="messagePreviewClass"
-            class="flex-1 min-w-0"
+            class="min-w-0 flex-1"
           />
-          <MessagePreview
-            v-else-if="lastMessageInChat"
-            key="message-preview"
-            :message="lastMessageInChat"
-            class="flex-1 min-w-0 text-[12px] leading-tight"
-            :class="messagePreviewClass"
-          />
+          <template v-else-if="lastMessageInChat">
+            <div class="mb-1 flex items-center gap-1.5">
+              <span
+                class="text-[9px] font-black uppercase tracking-widest"
+                :class="lastMessageToneClass"
+              >
+                {{ lastMessageMetaLabel }}
+              </span>
+              <div class="h-1 w-1 rounded-full bg-n-slate-4" />
+            </div>
+            <MessagePreview
+              key="message-preview"
+              :message="lastMessageInChat"
+              class="min-w-0 flex-1 text-[12px] leading-tight"
+              :class="messagePreviewClass"
+            />
+          </template>
         </div>
 
         <!-- Bottom Row: Tags/SLA -->
         <div
-          v-if="showLabelsSection"
-          class="flex items-center justify-between gap-2 mt-1"
+          v-if="showMetaRow"
+          class="mt-1 flex items-center justify-between gap-2"
         >
-          <CardLabels
-            :conversation-labels="chat.labels"
-            class="scale-90 origin-left"
-          >
-            <template v-if="hasSlaPolicyId" #before>
-              <SLACardLabel :chat="chat" class="ltr:mr-1 rtl:ml-1" />
-            </template>
-          </CardLabels>
+          <div class="flex min-w-0 flex-wrap items-center gap-1.5">
+            <SLACardLabel v-if="hasSlaPolicyId" :chat="chat" />
+            <span
+              v-for="label in activeLabels"
+              :key="label"
+              class="inline-flex max-w-[88px] items-center rounded-full bg-n-slate-2/70 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-n-slate-11"
+              :title="label"
+            >
+              <span class="truncate">{{ label }}</span>
+            </span>
+            <span
+              v-if="hiddenLabelsCount > 0"
+              class="inline-flex items-center rounded-full bg-n-brand-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wider text-n-brand-primary"
+            >
+              {{ `+${hiddenLabelsCount}` }}
+            </span>
+          </div>
           <div
             v-if="showAssignee && assignee.name"
             class="flex items-center gap-1 bg-n-slate-3/50 dark:bg-n-slate-2/30 px-1.5 py-0.5 rounded-lg border border-n-slate-3/20"

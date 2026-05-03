@@ -73,7 +73,9 @@ const lastMessageSenderLabel = computed(() => {
   return isAgent ? t('CRM.MESSAGE_SENDER.TEAM') : t('CRM.MESSAGE_SENDER.LEAD');
 });
 
-const leadScore = computed(() => contact.value.lead_score || 0);
+const leadScore = computed(
+  () => contact.value.lead_score ?? contact.value.leadScore ?? 0
+);
 const isHotLead = computed(() => leadScore.value >= 70);
 const leadScoreClasses = computed(() => {
   if (leadScore.value >= 70) {

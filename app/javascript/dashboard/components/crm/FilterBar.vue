@@ -17,6 +17,9 @@ const selectedAssigneeId = ref(
 const selectedLabels = ref([
   ...vuexStore.getters['crmPipeline/appliedFilters'].labels,
 ]);
+const selectedScoreBand = ref(
+  vuexStore.getters['crmPipeline/appliedFilters'].scoreBand || ''
+);
 
 const agents = computed(() => vuexStore.getters['agents/getAgents']);
 const assigneeOptions = computed(() => [
@@ -25,6 +28,12 @@ const assigneeOptions = computed(() => [
     label: agent.name,
     value: agent.id,
   })),
+]);
+const scoreOptions = computed(() => [
+  { label: t('CRM.ALL_SCORES'), value: '' },
+  { label: t('CRM.SCORE_FILTER.HOT'), value: 'hot' },
+  { label: t('CRM.SCORE_FILTER.WARM'), value: 'warm' },
+  { label: t('CRM.SCORE_FILTER.COLD'), value: 'cold' },
 ]);
 
 const labels = computed(() => vuexStore.getters['labels/getLabels']);
@@ -51,6 +60,13 @@ watch(selectedAssigneeId, newVal => {
   });
 });
 
+watch(selectedScoreBand, newVal => {
+  vuexStore.dispatch('crmPipeline/setFilter', {
+    key: 'scoreBand',
+    value: newVal,
+  });
+});
+
 onMounted(() => {
   vuexStore.dispatch('agents/get');
   vuexStore.dispatch('labels/get');
@@ -71,13 +87,14 @@ const clearFilters = () => {
   searchQuery.value = '';
   selectedAssigneeId.value = '';
   selectedLabels.value = [];
+  selectedScoreBand.value = '';
   vuexStore.dispatch('crmPipeline/clearFilters');
 };
 </script>
 
 <template>
   <div
-    class="relative z-30 flex items-center gap-5 px-6 py-3 overflow-visible bg-white/40 dark:bg-n-slate-1/40 backdrop-blur-md border-b border-n-slate-3/30 dark:border-n-slate-2/10 shadow-sm"
+    class="relative z-[100] flex items-center gap-5 overflow-visible border-b border-n-slate-3/30 bg-white/40 px-6 py-3 shadow-sm backdrop-blur-md dark:border-n-slate-2/10 dark:bg-n-slate-1/40"
   >
     <!-- Search -->
     <div class="relative min-w-[240px] group">
@@ -125,9 +142,28 @@ const clearFilters = () => {
       />
     </div>
 
+    <div class="relative z-40 flex items-center gap-3 min-w-fit">
+      <span
+        class="text-[10px] font-black text-n-slate-10 uppercase tracking-widest"
+      >
+        {{ $t('CRM.SCORE_FILTER.LABEL') }}
+      </span>
+      <FilterSelect
+        v-model="selectedScoreBand"
+        :options="scoreOptions"
+        variant="faded"
+        class="relative z-50 min-w-[172px] !rounded-xl !bg-n-slate-2/50 !border-n-slate-3/50"
+      />
+    </div>
+
     <!-- Clear Filters -->
     <button
-      v-if="searchQuery || selectedAssigneeId || selectedLabels.length"
+      v-if="
+        searchQuery ||
+        selectedAssigneeId ||
+        selectedLabels.length ||
+        selectedScoreBand
+      "
       v-tooltip.top="$t('CRM.CLEAR_FILTERS')"
       class="p-2 rounded-xl text-n-ruby-9 hover:bg-n-ruby-9/10 transition-all ml-auto flex items-center justify-center group"
       @click="clearFilters"

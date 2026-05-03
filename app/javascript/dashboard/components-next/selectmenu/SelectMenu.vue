@@ -43,7 +43,7 @@ const handleSelect = value => {
 <template>
   <div
     v-on-clickaway="() => (isOpen = false)"
-    class="relative flex flex-col gap-1 w-fit"
+    class="relative z-[170] flex w-fit flex-col gap-1 overflow-visible"
   >
     <Button
       icon="i-lucide-chevron-down"
@@ -58,7 +58,7 @@ const handleSelect = value => {
     />
     <div
       v-if="isOpen"
-      class="absolute select-none max-w-64 flex flex-col gap-1 bg-n-alpha-3 backdrop-blur-[100px] p-1 top-0 shadow-lg z-40 rounded-lg border border-n-weak dark:border-n-strong/50"
+      class="absolute top-0 z-[180] flex max-w-64 select-none flex-col gap-1 rounded-lg border border-n-weak bg-n-alpha-3 p-1 shadow-xl shadow-black/10 backdrop-blur-[100px] dark:border-n-strong/50"
       :class="{
         'ltr:left-full rtl:right-full ltr:ml-1 rtl:mr-1':
           subMenuPosition === 'right',

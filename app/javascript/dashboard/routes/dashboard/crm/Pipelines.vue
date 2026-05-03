@@ -29,6 +29,7 @@ const DEFAULT_FILTERS = {
   inboxId: null,
   teamId: null,
   priority: '',
+  scoreBand: '',
 };
 
 const GROUP_NAME_PATTERN = /\(GROUP\)/i;
@@ -93,11 +94,26 @@ const createPipelineName = ref('');
 const isGroupEntity = name => GROUP_NAME_PATTERN.test(name || '');
 
 const filteredBoardContacts = computed(() => {
-  if (showGroupsInPipeline.value) {
-    return boardContacts.value;
+  const { scoreBand } = store.getters['crmPipeline/appliedFilters'];
+  let contacts = boardContacts.value;
+
+  if (!showGroupsInPipeline.value) {
+    contacts = contacts.filter(contact => !isGroupEntity(contact.name));
   }
 
-  return boardContacts.value.filter(contact => !isGroupEntity(contact.name));
+  if (!scoreBand) {
+    return contacts;
+  }
+
+  return contacts.filter(contact => {
+    const leadScore = contact.leadScore ?? contact.lead_score ?? 0;
+
+    if (scoreBand === 'hot') return leadScore >= 70;
+    if (scoreBand === 'warm') return leadScore >= 40 && leadScore < 70;
+    if (scoreBand === 'cold') return leadScore < 40;
+
+    return true;
+  });
 });
 
 const buildContactFilterPayload = filters => {
@@ -231,6 +247,9 @@ const extractFiltersFromView = view => {
           break;
         case 'priority':
           accumulator.priority = firstValue || '';
+          break;
+        case 'lead_score_band':
+          accumulator.scoreBand = firstValue || '';
           break;
         default:
           break;

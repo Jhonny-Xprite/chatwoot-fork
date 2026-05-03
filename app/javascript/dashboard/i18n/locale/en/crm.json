@@ -6,6 +6,13 @@
     "ALL_ASSIGNEES": "All Agents",
     "LABELS": "Labels",
     "LABELS_PLACEHOLDER": "Filter by labels",
+    "ALL_SCORES": "All scores",
+    "SCORE_FILTER": {
+      "LABEL": "Lead score",
+      "HOT": "Hot leads",
+      "WARM": "Warm leads",
+      "COLD": "Cold leads"
+    },
     "CLEAR_FILTERS": "Clear all filters",
     "ALL_VIEWS": "All saved views",
     "ACTIVE_VIEW": "View: {name}",
@@ -48,7 +55,8 @@
     },
     "MESSAGE_SENDER": {
       "LEAD": "Lead",
-      "TEAM": "Team"
+      "TEAM": "Team",
+      "PRIVATE": "Private"
     },
     "PIPELINE": "Pipeline",
     "SELECT_PIPELINE": "Select Pipeline",

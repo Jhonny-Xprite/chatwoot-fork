@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 import { formatNumber } from '@chatwoot/utils';
 import wootConstants from 'dashboard/constants/globals';
@@ -27,6 +28,7 @@ const emit = defineEmits([
 ]);
 
 const { uiSettings, updateUISettings } = useUISettings();
+const { t } = useI18n();
 
 const onBasicFilterChange = (value, type) => {
   emit('basicFilterChange', value, type);
@@ -38,6 +40,22 @@ const hasAppliedFiltersOrActiveFolders = computed(() => {
 
 const allCount = computed(() => props.conversationStats?.allCount || 0);
 const formattedAllCount = computed(() => formatNumber(allCount.value));
+const activeStatusLabel = computed(() => {
+  switch (props.activeStatus) {
+    case 'open':
+      return t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.open.TEXT');
+    case 'resolved':
+      return t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.resolved.TEXT');
+    case 'pending':
+      return t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.pending.TEXT');
+    case 'snoozed':
+      return t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.snoozed.TEXT');
+    case 'all':
+      return t('CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.all.TEXT');
+    default:
+      return props.activeStatus;
+  }
+});
 
 const toggleConversationLayout = () => {
   const { LAYOUT_TYPES } = wootConstants;
@@ -57,7 +75,7 @@ const toggleConversationLayout = () => {
 
 <template>
   <div
-    class="flex items-center justify-between gap-2 px-4 h-16 border-b border-n-slate-3/30 dark:border-n-slate-2/10"
+    class="relative z-[120] flex h-16 items-center justify-between gap-2 overflow-visible border-b border-n-slate-3/30 px-4 dark:border-n-slate-2/10"
   >
     <div class="flex items-center justify-center min-w-0">
       <h1
@@ -79,7 +97,7 @@ const toggleConversationLayout = () => {
         v-if="!hasAppliedFiltersOrActiveFolders"
         class="px-2 py-0.5 my-0.5 mx-2 rounded-lg capitalize bg-n-slate-3/50 dark:bg-n-slate-2/30 text-n-slate-11 font-bold text-[10px] shrink-0 border border-n-slate-3/30"
       >
-        {{ $t(`CHAT_LIST.CHAT_STATUS_FILTER_ITEMS.${activeStatus}.TEXT`) }}
+        {{ activeStatusLabel }}
       </span>
     </div>
     <div class="flex items-center gap-1">

@@ -87,7 +87,7 @@ const updateSelected = newValue => {
     </template>
     <DropdownBody
       ref="dropdownRef"
-      class="min-w-56 z-50"
+      class="z-[110] min-w-56"
       :class="dropdownPosition"
       strong
     >

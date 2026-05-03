@@ -135,7 +135,7 @@ const handleSortChange = value => {
 </script>
 
 <template>
-  <div class="relative flex">
+  <div class="relative z-[140] flex overflow-visible">
     <NextButton
       v-tooltip.right="$t('CHAT_LIST.SORT_TOOLTIP_LABEL')"
       icon="i-lucide-arrow-up-down"
@@ -147,7 +147,7 @@ const handleSortChange = value => {
     <div
       v-if="showActionsDropdown"
       v-on-click-outside="() => toggleDropdown()"
-      class="mt-1 bg-n-alpha-3 backdrop-blur-[100px] border border-n-weak w-72 rounded-xl p-4 absolute z-40 top-full"
+      class="absolute top-full z-[160] mt-1 w-72 rounded-xl border border-n-weak bg-n-alpha-3 p-4 backdrop-blur-[100px] shadow-xl shadow-black/10"
       :class="{
         'ltr:left-0 rtl:right-0': !isOnExpandedLayout,
         'ltr:right-0 rtl:left-0': isOnExpandedLayout,

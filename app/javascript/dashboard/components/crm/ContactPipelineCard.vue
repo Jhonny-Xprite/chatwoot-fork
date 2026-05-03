@@ -16,7 +16,9 @@ const emit = defineEmits(['selectContact']);
 
 const { t } = useI18n();
 
-const leadScore = computed(() => props.contact.leadScore || 0);
+const leadScore = computed(
+  () => props.contact.leadScore ?? props.contact.lead_score ?? 0
+);
 const hasConversationStarted = computed(() =>
   Boolean(props.contact.lastActivityAt)
 );
