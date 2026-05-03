@@ -330,7 +330,9 @@ GEM
       faraday (>= 1.0.0, < 3.0)
       googleauth (~> 1)
     ffi (1.17.2)
+    ffi (1.17.2-aarch64-linux-gnu)
     ffi (1.17.2-arm64-darwin)
+    ffi (1.17.2-x64-mingw-ucrt)
     ffi (1.17.2-x86_64-darwin)
     ffi (1.17.2-x86_64-linux-gnu)
     ffi-compiler (1.0.1)
@@ -396,6 +398,9 @@ GEM
     google-protobuf (4.34.1)
       bigdecimal
       rake (~> 13.3)
+    google-protobuf (4.34.1-aarch64-linux-gnu)
+      bigdecimal
+      rake (~> 13.3)
     google-protobuf (4.34.1-arm64-darwin)
       bigdecimal
       rake (~> 13.3)
@@ -424,6 +429,9 @@ GEM
     groupdate (6.2.1)
       activesupport (>= 5.2)
     grpc (1.80.0)
+      google-protobuf (>= 3.25, < 5.0)
+      googleapis-common-protos-types (~> 1.0)
+    grpc (1.80.0-aarch64-linux-gnu)
       google-protobuf (>= 3.25, < 5.0)
       googleapis-common-protos-types (~> 1.0)
     grpc (1.80.0-arm64-darwin)
@@ -531,8 +539,11 @@ GEM
     letter_opener (1.10.0)
       launchy (>= 2.2, < 4)
     libdatadog (18.1.0.1.0)
+    libdatadog (18.1.0.1.0-aarch64-linux)
     libdatadog (18.1.0.1.0-x86_64-linux)
     libddwaf (1.24.1.0.3)
+      ffi (~> 1.0)
+    libddwaf (1.24.1.0.3-aarch64-linux)
       ffi (~> 1.0)
     libddwaf (1.24.1.0.3-arm64-darwin)
       ffi (~> 1.0)
@@ -609,7 +620,11 @@ GEM
     nokogiri (1.19.1)
       mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
+    nokogiri (1.19.1-aarch64-linux-gnu)
+      racc (~> 1.4)
     nokogiri (1.19.1-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.19.1-x64-mingw-ucrt)
       racc (~> 1.4)
     nokogiri (1.19.1-x86_64-darwin)
       racc (~> 1.4)
@@ -681,6 +696,7 @@ GEM
       ast (~> 2.4.1)
       racc
     pg (1.6.3)
+    pg (1.6.3-aarch64-linux)
     pg (1.6.3-arm64-darwin)
     pg (1.6.3-x64-mingw-ucrt)
     pg (1.6.3-x86_64-darwin)
@@ -1041,6 +1057,7 @@ GEM
     zeitwerk (2.7.4)
 
 PLATFORMS
+  aarch64-linux
   arm64-darwin-20
   arm64-darwin-21
   arm64-darwin-22
