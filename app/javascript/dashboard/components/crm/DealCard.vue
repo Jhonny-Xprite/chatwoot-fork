@@ -176,7 +176,7 @@ const dynamicAttributes = computed(() => {
   <div
     role="button"
     tabindex="0"
-    class="group relative flex flex-col gap-3 cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:border-n-brand-primary/40 hover:shadow-2xl hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1 overflow-hidden"
+    class="group relative flex flex-shrink-0 flex-col gap-3 cursor-pointer select-none overflow-hidden rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-all duration-300 hover:border-n-brand-primary/40 hover:shadow-2xl hover:shadow-n-brand-primary/10 dark:border-n-slate-2 dark:bg-n-slate-1"
     :class="[
       isHotLead
         ? 'ring-1 ring-n-brand-primary/20 bg-gradient-to-br from-white to-n-brand-primary-alpha-1/10'

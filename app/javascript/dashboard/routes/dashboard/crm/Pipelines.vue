@@ -64,6 +64,12 @@ const selectedPipeline = computed(
 const currentPipelineStages = computed(
   () => store.getters['crmPipeline/getStages']
 );
+const boardContacts = computed(() => store.getters['contacts/getContactsList']);
+const contactsMeta = computed(() => store.getters['contacts/getMeta']);
+const contactsUiFlags = computed(() => store.getters['contacts/getUIFlags']);
+const viewPreferences = computed(
+  () => store.getters['crmPipeline/viewPreferences']
+);
 const activeView = computed(() =>
   savedViews.value.find(view => view.id === Number(props.viewId))
 );
@@ -71,8 +77,58 @@ const uiFlags = computed(() => store.getters['crmPipeline/uiFlags']);
 const isLoading = computed(
   () => uiFlags.value.isFetchingPipelines || uiFlags.value.isFetchingStages
 );
+const showContactsColumn = computed(
+  () => viewPreferences.value.showContactsColumn !== false
+);
+const boardHasVisibleColumns = computed(
+  () => showContactsColumn.value || currentPipelineStages.value.length > 0
+);
 const isCreatePipelineOpen = ref(false);
 const createPipelineName = ref('');
+
+const buildContactFilterPayload = filters => {
+  const payload = [];
+
+  if (filters.q) {
+    payload.push({
+      attribute_key: 'name',
+      filter_operator: 'contains',
+      values: [filters.q],
+      query_operator: null,
+    });
+  }
+
+  if (filters.labels?.length) {
+    payload.push({
+      attribute_key: 'labels',
+      filter_operator: 'equal_to',
+      values: filters.labels,
+      query_operator: payload.length ? 'AND' : null,
+    });
+  }
+
+  return payload;
+};
+
+const fetchBoardContacts = async () => {
+  const filters = store.getters['crmPipeline/appliedFilters'];
+  const payload = buildContactFilterPayload(filters);
+
+  if (!payload.length) {
+    await store.dispatch('contacts/get', {
+      page: 1,
+      sortAttr: 'last_activity_at',
+    });
+    return;
+  }
+
+  await store.dispatch('contacts/filter', {
+    page: 1,
+    sortAttr: 'last_activity_at',
+    queryPayload: { payload },
+    resetState: true,
+  });
+};
 
 const selectedPipelineId = computed({
   get: () => selectedPipeline.value?.id || '',
@@ -203,12 +259,23 @@ onMounted(() => {
   store.dispatch('crmPipeline/initializeViewPreferences');
   store.dispatch('labels/get');
   store.dispatch('agents/get');
+  fetchBoardContacts();
 });
 
 watch(
   () => [props.pipelineId, props.viewId],
   () => {
     syncBoardContext();
+  }
+);
+
+watch(
+  () => [
+    store.getters['crmPipeline/appliedFilters'].q,
+    JSON.stringify(store.getters['crmPipeline/appliedFilters'].labels),
+  ],
+  () => {
+    fetchBoardContacts();
   }
 );
 
@@ -223,8 +290,8 @@ const onDealSelect = deal => {
   });
 };
 
-const onContactSelect = deal => {
-  const contactId = deal.meta?.sender?.id;
+const onContactSelect = payload => {
+  const contactId = payload?.id || payload?.meta?.sender?.id;
   if (!contactId) return;
 
   router.push({
@@ -422,8 +489,12 @@ const createStage = async () => {
     <main class="flex-1 min-h-0 flex flex-col relative overflow-hidden">
       <!-- Caso existam estágios, mostra o Board -->
       <PipelineBoard
-        v-if="currentPipelineStages.length > 0"
+        v-if="selectedPipeline && boardHasVisibleColumns"
         :stages="currentPipelineStages"
+        :contacts="boardContacts"
+        :contacts-count="contactsMeta.count"
+        :is-contacts-loading="contactsUiFlags.isFetching"
+        :show-contacts-column="showContactsColumn"
         @select="onDealSelect"
         @select-contact="onContactSelect"
         @add-stage="createStage"

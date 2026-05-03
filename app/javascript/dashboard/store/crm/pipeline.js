@@ -53,6 +53,7 @@ const state = {
     showCompanyName: true,
     showChannel: true,
     showScore: true,
+    showContactsColumn: true,
     density: 'comfortable', // Densidade: compact | comfortable
     customAttributes: [], // Chaves de atributos customizados para exibir no card
   },

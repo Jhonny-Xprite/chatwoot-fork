@@ -3,11 +3,28 @@ import { computed } from 'vue';
 import { useStore } from 'vuex';
 import draggable from 'vuedraggable';
 import PipelineColumn from './PipelineColumn.vue';
+import ContactsPipelineColumn from './ContactsPipelineColumn.vue';
 
 const props = defineProps({
   stages: {
     type: Array,
     default: () => [],
+  },
+  contacts: {
+    type: Array,
+    default: () => [],
+  },
+  contactsCount: {
+    type: Number,
+    default: 0,
+  },
+  isContactsLoading: {
+    type: Boolean,
+    default: false,
+  },
+  showContactsColumn: {
+    type: Boolean,
+    default: true,
   },
 });
 
@@ -49,6 +66,14 @@ const dragOptions = {
         class="flex-1 overflow-x-auto overflow-y-hidden custom-horizontal-scrollbar"
       >
         <div class="h-full inline-flex p-6 gap-6 min-w-full">
+          <ContactsPipelineColumn
+            v-if="showContactsColumn"
+            :contacts="contacts"
+            :total-count="contactsCount"
+            :is-loading="isContactsLoading"
+            @select-contact="emit('selectContact', $event)"
+          />
+
           <draggable
             v-model="stagesList"
             item-key="id"

@@ -37,6 +37,13 @@
     "OPEN": "Open",
     "ADD_DEAL": "Add Deal",
     "NO_DEALS": "No deals here",
+    "CONTACTS_COLUMN": {
+      "TITLE": "Contacts",
+      "EMPTY": "No contacts found",
+      "STARTED": "Conversation started",
+      "NOT_STARTED": "No conversation yet",
+      "LAST_ACTIVITY": "Last activity"
+    },
     "MESSAGE_SENDER": {
       "LEAD": "Lead",
       "TEAM": "Team"
@@ -83,6 +90,7 @@
       "DENSITY_COMFORTABLE": "Comfortable",
       "VISIBLE_FIELDS": "Visible Fields",
       "FIELD_LABELS": "Labels",
+      "FIELD_CONTACTS_COLUMN": "Contacts column",
       "FIELD_SLA": "SLA Status",
       "FIELD_PRIORITY": "Priority",
       "FIELD_LAST_MESSAGE": "Last Message",
