@@ -97,109 +97,82 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 <template>
   <div
     ref="conversationHeader"
-    class="relative flex flex-col gap-2 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-6 py-2 h-auto xl:h-[64px] bg-white/70 dark:bg-n-slate-1/70 backdrop-blur-2xl border-b border-n-slate-3/40 dark:border-n-slate-2/20 sticky top-0 z-20 transition-all duration-500"
+    class="relative flex items-center justify-between w-full h-16 px-4 bg-white/80 dark:bg-n-slate-1/80 backdrop-blur-2xl border-b border-n-slate-3/30 dark:border-n-slate-2/20 sticky top-0 z-20 transition-all duration-300"
   >
-    <!-- Background Gradient Accent -->
-    <div
-      class="absolute inset-0 bg-gradient-to-r from-n-brand-primary/5 via-transparent to-transparent pointer-events-none"
-    />
-
-    <div
-      class="flex items-center justify-start w-full xl:w-auto max-w-full min-w-0 xl:flex-1 relative z-10"
-    >
+    <div class="flex items-center gap-3 min-w-0">
       <BackButton
         v-if="showBackButton"
         :back-url="backButtonUrl"
-        class="ltr:mr-4 rtl:ml-4 bg-white/80 dark:bg-n-slate-2/80 shadow-sm rounded-xl border border-n-slate-3 dark:border-n-slate-2/10 hover:bg-white dark:hover:bg-n-slate-2 hover:shadow-md transition-all active:scale-95"
+        class="bg-white/80 dark:bg-n-slate-2/80 shadow-sm rounded-lg border border-n-slate-3 dark:border-n-slate-2/10 hover:bg-white dark:hover:bg-n-slate-2 transition-all active:scale-95 p-1"
       />
-      <div class="relative group cursor-pointer">
+      <div class="relative shrink-0">
         <Avatar
           :name="currentContact.name"
           :src="currentContact.thumbnail"
-          :size="48"
+          :size="40"
           :status="currentContact.availability_status"
           hide-offline-status
-          class="!rounded-2xl shadow-xl border-2 border-white dark:border-n-slate-2 transition-transform group-hover:scale-105"
+          class="!rounded-xl shadow-md border-2 border-white dark:border-n-slate-2"
         />
         <div
           v-if="currentContact.availability_status === 'online'"
-          class="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-n-teal-9 border-2 border-white dark:border-n-slate-1 shadow-sm"
+          class="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-n-teal-9 border-2 border-white dark:border-n-slate-1 shadow-sm"
         />
       </div>
 
-      <div
-        class="flex flex-col items-start min-w-0 ml-4 overflow-hidden rtl:ml-0 rtl:mr-4"
-      >
-        <div class="flex flex-row items-center max-w-full gap-2.5 p-0 m-0">
+      <div class="flex flex-col min-w-0">
+        <div class="flex items-center gap-2">
           <h2
-            class="text-[17px] font-black tracking-tight text-n-slate-12 truncate leading-tight hover:text-n-brand-primary transition-colors cursor-default"
+            class="text-base font-black tracking-tight text-n-slate-12 truncate leading-tight cursor-default"
           >
             {{ currentContact.name }}
           </h2>
           <div
             v-if="!isHMACVerified"
             v-tooltip="$t('CONVERSATION.UNVERIFIED_SESSION')"
-            class="flex items-center justify-center p-1 rounded-md bg-n-amber-10/10 text-n-amber-10"
+            class="flex items-center justify-center text-n-amber-10"
           >
-            <i class="i-lucide-shield-alert text-xs" />
+            <i class="i-lucide-shield-alert text-[10px]" />
           </div>
           <PipelineEntitySelector
             :conversation-id="chat.id"
             :pipeline-id="chat.pipeline_id"
             :stage-id="chat.pipeline_stage_id"
-            class="scale-90 origin-left opacity-90 hover:opacity-100 transition-opacity"
+            class="scale-75 origin-left"
           />
         </div>
 
         <div
-          class="flex items-center gap-2.5 overflow-hidden text-[10px] font-black uppercase tracking-[0.1em] text-n-slate-10 text-ellipsis whitespace-nowrap mt-1"
+          class="flex items-center gap-2 text-[9px] font-black uppercase tracking-wider text-n-slate-10 truncate mt-0.5"
         >
           <InboxName
             v-if="hasMultipleInboxes"
             :inbox="inbox"
-            class="!mx-0 bg-n-slate-2/80 dark:bg-n-slate-3/40 px-2 py-0.5 rounded-md border border-n-slate-3/30 dark:border-n-slate-2/20"
+            class="!mx-0 bg-n-slate-2/50 dark:bg-n-slate-3/30 px-1.5 py-0.5 rounded border border-n-slate-3/20 dark:border-n-slate-2/10"
           />
-          <div
-            v-if="isSnoozed"
-            class="flex items-center gap-1.5 text-n-amber-10"
-          >
-            <div class="w-1 h-1 rounded-full bg-current animate-pulse" />
-            <span
-              class="bg-n-amber-10/10 px-2 py-0.5 rounded-md border border-n-amber-10/20"
-            >
-              {{ snoozedDisplayText }}
-            </span>
+          <div v-if="isSnoozed" class="flex items-center gap-1 text-n-amber-10">
+            <div class="size-1 rounded-full bg-current animate-pulse" />
+            <span>{{ snoozedDisplayText }}</span>
           </div>
-          <SLACardLabel
-            v-if="hasSlaPolicyId"
-            :chat="chat"
-            class="md:hidden scale-75 origin-left"
-          />
         </div>
       </div>
     </div>
 
-    <div
-      class="flex flex-row items-center justify-start xl:justify-end flex-shrink-0 gap-4 w-full xl:w-auto header-actions-wrap relative z-10"
-    >
+    <div class="flex items-center gap-3 shrink-0">
       <SLACardLabel
         v-if="hasSlaPolicyId"
         :chat="chat"
         show-extended-info
         :parent-width="width"
-        class="hidden md:flex scale-90"
+        class="hidden md:flex scale-75 origin-right"
       />
-
       <div
-        class="hidden xl:block w-px h-8 bg-gradient-to-b from-transparent via-n-slate-3/50 dark:via-n-slate-2/30 to-transparent"
+        class="hidden xl:block w-px h-6 bg-n-slate-3/30 dark:bg-n-slate-2/20"
       />
-
-      <div class="flex items-center gap-2">
-        <MoreActions
-          :conversation-id="currentChat.id"
-          class="bg-white/80 dark:bg-n-slate-2/80 shadow-sm rounded-xl border border-n-slate-3 dark:border-n-slate-2/10 hover:bg-white dark:hover:bg-n-slate-2 hover:shadow-md transition-all active:scale-95"
-        />
-      </div>
+      <MoreActions
+        :conversation-id="currentChat.id"
+        class="bg-white/80 dark:bg-n-slate-2/80 shadow-sm rounded-lg border border-n-slate-3 dark:border-n-slate-2/10 hover:bg-white dark:hover:bg-n-slate-2 transition-all active:scale-95"
+      />
     </div>
   </div>
 </template>
