@@ -28,57 +28,14 @@ const itemsPerPage = 100;
 const currentPage = ref(1);
 const scrollContainer = ref(null);
 
-// Filtro de Lead Scoring
-const selectedScoreFilter = ref(null);
-
-const scoreFilterOptions = [
-  {
-    label: `🥶 ${t('CRM.CONTACTS_COLUMN.COLD_LEADS')} (Score ≤ 30)`,
-    value: 'cold',
-    min: 0,
-    max: 30,
-  },
-  {
-    label: `🌤️ ${t('CRM.CONTACTS_COLUMN.WARM_LEADS')} (Score 31-69)`,
-    value: 'warm',
-    min: 31,
-    max: 69,
-  },
-  {
-    label: `🔥 ${t('CRM.CONTACTS_COLUMN.HOT_LEADS')} (Score ≥ 70)`,
-    value: 'hot',
-    min: 70,
-    max: 100,
-  },
-];
-
-// Filtrar contatos por score e paginar
-const filteredContacts = computed(() => {
-  let filtered = props.contacts;
-
-  if (selectedScoreFilter.value) {
-    const filter = scoreFilterOptions.find(
-      f => f.value === selectedScoreFilter.value
-    );
-    if (filter) {
-      filtered = filtered.filter(c => {
-        const score = c.lead_score || 0;
-        return score >= filter.min && score <= filter.max;
-      });
-    }
-  }
-
-  return filtered;
-});
-
 const displayedContacts = computed(() => {
   const start = 0;
   const end = currentPage.value * itemsPerPage;
-  return filteredContacts.value.slice(start, end);
+  return props.contacts.slice(start, end);
 });
 
 const hasMoreContacts = computed(() => {
-  return displayedContacts.value.length < filteredContacts.value.length;
+  return displayedContacts.value.length < props.contacts.length;
 });
 
 const handleScroll = event => {
@@ -89,11 +46,6 @@ const handleScroll = event => {
   if (isNearBottom && hasMoreContacts.value && !props.isLoading) {
     currentPage.value += 1;
   }
-};
-
-const resetFilter = () => {
-  currentPage.value = 1;
-  selectedScoreFilter.value = null;
 };
 
 onMounted(() => {
@@ -130,24 +82,6 @@ onMounted(() => {
       >
         <i class="i-lucide-users text-base" />
       </div>
-    </div>
-
-    <!-- Filtro de Lead Scoring -->
-    <div class="shrink-0 border-b border-n-slate-3/50 px-4 py-3">
-      <select
-        v-model="selectedScoreFilter"
-        class="w-full px-3 py-2 text-xs bg-n-slate-2/50 border border-n-slate-3 rounded-lg focus:outline-none focus:border-n-brand-primary"
-        @change="resetFilter"
-      >
-        <option value="">{{ t('CRM.CONTACTS_COLUMN.ALL_LEADS') }}</option>
-        <option
-          v-for="filter in scoreFilterOptions"
-          :key="filter.value"
-          :value="filter.value"
-        >
-          {{ filter.label }}
-        </option>
-      </select>
     </div>
 
     <div ref="scrollContainer" class="relative flex min-h-0 flex-1 flex-col">
@@ -187,11 +121,7 @@ onMounted(() => {
         <p
           class="text-center text-[11px] font-black uppercase tracking-widest text-n-slate-9"
         >
-          {{
-            selectedScoreFilter
-              ? t('CRM.CONTACTS_COLUMN.NO_LEADS_FILTER')
-              : t('CRM.CONTACTS_COLUMN.EMPTY')
-          }}
+          {{ t('CRM.CONTACTS_COLUMN.EMPTY') }}
         </p>
       </div>
     </div>
