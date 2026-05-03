@@ -8,7 +8,6 @@ import CardPriorityIcon from 'dashboard/components-next/Conversation/Conversatio
 import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
 import { getInboxIconByType } from 'dashboard/helper/inbox';
-import { dynamicTime, shortTimestamp } from 'shared/helpers/timeHelper';
 import Popover from 'dashboard/components-next/popover/Popover.vue';
 import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
 import Button from 'dashboard/components-next/button/Button.vue';
@@ -96,15 +95,6 @@ const lastMessage = computed(() => {
 const showReplyNeeded = computed(
   () => hasUnread.value || lastMessage.value?.message_type === 0
 );
-
-const lastMessageTime = computed(() => {
-  const time =
-    props.conversation.last_non_activity_message?.created_at ||
-    props.conversation.updated_at;
-  if (!time) return '';
-
-  return shortTimestamp(dynamicTime(time));
-});
 
 const lastMessagePreview = computed(() => {
   if (lastMessage.value?.content) {
@@ -226,9 +216,9 @@ const onAttributeUpdate = async (attr, newValue) => {
   <div
     role="button"
     tabindex="0"
-    class="group relative cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white p-4 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-n-brand-primary/40 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1"
+    class="group relative cursor-pointer select-none rounded-2xl border border-n-slate-3 bg-white shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-n-brand-primary/40 hover:shadow-xl hover:shadow-n-brand-primary/5 dark:border-n-slate-2 dark:bg-n-slate-1 overflow-hidden"
     :class="[
-      viewPrefs.density === 'compact' ? 'p-3 gap-3' : 'p-4 gap-4',
+      viewPrefs.density === 'compact' ? 'p-3' : 'p-4',
       isHotLead ? 'ring-1 ring-n-brand-primary/20' : '',
       showReplyNeeded
         ? 'bg-n-brand-primary-alpha-1/10 border-n-brand-primary-alpha-2'
@@ -238,7 +228,8 @@ const onAttributeUpdate = async (attr, newValue) => {
     @keydown.enter.prevent="emit('select', conversation)"
     @keydown.space.prevent="emit('select', conversation)"
   >
-    <div v-if="hasUnread" class="absolute -right-1 -top-1 flex h-4 w-4">
+    <!-- Unread Badge -->
+    <div v-if="hasUnread" class="absolute -right-1 -top-1 flex h-4 w-4 z-10">
       <span
         class="relative inline-flex h-4 w-4 items-center justify-center rounded-full bg-n-brand-primary text-[9px] font-bold text-n-white shadow-sm"
       >
@@ -246,287 +237,290 @@ const onAttributeUpdate = async (attr, newValue) => {
       </span>
     </div>
 
+    <!-- Main Grid Layout: Avatar | Content -->
     <div
-      class="flex flex-col"
+      class="flex gap-3"
       :class="viewPrefs.density === 'compact' ? 'gap-2' : 'gap-3'"
     >
-      <div
-        class="flex items-start"
-        :class="viewPrefs.density === 'compact' ? 'gap-2' : 'gap-3'"
-      >
+      <!-- Left: Large Avatar -->
+      <div class="flex-shrink-0">
         <div class="relative">
           <Avatar
             :src="contact.thumbnail"
             :name="contact.name || t('CRM.UNKNOWN_CONTACT')"
-            :size="viewPrefs.density === 'compact' ? 32 : 40"
+            :size="viewPrefs.density === 'compact' ? 48 : 56"
             class="shadow-sm transition-transform group-hover:scale-105"
           />
           <div
             v-if="showReplyNeeded"
-            class="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white bg-n-brand-primary dark:border-n-slate-1 animate-pulse shadow-sm"
+            class="absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white bg-n-brand-primary dark:border-n-slate-1 animate-pulse shadow-md"
           />
         </div>
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center justify-between gap-1">
-            <h4
-              class="truncate font-bold text-n-slate-12 transition-colors group-hover:text-n-brand-primary"
-              :class="viewPrefs.density === 'compact' ? 'text-xs' : 'text-sm'"
-            >
-              {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
-            </h4>
-            <div class="flex items-center gap-1.5 shrink-0">
-              <div
-                v-if="leadScore > 0"
-                class="flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[10px] font-black"
-                :class="
-                  isHotLead
-                    ? 'bg-n-brand-primary-alpha-1 text-n-brand-primary'
-                    : 'bg-n-slate-2 text-n-slate-11'
-                "
-              >
-                <i v-if="isHotLead" class="i-lucide-flame text-[10px]" />
-                {{ leadScore }}
-              </div>
-              <span
-                class="whitespace-nowrap text-[10px] font-medium text-n-slate-10"
-              >
-                {{ lastMessageTime }}
-              </span>
-            </div>
-          </div>
-          <p
-            class="truncate font-medium text-n-slate-11"
-            :class="
-              viewPrefs.density === 'compact'
-                ? 'text-[10px]'
-                : 'text-[11px] mt-0.5'
-            "
-          >
-            {{ contact.email || contact.phone_number || t('CRM.PHONE') }}
-          </p>
-          <div
-            v-if="
-              viewPrefs.showCompanyName ||
-              viewPrefs.showPriority ||
-              viewPrefs.showChannel
-            "
-            class="mt-1 flex items-center gap-2"
-          >
-            <p
-              v-if="companyName && viewPrefs.showCompanyName"
-              class="truncate text-[10px] font-semibold text-n-slate-10"
-            >
-              {{ companyName }}
-            </p>
+      </div>
+
+      <!-- Right: All Content -->
+      <div class="min-w-0 flex-1 flex flex-col gap-2">
+        <!-- Top: Labels & Lead Score -->
+        <div class="flex items-start justify-between gap-2">
+          <div class="flex-1 min-w-0">
+            <!-- Labels -->
             <div
-              v-if="inboxName && viewPrefs.showChannel"
-              class="flex items-center gap-1 text-[10px] font-semibold text-n-slate-10"
+              v-if="
+                (conversationLabels.length && viewPrefs.showLabels) ||
+                (hasSlaPolicyId && viewPrefs.showSla)
+              "
+              class="flex items-center gap-1.5 mb-1 flex-wrap"
             >
-              <span :class="inboxIcon" class="text-xs" />
-              <span class="max-w-[80px] truncate">{{ inboxName }}</span>
+              <CardLabels :labels="conversationLabels" class="flex-wrap">
+                <template v-if="hasSlaPolicyId && viewPrefs.showSla" #before>
+                  <SLACardLabel
+                    :chat="conversation"
+                    class="ltr:mr-1 rtl:ml-1"
+                  />
+                </template>
+              </CardLabels>
+              <Popover align="end">
+                <template #trigger>
+                  <Button
+                    variant="ghost"
+                    color="slate"
+                    size="xs"
+                    icon="i-lucide-plus"
+                    class="!p-1 h-5 w-5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    @click.stop
+                  />
+                </template>
+                <template #content>
+                  <div class="p-2 w-64" @click.stop>
+                    <TagMultiSelectComboBox
+                      :options="labelOptions"
+                      :model-value="conversationLabels"
+                      @update:model-value="onLabelsChange"
+                    />
+                  </div>
+                </template>
+              </Popover>
             </div>
-            <Popover align="end">
-              <template #trigger>
-                <div
-                  class="cursor-pointer hover:scale-110 transition-transform"
-                  @click.stop
-                >
-                  <CardPriorityIcon
-                    v-if="viewPrefs.showPriority"
-                    :priority="conversation.priority || 'none'"
-                  />
-                  <div
-                    v-else-if="!conversation.priority"
-                    class="i-lucide-flag text-n-slate-4 w-3 h-3"
-                  />
-                </div>
-              </template>
-              <template #content>
-                <div @click.stop>
-                  <SelectMenu
-                    :options="priorityOptions"
-                    :value="conversation.priority"
-                    @select="onPriorityChange"
-                  />
-                </div>
-              </template>
-            </Popover>
           </div>
-        </div>
-      </div>
 
-      <div
-        v-if="
-          (conversationLabels.length && viewPrefs.showLabels) ||
-          (hasSlaPolicyId && viewPrefs.showSla)
-        "
-        class="mt-1 flex items-center gap-1.5"
-      >
-        <CardLabels :labels="conversationLabels" class="flex-1">
-          <template v-if="hasSlaPolicyId && viewPrefs.showSla" #before>
-            <SLACardLabel :chat="conversation" class="ltr:mr-1 rtl:ml-1" />
-          </template>
-        </CardLabels>
-        <Popover align="end">
-          <template #trigger>
-            <Button
-              variant="ghost"
-              color="slate"
-              size="xs"
-              icon="i-lucide-plus"
-              class="!p-1 h-5 w-5 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
-              @click.stop
-            />
-          </template>
-          <template #content>
-            <div class="p-2 w-64" @click.stop>
-              <TagMultiSelectComboBox
-                :options="labelOptions"
-                :model-value="conversationLabels"
-                @update:model-value="onLabelsChange"
-              />
-            </div>
-          </template>
-        </Popover>
-      </div>
-
-      <div
-        v-if="viewPrefs.showLastMessage"
-        class="rounded-xl border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-2.5 py-2 text-[11px] leading-snug group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors"
-      >
-        <div class="flex items-center gap-1.5 line-clamp-1">
-          <span
-            class="font-black tracking-tighter uppercase whitespace-nowrap"
+          <!-- Lead Score (Right corner) -->
+          <div
+            v-if="leadScore > 0"
+            class="flex items-center gap-0.5 rounded-md px-2 py-1 text-[10px] font-black shrink-0 whitespace-nowrap"
             :class="
-              lastMessage?.message_type === 1
-                ? 'text-n-slate-10'
-                : 'text-n-brand-primary'
+              isHotLead
+                ? 'bg-n-brand-primary-alpha-1 text-n-brand-primary'
+                : 'bg-n-slate-2 text-n-slate-11'
             "
           >
-            {{ lastMessageSenderLabel }}:
-          </span>
-          <p class="truncate italic text-n-slate-11">
-            {{ lastMessagePreview }}
-          </p>
-        </div>
-      </div>
-
-      <div
-        v-if="dynamicAttributes.length"
-        class="overflow-x-auto scroll-smooth"
-      >
-        <div class="flex gap-1.5 min-w-min">
-          <div
-            v-for="attr in dynamicAttributes"
-            :key="attr.key"
-            class="flex items-center gap-1.5 rounded-md border border-n-slate-3 bg-n-slate-1 px-2 py-0.5 shadow-sm hover:border-n-brand-primary/40 transition-colors flex-shrink-0"
-            @click.stop
-          >
-            <span
-              class="text-[9px] font-black uppercase text-n-slate-9 tracking-tighter"
-            >
-              {{ attr.label }}
-            </span>
-            <Popover v-if="attr.type === 'list'" align="start">
-              <template #trigger>
-                <div
-                  class="cursor-pointer text-[10px] font-bold text-n-slate-12 hover:text-n-brand-primary"
-                >
-                  {{ attr.value }}
-                </div>
-              </template>
-              <template #content>
-                <div @click.stop>
-                  <SelectMenu
-                    :options="attr.options"
-                    :value="attr.value"
-                    @select="val => onAttributeUpdate(attr, val)"
-                  />
-                </div>
-              </template>
-            </Popover>
-            <InlineInput
-              v-else
-              :value="attr.value"
-              size="xs"
-              class="!text-[10px] !font-bold !p-0 !min-h-0 !border-none !bg-transparent"
-              @save="val => onAttributeUpdate(attr, val)"
-            />
+            <i v-if="isHotLead" class="i-lucide-flame text-xs" />
+            {{ leadScore }}
           </div>
         </div>
-      </div>
 
-      <div
-        class="mt-1 flex items-center justify-between border-t border-n-slate-2 pt-2 dark:border-n-slate-2"
-      >
-        <div v-if="viewPrefs.showAssignee" class="flex-1">
-          <Popover align="start">
+        <!-- Name & Telefone -->
+        <div class="min-w-0">
+          <h4
+            class="truncate font-bold text-n-slate-12 transition-colors group-hover:text-n-brand-primary"
+            :class="viewPrefs.density === 'compact' ? 'text-xs' : 'text-sm'"
+          >
+            {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
+          </h4>
+          <p class="truncate font-medium text-n-slate-11 text-[11px]">
+            {{ contact.phone_number || contact.email || t('CRM.PHONE') }}
+          </p>
+        </div>
+
+        <!-- Company, Channel, Priority (if enabled) -->
+        <div
+          v-if="
+            viewPrefs.showCompanyName ||
+            viewPrefs.showPriority ||
+            viewPrefs.showChannel
+          "
+          class="flex items-center gap-2 text-[10px] text-n-slate-10"
+        >
+          <p
+            v-if="companyName && viewPrefs.showCompanyName"
+            class="truncate font-semibold"
+          >
+            {{ companyName }}
+          </p>
+          <div
+            v-if="inboxName && viewPrefs.showChannel"
+            class="flex items-center gap-1 font-semibold"
+          >
+            <span :class="inboxIcon" class="text-xs" />
+            <span class="truncate">{{ inboxName }}</span>
+          </div>
+          <Popover v-if="viewPrefs.showPriority" align="end">
             <template #trigger>
               <div
-                class="flex items-center gap-1.5 cursor-pointer hover:bg-n-slate-2 p-1 rounded-lg transition-colors"
+                class="cursor-pointer hover:scale-110 transition-transform"
                 @click.stop
               >
-                <Avatar
-                  v-if="assignee.id"
-                  :src="assignee.thumbnail"
-                  :name="assignee.name"
-                  :size="18"
-                  rounded-full
-                />
-                <div
-                  v-else
-                  class="w-[18px] h-[18px] rounded-full border border-dashed border-n-slate-4 flex items-center justify-center"
-                >
-                  <i class="i-lucide-user text-[10px] text-n-slate-10" />
-                </div>
-                <span class="truncate text-[10px] font-bold text-n-slate-11">
-                  {{ assignee.name || t('CRM.UNASSIGNED') }}
-                </span>
+                <CardPriorityIcon :priority="conversation.priority || 'none'" />
               </div>
             </template>
             <template #content>
               <div @click.stop>
                 <SelectMenu
-                  :options="agentOptions"
-                  :value="assignee.id"
-                  @select="onAssigneeChange"
+                  :options="priorityOptions"
+                  :value="conversation.priority"
+                  @select="onPriorityChange"
                 />
               </div>
             </template>
           </Popover>
         </div>
 
+        <!-- Last Message Indicator (Quem mandou + Mensagens Pendentes) -->
         <div
-          class="flex items-center gap-1.5"
-          :class="{ 'ml-auto': !viewPrefs.showAssignee }"
+          v-if="viewPrefs.showLastMessage"
+          class="rounded-lg border border-n-brand-primary-alpha-1 bg-n-brand-primary-alpha-1/5 px-2 py-1.5 text-[10px] leading-tight group-hover:bg-white dark:group-hover:bg-n-slate-2 transition-colors"
         >
-          <button
-            v-if="contact.id"
-            type="button"
-            class="rounded-lg px-2.5 py-1.5 text-[10px] font-bold text-n-slate-11 transition-colors hover:bg-n-slate-2 dark:hover:bg-n-slate-2"
-            @click.stop="emit('selectContact', conversation)"
-          >
-            {{ t('CRM.OPEN_CONTACT') }}
-          </button>
-          <button
-            type="button"
-            class="rounded-lg bg-n-brand-primary-alpha-1 px-2.5 py-1.5 text-[10px] font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2"
-            @click.stop="emit('select', conversation)"
-          >
-            {{ t('CRM.OPEN_CONVERSATION') }}
-          </button>
+          <div class="flex items-center gap-1 mb-1">
+            <span
+              class="font-black tracking-tight uppercase whitespace-nowrap"
+              :class="
+                lastMessage?.message_type === 1
+                  ? 'text-n-slate-10'
+                  : 'text-n-brand-primary'
+              "
+            >
+              {{ lastMessageSenderLabel }}
+            </span>
+            <span
+              v-if="unreadCount > 0"
+              class="inline-flex items-center justify-center rounded-full bg-n-brand-primary text-[8px] font-bold text-white w-4 h-4 shrink-0"
+            >
+              {{ unreadCount }}
+            </span>
+          </div>
+          <p class="line-clamp-1 italic text-n-slate-11">
+            {{ lastMessagePreview }}
+          </p>
         </div>
-      </div>
 
-      <div class="flex items-center justify-between">
-        <span
-          class="text-[10px] font-black uppercase tracking-tight text-n-slate-8 dark:text-n-slate-9"
+        <!-- Custom Attributes -->
+        <div
+          v-if="dynamicAttributes.length"
+          class="overflow-x-auto scroll-smooth"
         >
-          {{ t('CRM.DEAL_ID', { id: conversation.id }) }}
-        </span>
-        <span
-          class="i-lucide-grip-vertical text-n-slate-8 opacity-0 transition-opacity group-hover:opacity-100 dark:text-n-slate-9"
-        />
+          <div class="flex gap-1 min-w-min">
+            <div
+              v-for="attr in dynamicAttributes"
+              :key="attr.key"
+              class="flex items-center gap-1 rounded-md border border-n-slate-3 bg-n-slate-1 px-1.5 py-0.5 shadow-sm hover:border-n-brand-primary/40 transition-colors flex-shrink-0 text-[9px]"
+              @click.stop
+            >
+              <span
+                class="font-black uppercase text-n-slate-9 tracking-tighter"
+              >
+                {{ attr.label }}
+              </span>
+              <Popover v-if="attr.type === 'list'" align="start">
+                <template #trigger>
+                  <div
+                    class="cursor-pointer font-bold text-n-slate-12 hover:text-n-brand-primary"
+                  >
+                    {{ attr.value }}
+                  </div>
+                </template>
+                <template #content>
+                  <div @click.stop>
+                    <SelectMenu
+                      :options="attr.options"
+                      :value="attr.value"
+                      @select="val => onAttributeUpdate(attr, val)"
+                    />
+                  </div>
+                </template>
+              </Popover>
+              <InlineInput
+                v-else
+                :value="attr.value"
+                size="xs"
+                class="!text-[9px] !font-bold !p-0 !min-h-0 !border-none !bg-transparent"
+                @save="val => onAttributeUpdate(attr, val)"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions & Assignee Footer -->
+        <div
+          class="flex items-center justify-between gap-2 border-t border-n-slate-2 pt-2 dark:border-n-slate-2"
+        >
+          <!-- Assignee (left) -->
+          <div v-if="viewPrefs.showAssignee" class="flex-1 min-w-0">
+            <Popover align="start">
+              <template #trigger>
+                <div
+                  class="flex items-center gap-1 cursor-pointer hover:bg-n-slate-2 p-1 rounded-lg transition-colors"
+                  @click.stop
+                >
+                  <Avatar
+                    v-if="assignee.id"
+                    :src="assignee.thumbnail"
+                    :name="assignee.name"
+                    :size="16"
+                    rounded-full
+                  />
+                  <div
+                    v-else
+                    class="w-4 h-4 rounded-full border border-dashed border-n-slate-4 flex items-center justify-center"
+                  >
+                    <i class="i-lucide-user text-[8px] text-n-slate-10" />
+                  </div>
+                  <span class="truncate text-[9px] font-bold text-n-slate-11">
+                    {{ assignee.name || t('CRM.UNASSIGNED') }}
+                  </span>
+                </div>
+              </template>
+              <template #content>
+                <div @click.stop>
+                  <SelectMenu
+                    :options="agentOptions"
+                    :value="assignee.id"
+                    @select="onAssigneeChange"
+                  />
+                </div>
+              </template>
+            </Popover>
+          </div>
+
+          <!-- Action Buttons (right) -->
+          <div class="flex items-center gap-1.5">
+            <button
+              v-if="contact.id"
+              type="button"
+              class="rounded-lg px-2 py-1 text-[9px] font-bold text-n-slate-11 transition-colors hover:bg-n-slate-2 dark:hover:bg-n-slate-2 whitespace-nowrap"
+              @click.stop="emit('selectContact', conversation)"
+            >
+              {{ t('CRM.OPEN_CONTACT') }}
+            </button>
+            <button
+              type="button"
+              class="rounded-lg bg-n-brand-primary-alpha-1 px-2 py-1 text-[9px] font-black text-n-brand-primary transition-all hover:bg-n-brand-primary-alpha-2 whitespace-nowrap"
+              @click.stop="emit('select', conversation)"
+            >
+              {{ t('CRM.OPEN_CONVERSATION') }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Deal ID & Drag Handle -->
+        <div class="flex items-center justify-between text-[8px]">
+          <span
+            class="font-black uppercase tracking-tight text-n-slate-8 dark:text-n-slate-9"
+          >
+            {{ `#${conversation.id}` }}
+          </span>
+          <span
+            class="i-lucide-grip-vertical text-n-slate-8 opacity-0 transition-opacity group-hover:opacity-100 dark:text-n-slate-9 text-xs"
+          />
+        </div>
       </div>
     </div>
   </div>
