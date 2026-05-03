@@ -56,7 +56,7 @@ const state = {
     showScore: true,
     showContactsColumn: true,
     showGroupsInPipeline: true,
-    showStartedContacts: false,
+    showStartedContacts: true,
     density: 'comfortable', // Densidade: compact | comfortable
     customAttributes: [], // Chaves de atributos customizados para exibir no card
   },
