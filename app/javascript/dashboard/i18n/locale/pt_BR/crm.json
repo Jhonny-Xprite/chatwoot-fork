@@ -50,6 +50,11 @@
     "CONTACTS_COLUMN": {
       "TITLE": "Contatos",
       "EMPTY": "Nenhum contato encontrado",
+      "NO_LEADS_FILTER": "Nenhum lead com este filtro",
+      "ALL_LEADS": "Todos os leads",
+      "COLD_LEADS": "Leads Frios",
+      "WARM_LEADS": "Leads Mornos",
+      "HOT_LEADS": "Leads Quentes",
       "STARTED": "Conversa iniciada",
       "NOT_STARTED": "Sem conversa ainda",
       "LAST_ACTIVITY": "Última atividade"

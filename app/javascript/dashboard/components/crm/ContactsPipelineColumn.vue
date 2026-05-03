@@ -1,9 +1,10 @@
 <script setup>
 import { useI18n } from 'vue-i18n';
+import { ref, computed, onMounted } from 'vue';
 import ContactPipelineCard from './ContactPipelineCard.vue';
 import DealCardSkeleton from './DealCardSkeleton.vue';
 
-defineProps({
+const props = defineProps({
   contacts: {
     type: Array,
     default: () => [],
@@ -21,6 +22,85 @@ defineProps({
 defineEmits(['selectContact']);
 
 const { t } = useI18n();
+
+// Lazy loading state
+const itemsPerPage = 100;
+const currentPage = ref(1);
+const scrollContainer = ref(null);
+
+// Filtro de Lead Scoring
+const selectedScoreFilter = ref(null);
+
+const scoreFilterOptions = [
+  {
+    label: `🥶 ${t('CRM.CONTACTS_COLUMN.COLD_LEADS')} (Score ≤ 30)`,
+    value: 'cold',
+    min: 0,
+    max: 30,
+  },
+  {
+    label: `🌤️ ${t('CRM.CONTACTS_COLUMN.WARM_LEADS')} (Score 31-69)`,
+    value: 'warm',
+    min: 31,
+    max: 69,
+  },
+  {
+    label: `🔥 ${t('CRM.CONTACTS_COLUMN.HOT_LEADS')} (Score ≥ 70)`,
+    value: 'hot',
+    min: 70,
+    max: 100,
+  },
+];
+
+// Filtrar contatos por score e paginar
+const filteredContacts = computed(() => {
+  let filtered = props.contacts;
+
+  if (selectedScoreFilter.value) {
+    const filter = scoreFilterOptions.find(
+      f => f.value === selectedScoreFilter.value
+    );
+    if (filter) {
+      filtered = filtered.filter(c => {
+        const score = c.lead_score || 0;
+        return score >= filter.min && score <= filter.max;
+      });
+    }
+  }
+
+  return filtered;
+});
+
+const displayedContacts = computed(() => {
+  const start = 0;
+  const end = currentPage.value * itemsPerPage;
+  return filteredContacts.value.slice(start, end);
+});
+
+const hasMoreContacts = computed(() => {
+  return displayedContacts.value.length < filteredContacts.value.length;
+});
+
+const handleScroll = event => {
+  const element = event.target;
+  const isNearBottom =
+    element.scrollHeight - element.scrollTop - element.clientHeight < 50;
+
+  if (isNearBottom && hasMoreContacts.value && !props.isLoading) {
+    currentPage.value += 1;
+  }
+};
+
+const resetFilter = () => {
+  currentPage.value = 1;
+  selectedScoreFilter.value = null;
+};
+
+onMounted(() => {
+  if (scrollContainer.value) {
+    scrollContainer.value.addEventListener('scroll', handleScroll);
+  }
+});
 </script>
 
 <template>
@@ -52,7 +132,25 @@ const { t } = useI18n();
       </div>
     </div>
 
-    <div class="relative flex min-h-0 flex-1 flex-col">
+    <!-- Filtro de Lead Scoring -->
+    <div class="shrink-0 border-b border-n-slate-3/50 px-4 py-3">
+      <select
+        v-model="selectedScoreFilter"
+        class="w-full px-3 py-2 text-xs bg-n-slate-2/50 border border-n-slate-3 rounded-lg focus:outline-none focus:border-n-brand-primary"
+        @change="resetFilter"
+      >
+        <option value="">{{ t('CRM.CONTACTS_COLUMN.ALL_LEADS') }}</option>
+        <option
+          v-for="filter in scoreFilterOptions"
+          :key="filter.value"
+          :value="filter.value"
+        >
+          {{ filter.label }}
+        </option>
+      </select>
+    </div>
+
+    <div ref="scrollContainer" class="relative flex min-h-0 flex-1 flex-col">
       <div
         v-if="isLoading"
         class="flex flex-1 flex-col gap-3 overflow-y-auto p-4 custom-scrollbar"
@@ -61,15 +159,22 @@ const { t } = useI18n();
       </div>
 
       <div
-        v-else-if="contacts.length"
+        v-else-if="displayedContacts.length"
         class="flex flex-1 flex-col gap-4 overflow-y-auto p-4 custom-scrollbar"
       >
         <ContactPipelineCard
-          v-for="contact in contacts"
+          v-for="contact in displayedContacts"
           :key="contact.id"
           :contact="contact"
           @select-contact="$emit('selectContact', $event)"
         />
+
+        <!-- Carregando mais contatos -->
+        <div v-if="hasMoreContacts" class="flex justify-center py-4">
+          <div
+            class="animate-spin h-4 w-4 border-2 border-n-brand-primary border-t-transparent rounded-full"
+          />
+        </div>
       </div>
 
       <div
@@ -82,7 +187,11 @@ const { t } = useI18n();
         <p
           class="text-center text-[11px] font-black uppercase tracking-widest text-n-slate-9"
         >
-          {{ t('CRM.CONTACTS_COLUMN.EMPTY') }}
+          {{
+            selectedScoreFilter
+              ? t('CRM.CONTACTS_COLUMN.NO_LEADS_FILTER')
+              : t('CRM.CONTACTS_COLUMN.EMPTY')
+          }}
         </p>
       </div>
     </div>
