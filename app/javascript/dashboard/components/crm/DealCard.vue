@@ -6,7 +6,6 @@ import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
 import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
-import { getInboxIconByType } from 'dashboard/helper/inbox';
 import Button from 'dashboard/components-next/button/Button.vue';
 import Popover from 'dashboard/components-next/popover/Popover.vue';
 import SelectMenu from 'dashboard/components-next/selectmenu/SelectMenu.vue';
@@ -49,9 +48,6 @@ const companyName = computed(
 
 const inbox = computed(
   () => store.getters['inboxes/getInbox'](props.conversation.inbox_id) || {}
-);
-const inboxIcon = computed(() =>
-  getInboxIconByType(inbox.value.channel_type, inbox.value.medium, 'line')
 );
 const inboxName = computed(() => inbox.value.name || '');
 
@@ -149,6 +145,10 @@ const onAssigneeChange = async agentId => {
   }
 };
 
+const onStartConversation = () => {
+  emit('select', props.conversation);
+};
+
 const dynamicAttributes = computed(() => {
   if (!viewPrefs.value.customAttributes?.length) return [];
   const selected = viewPrefs.value.customAttributes;
@@ -223,6 +223,12 @@ const dynamicAttributes = computed(() => {
           class="text-[10px] font-black uppercase tracking-widest text-n-slate-8"
         >
           {{ `#${conversation.id}` }}
+          <template v-if="inboxName && viewPrefs.showChannel">
+            <span class="mx-1.5 opacity-30">
+              {{ '|' }}
+            </span>
+            <span class="text-n-slate-10">{{ inboxName }}</span>
+          </template>
         </span>
       </div>
 
@@ -259,11 +265,20 @@ const dynamicAttributes = computed(() => {
       </div>
 
       <div class="min-w-0 flex-1">
-        <h4
-          class="truncate text-[15px] font-extrabold text-n-slate-12 tracking-tight group-hover:text-n-brand-primary transition-colors"
-        >
-          {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
-        </h4>
+        <div class="flex items-center gap-2">
+          <h4
+            class="truncate text-[15px] font-extrabold text-n-slate-12 tracking-tight group-hover:text-n-brand-primary transition-colors"
+          >
+            {{ contact.name || t('CRM.UNKNOWN_CONTACT') }}
+          </h4>
+          <button
+            v-tooltip.top="t('CONVERSATION.NEW_MESSAGE')"
+            class="p-1 rounded-md hover:bg-n-brand-primary/10 text-n-slate-8 hover:text-n-brand-primary transition-all active:scale-90"
+            @click.stop="onStartConversation"
+          >
+            <i class="i-lucide-message-square size-3.5" />
+          </button>
+        </div>
         <div class="flex items-center gap-1.5 text-n-slate-10">
           <span class="truncate text-[11px] font-semibold opacity-80">
             {{ contact.phone_number || contact.email || t('CRM.PHONE') }}
@@ -272,27 +287,16 @@ const dynamicAttributes = computed(() => {
       </div>
     </div>
 
-    <!-- Company & Source Meta -->
+    <!-- Company Meta -->
     <div
-      v-if="
-        (companyName && viewPrefs.showCompanyName) ||
-        (inboxName && viewPrefs.showChannel)
-      "
+      v-if="companyName && viewPrefs.showCompanyName"
       class="flex flex-wrap items-center gap-3 relative z-10"
     >
       <div
-        v-if="companyName && viewPrefs.showCompanyName"
         class="flex items-center gap-1.5 rounded-md bg-n-slate-2/50 px-2 py-0.5 text-[10px] font-bold text-n-slate-11"
       >
         <i class="i-lucide-building-2 opacity-70" />
         <span class="truncate max-w-[120px]">{{ companyName }}</span>
-      </div>
-      <div
-        v-if="inboxName && viewPrefs.showChannel"
-        class="flex items-center gap-1.5 text-[10px] font-bold text-n-slate-9 uppercase tracking-tighter"
-      >
-        <span :class="inboxIcon" class="text-sm opacity-50" />
-        <span class="truncate">{{ inboxName }}</span>
       </div>
     </div>
 

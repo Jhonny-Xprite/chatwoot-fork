@@ -1,7 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 
 import CardLayout from 'dashboard/components-next/CardLayout.vue';
 import ContactsForm from 'dashboard/components-next/Contacts/ContactsForm/ContactsForm.vue';
@@ -36,6 +36,7 @@ const emit = defineEmits([
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
 
 const contactsFormRef = ref(null);
 
@@ -110,8 +111,15 @@ const handleAvatarHover = isHovered => {
 
 const startConversation = () => {
   router.push({
-    name: 'conversations_new',
-    params: { contactId: props.id },
+    name: 'inbox_dashboard',
+    params: { accountId: route.params.accountId, inbox_id: 0 },
+  });
+};
+
+const onClickViewCRM = () => {
+  router.push({
+    name: 'crm_pipelines',
+    params: { accountId: route.params.accountId },
   });
 };
 </script>
@@ -255,7 +263,7 @@ const startConversation = () => {
           color="slate"
           size="sm"
           class="!rounded-xl hover:!bg-n-brand-primary hover:!text-white"
-          @click="onClickViewDetails"
+          @click="onClickViewCRM"
         />
 
         <div class="w-px h-6 bg-n-slate-3 dark:bg-n-slate-2/30 mx-1" />
@@ -335,17 +343,17 @@ const startConversation = () => {
   @apply border-n-brand-primary/20 dark:border-n-brand-primary/10 shadow-2xl shadow-n-brand-primary/5 -translate-y-1;
   background: linear-gradient(
     to bottom right,
-    rgba(255, 255, 255, 0.9),
-    rgba(255, 255, 255, 0.5)
+    rgba(255, 255, 255, 0.95),
+    rgba(255, 255, 255, 0.7)
   );
 }
 
 :global(.dark) .premium-contact-row:hover {
   background: linear-gradient(
     to bottom right,
-    rgba(30, 41, 59, 0.6),
-    rgba(15, 23, 42, 0.3)
-  );
+    rgba(15, 23, 42, 0.9),
+    rgba(30, 41, 59, 0.6)
+  ) !important;
 }
 
 .selected-row {

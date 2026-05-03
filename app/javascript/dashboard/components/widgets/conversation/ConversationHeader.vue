@@ -97,7 +97,7 @@ const hasSlaPolicyId = computed(() => props.chat?.sla_policy_id);
 <template>
   <div
     ref="conversationHeader"
-    class="relative flex flex-col gap-3 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-6 py-4 h-auto xl:h-[72px] bg-white/70 dark:bg-n-slate-1/70 backdrop-blur-2xl border-b border-n-slate-3/40 dark:border-n-slate-2/20 sticky top-0 z-20 transition-all duration-500"
+    class="relative flex flex-col gap-2 items-center justify-between flex-1 w-full min-w-0 xl:flex-row px-6 py-2 h-auto xl:h-[64px] bg-white/70 dark:bg-n-slate-1/70 backdrop-blur-2xl border-b border-n-slate-3/40 dark:border-n-slate-2/20 sticky top-0 z-20 transition-all duration-500"
   >
     <!-- Background Gradient Accent -->
     <div
