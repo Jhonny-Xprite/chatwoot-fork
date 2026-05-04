@@ -6,8 +6,10 @@
  * Actions: markUnread, markRead, markPinned, unmarkPinned
  */
 
-import * as types from '../mutation-types';
+import typesExport from '../mutation-types';
 import ConversationApi from '../../api/conversations';
+
+const types = typesExport;
 
 const state = {
   unreadConversations: new Set(),
