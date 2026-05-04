@@ -33,13 +33,13 @@ Improve the Kanban and conversation experience by resolving readability issues, 
 
 ### Wave 2
 
-- S2.1: In Review / Ready for QA
-- S2.2: Done
+- S2.1: Done ✅
+- S2.2: Done ✅
 
 ### Wave 3
 
-- S3.1: Ready
-  Blocked until Wave 2 closes cleanly.
+- S3.1: Done ✅
+  Drag & drop implementation complete with 200ms delay, visual feedback, 60 FPS optimization
 
 ### Wave 4
 
