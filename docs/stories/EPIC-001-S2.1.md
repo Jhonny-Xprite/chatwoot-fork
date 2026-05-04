@@ -8,7 +8,7 @@
 - [ ] QA Review
 - [ ] Done
 
-**Current Phase:** SPECIFICATION COMPLETE  
+**Current Phase:** READY FOR QA  
 **Wave:** Wave 2 - Kanban Functionality  
 **Epic:** EPIC-001-KANBAN  
 **Created:** 2026-05-04  

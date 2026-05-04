@@ -75,7 +75,7 @@ const toggleConversationLayout = () => {
 
 <template>
   <div
-    class="relative z-[120] flex h-16 items-center justify-between gap-2 overflow-visible border-b border-n-slate-3/30 px-4 dark:border-n-slate-2/10"
+    class="relative z-[50] flex h-16 items-center justify-between gap-2 overflow-visible border-b border-n-slate-3/30 px-4 dark:border-n-slate-2/10"
   >
     <div class="flex items-center justify-center min-w-0">
       <h1
@@ -129,7 +129,8 @@ const toggleConversationLayout = () => {
       <template v-if="hasActiveFolders">
         <div class="relative">
           <NextButton
-            id="toggleConversationFilterButton"
+            id="conversation-filter-edit-button"
+            class="js-filter-modal-trigger"
             v-tooltip.top-end="$t('FILTER.CUSTOM_VIEWS.EDIT.EDIT_BUTTON')"
             icon="i-lucide-pen-line"
             slate
@@ -144,7 +145,7 @@ const toggleConversationLayout = () => {
           />
         </div>
         <NextButton
-          id="toggleConversationFilterButton"
+          id="conversation-filter-delete-button"
           v-tooltip.top-end="$t('FILTER.CUSTOM_VIEWS.DELETE.DELETE_BUTTON')"
           icon="i-lucide-trash-2"
           ruby
@@ -155,7 +156,8 @@ const toggleConversationLayout = () => {
       </template>
       <div v-else class="relative">
         <NextButton
-          id="toggleConversationFilterButton"
+          id="conversation-filter-toggle-button"
+          class="js-filter-modal-trigger"
           v-tooltip.right="$t('FILTER.TOOLTIP_LABEL')"
           icon="i-lucide-list-filter"
           slate

@@ -1,5 +1,6 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, useTemplateRef } from 'vue';
+import { useDropdownPosition } from 'dashboard/composables/useDropdownPosition';
 import { vOnClickOutside } from '@vueuse/components';
 import { useVuelidate } from '@vuelidate/core';
 
@@ -59,6 +60,9 @@ const modelValue = defineModel({
 });
 
 const tagInputRef = ref(null);
+const triggerRef = useTemplateRef('tagInputContainer');
+const dropdownRef = useTemplateRef('dropdownRef');
+
 const tags = ref(props.modelValue);
 const newTag = ref('');
 const isFocused = ref(props.autoOpenDropdown);
@@ -81,6 +85,8 @@ const showDropdownMenu = computed(() =>
     ? false
     : props.showDropdown && isFocused.value
 );
+
+const { position } = useDropdownPosition(triggerRef, dropdownRef, showDropdownMenu);
 
 const filteredMenuItems = computed(() => {
   const items = buildTagMenuItems({
@@ -206,6 +212,7 @@ const handleBlur = e => emit('blur', e);
 
 <template>
   <div
+    ref="tagInputContainer"
     v-on-click-outside="() => handleClickOutside()"
     class="flex flex-wrap w-full gap-2 border border-transparent focus:outline-none"
     tabindex="0"
@@ -245,9 +252,12 @@ const handleBlur = e => emit('blur', e);
       />
       <DropdownMenu
         v-if="showDropdownMenu"
+        ref="dropdownRef"
         :menu-items="filteredMenuItems"
         :is-searching="isLoading"
-        class="ltr:left-0 rtl:right-0 z-[100] top-8 overflow-y-auto max-h-56 w-[inherit] max-w-md dark:!outline-n-slate-5"
+        :class="position.class"
+        :style="position.style"
+        class="min-w-56 max-w-md"
         @action="handleDropdownAction"
       />
     </div>

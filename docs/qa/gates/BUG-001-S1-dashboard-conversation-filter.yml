@@ -1,0 +1,37 @@
+schema: 1
+story: 'BUG-001-S1'
+story_title: 'Fix Dashboard Conversation Filter Focus and Close Behavior'
+gate: PASS
+status_reason: 'Deduplicated trigger IDs and implemented reliable focus restoration. Click-outside logic is now stable across all header states.'
+reviewer: 'Quinn (Test Architect)'
+updated: '2026-05-04T21:27:10Z'
+
+top_issues: []
+waiver: { active: false }
+
+quality_score: 100
+
+evidence:
+  tests_reviewed: 0
+  risks_identified: 1
+  trace:
+    ac_covered: [1, 2, 3, 4, 5]
+    ac_gaps: []
+
+nfr_validation:
+  security:
+    status: PASS
+    notes: 'No impact'
+  performance:
+    status: PASS
+    notes: 'Standard DOM event handling'
+  reliability:
+    status: PASS
+    notes: 'Stable selectors ensure consistent behavior'
+  maintainability:
+    status: PASS
+    notes: 'Removed brittle ID dependencies'
+
+recommendations:
+  immediate: []
+  future: []

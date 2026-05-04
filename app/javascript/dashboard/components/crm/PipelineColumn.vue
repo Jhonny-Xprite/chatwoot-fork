@@ -57,7 +57,7 @@ const isLoading = computed(() =>
   store.getters['crmPipeline/isStageLoading'](props.stage.id)
 );
 const dragOptions = computed(() => ({
-  animation: 250,
+  animation: 200,
   group: 'conversations',
   disabled: false,
   ghostClass: 'sortable-ghost',
@@ -71,7 +71,7 @@ const dragOptions = computed(() => ({
   swapThreshold: 0.5,
   preventOnFilter: false,
   delayOnTouchOnly: true,
-  delay: 0,
+  delay: 200, // 200ms delay before drag starts (long-press feel)
 }));
 
 const onDragChange = event => {
@@ -125,8 +125,11 @@ const onDragChange = event => {
       <draggable
         v-model="conversations"
         v-bind="dragOptions"
-        class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar scroll-smooth"
-        :class="{ 'dragging-active': isDragging }"
+        class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar scroll-smooth transition-all duration-200"
+        :class="{
+          'dragging-active': isDragging,
+          'ring-2 ring-n-brand-primary/40 bg-n-brand-primary/5': isDragging
+        }"
         item-key="id"
         tag="div"
         @start="isDragging = true"
@@ -200,12 +203,28 @@ const onDragChange = event => {
   border: 2px dashed var(--n-brand-primary) !important;
   opacity: 0.4;
   transform: scale(0.96);
+  will-change: transform;
   transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
   box-shadow: none !important;
 }
 
 .sortable-drag {
-  z-index: 9999 !important;
+  opacity: 0.5;
+  will-change: transform;
+  transition: box-shadow 0.2s ease;
+}
+
+.sortable-chosen {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  will-change: transform;
+}
+
+.dragging-active {
+  will-change: background-color, box-shadow;
+}
+
+.sortable-drag {
+  z-index: 60 !important;
   transform: rotate(2deg) scale(1.04) !important;
   box-shadow: var(--shadow-floating) !important;
   cursor: grabbing !important;

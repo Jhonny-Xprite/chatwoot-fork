@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref } from 'vue';
-import { useElementBounding, useWindowSize } from '@vueuse/core';
+import { computed, ref, useTemplateRef } from 'vue';
+import { useDropdownPosition } from 'dashboard/composables/useDropdownPosition';
 import DropdownContainer from 'next/dropdown-menu/base/DropdownContainer.vue';
 import DropdownSection from 'next/dropdown-menu/base/DropdownSection.vue';
 import DropdownBody from 'next/dropdown-menu/base/DropdownBody.vue';
@@ -37,12 +37,11 @@ const selected = defineModel({
   required: true,
 });
 
-const triggerRef = ref(null);
-const dropdownRef = ref(null);
+const triggerRef = useTemplateRef('triggerRef');
+const dropdownRef = useTemplateRef('dropdownRef');
+const isOpenLocal = ref(false);
 
-const { top } = useElementBounding(triggerRef);
-const { height } = useWindowSize();
-const { height: dropdownHeight } = useElementBounding(dropdownRef);
+const { position } = useDropdownPosition(triggerRef, dropdownRef, isOpenLocal);
 
 const selectedOption = computed(() => {
   return props.options?.find(o => o.value === selected.value) || {};
@@ -53,25 +52,21 @@ const iconToRender = computed(() => {
   return selectedOption.value.icon || 'i-lucide-chevron-down';
 });
 
-const dropdownPosition = computed(() => {
-  const DROPDOWN_MAX_HEIGHT = 340;
-  // Get actual height if available or use default
-  const menuHeight = dropdownHeight.value
-    ? dropdownHeight.value + 20
-    : DROPDOWN_MAX_HEIGHT;
-  const spaceBelow = height.value - top.value;
-  return spaceBelow < menuHeight ? 'bottom-0' : 'top-0';
-});
-
-const updateSelected = newValue => {
+const updateSelected = (newValue, close) => {
   selected.value = newValue;
+  close();
+};
+
+const onToggle = toggle => {
+  toggle();
+  isOpenLocal.value = !isOpenLocal.value;
 };
 </script>
 
 <template>
-  <DropdownContainer>
+  <DropdownContainer @close="isOpenLocal = false">
     <template #trigger="{ toggle }">
-      <slot name="trigger" :toggle="toggle">
+      <slot name="trigger" :toggle="() => onToggle(toggle)">
         <Button
           ref="triggerRef"
           type="button"
@@ -81,32 +76,35 @@ const updateSelected = newValue => {
           :icon="iconToRender"
           :trailing-icon="selectedOption.icon ? false : true"
           :label="label || (hideLabel ? null : selectedOption.label)"
-          @click="toggle"
+          @click="onToggle(toggle)"
         />
       </slot>
     </template>
-    <DropdownBody
-      ref="dropdownRef"
-      class="z-[110] min-w-56"
-      :class="dropdownPosition"
-      strong
-    >
-      <DropdownSection class="[&>ul]:max-h-72">
-        <template v-for="option in options" :key="option.value">
-          <li
-            v-if="option.disabled"
-            class="px-2 py-1.5 text-xs font-medium text-n-slate-10 select-none"
-          >
-            {{ option.label }}
-          </li>
-          <DropdownItem
-            v-else
-            :label="option.label"
-            :icon="option.icon"
-            @click="updateSelected(option.value)"
-          />
-        </template>
-      </DropdownSection>
-    </DropdownBody>
+    <template #default="{ close }">
+      <DropdownBody
+        ref="dropdownRef"
+        class="min-w-56"
+        :class="position.class"
+        :style="position.style"
+        strong
+      >
+        <DropdownSection class="[&>ul]:max-h-72">
+          <template v-for="option in options" :key="option.value">
+            <li
+              v-if="option.disabled"
+              class="px-2 py-1.5 text-xs font-medium text-n-slate-10 select-none"
+            >
+              {{ option.label }}
+            </li>
+            <DropdownItem
+              v-else
+              :label="option.label"
+              :icon="option.icon"
+              @click="updateSelected(option.value, close)"
+            />
+          </template>
+        </DropdownSection>
+      </DropdownBody>
+    </template>
   </DropdownContainer>
 </template>

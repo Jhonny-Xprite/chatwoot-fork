@@ -1,5 +1,5 @@
 <script setup>
-import { useTemplateRef, onBeforeUnmount, computed, ref } from 'vue';
+import { useTemplateRef, onBeforeUnmount, onMounted, computed, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useTrack } from 'dashboard/composables';
 import { useStore } from 'dashboard/composables/store';
@@ -95,17 +95,24 @@ const filterModalHeaderTitle = computed(() => {
     : t('FILTER.EDIT_CUSTOM_FILTER');
 });
 
-onBeforeUnmount(() => emit('close'));
+onMounted(() => {
+  const activeElement = document.activeElement;
+  onBeforeUnmount(() => {
+    emit('close');
+    activeElement?.focus();
+  });
+});
+
 const outsideClickHandler = [
   () => emit('close'),
-  { ignore: ['#toggleConversationFilterButton'] },
+  { ignore: ['.js-filter-modal-trigger'] },
 ];
 </script>
 
 <template>
   <div
     v-on-click-outside="outsideClickHandler"
-    class="z-[1000] max-w-3xl lg:w-[750px] overflow-visible w-full border border-n-weak bg-n-alpha-3 backdrop-blur-[100px] shadow-lg rounded-xl p-6 grid gap-6"
+    class="z-[5000] max-w-3xl lg:w-[750px] overflow-visible w-full border border-n-weak bg-n-alpha-3 backdrop-blur-[100px] shadow-lg rounded-xl p-6 grid gap-6"
   >
     <h3 class="text-base font-medium leading-6 text-n-slate-12">
       {{ filterModalHeaderTitle }}

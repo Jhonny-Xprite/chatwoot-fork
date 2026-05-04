@@ -86,7 +86,7 @@ onUnmounted(() => {
   <TeleportWithDirection to="body">
     <div
       ref="menuRef"
-      class="fixed outline-none z-[9999] cursor-pointer"
+      class="fixed outline-none z-[1000] cursor-pointer"
       :style="position"
       tabindex="0"
       @blur="handleClose"

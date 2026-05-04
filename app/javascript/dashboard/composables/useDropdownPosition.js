@@ -1,5 +1,9 @@
 import { computed, unref, watch } from 'vue';
-import { useElementBounding, useWindowSize } from '@vueuse/core';
+import {
+  useElementBounding,
+  useWindowSize,
+  useEventListener,
+} from '@vueuse/core';
 
 const FALLBACK_SIZE = 200;
 const SAFE_MARGIN = 16;
@@ -15,12 +19,13 @@ const GAP = 8;
  * @param {Ref}    [options.container] - Constraining container ref
  * @param {number} [options.margin=16] - Min distance from viewport/container edges
  * @param {string} [options.align='end'] - 'start' or 'end' (flips automatically for RTL)
+ * @param {number} [options.zIndex=1000] - Stacking priority
  */
 export function useDropdownPosition(
   triggerRef,
   dropdownRef,
   enabled,
-  { container = null, margin = SAFE_MARGIN, align = 'end' } = {}
+  { container = null, margin = SAFE_MARGIN, align = 'end', zIndex = 1000 } = {}
 ) {
   const trigger = useElementBounding(triggerRef);
   const dropdown = useElementBounding(dropdownRef);
@@ -69,7 +74,8 @@ export function useDropdownPosition(
 
   // Fixed mode: styles for teleported popovers
   const fixedPosition = computed(() => {
-    if (!unref(enabled)) return { class: 'fixed z-[9999]', style: {} };
+    const baseClass = `fixed z-[${zIndex}]`;
+    if (!unref(enabled)) return { class: baseClass, style: {} };
 
     const dh = dropdown.height.value || FALLBACK_SIZE;
     const dw = dropdown.width.value || FALLBACK_SIZE;
@@ -107,7 +113,7 @@ export function useDropdownPosition(
       }
     }
 
-    return { class: 'fixed z-[9999]', style };
+    return { class: baseClass, style };
   });
 
   const updatePosition = () => {
@@ -115,6 +121,15 @@ export function useDropdownPosition(
     dropdown.update();
     if (container) bounds.update();
   };
+
+  useEventListener(
+    window,
+    'scroll',
+    () => {
+      if (unref(enabled)) updatePosition();
+    },
+    { capture: true }
+  );
 
   // Update position when dropdown opens to ensure RTL state is current
   watch(

@@ -113,7 +113,7 @@ const clearFilters = () => {
 
 <template>
   <div
-    class="relative z-[100] flex items-center gap-5 overflow-visible border-b border-n-slate-3/30 bg-white/40 px-6 py-3 shadow-sm backdrop-blur-md dark:border-n-slate-2/10 dark:bg-n-slate-1/40"
+    class="relative z-[40] flex items-center gap-5 overflow-visible border-b border-n-slate-3/30 bg-white/40 px-6 py-3 shadow-sm backdrop-blur-md dark:border-n-slate-2/10 dark:bg-n-slate-1/40"
   >
     <!-- Search -->
     <div class="relative min-w-[240px] group">
