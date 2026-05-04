@@ -128,7 +128,7 @@ const onDragChange = event => {
         class="flex-1 overflow-y-auto p-4 flex flex-col gap-4 custom-scrollbar scroll-smooth transition-all duration-200"
         :class="{
           'dragging-active': isDragging,
-          'ring-2 ring-n-brand-primary/40 bg-n-brand-primary/5': isDragging
+          'ring-2 ring-n-brand-primary/40 bg-n-brand-primary/5': isDragging,
         }"
         item-key="id"
         tag="div"

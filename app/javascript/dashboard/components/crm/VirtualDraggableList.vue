@@ -30,7 +30,7 @@ const emit = defineEmits(['update:modelValue', 'start', 'end', 'change']);
 
 const localValue = computed({
   get: () => props.modelValue,
-  set: (value) => {
+  set: value => {
     emit('update:modelValue', value);
   },
 });
@@ -57,15 +57,8 @@ const mergedDragOptions = computed(() => ({
       @change="emit('change', $event)"
     >
       <template #item="{ element, index }">
-        <div
-          :key="element[itemKey]"
-          class="will-change-transform"
-        >
-          <slot
-            name="item"
-            :element="element"
-            :index="index"
-          />
+        <div :key="element[itemKey]" class="will-change-transform">
+          <slot name="item" :element="element" :index="index" />
         </div>
       </template>
     </draggable>
