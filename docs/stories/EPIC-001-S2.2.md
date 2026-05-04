@@ -97,15 +97,16 @@ Add status/stage filtering to KanbanFilterBar. Users can filter contacts by stag
   - Counts update reactively when data changes
 
 ### Phase 3: URL State Management
-- [ ] **T2.2.6: Update URL when filter changes**
-  - Select status → update URL query param `?status=stage-id`
-  - Use router: `this.$router.push({ query: { status: stageId } })`
+- [x] **T2.2.6: Update URL when filter changes**
+  - Added watcher on status filter in Pipelines.vue
+  - When status changes → updates URL query param `?status=stage-id` via router.push()
   - No page reload, just URL update
+  - When status cleared → removes query param from URL
 
-- [ ] **T2.2.7: Restore filter from URL on load**
-  - On app mount, read URL query param
-  - Set Vuex state from URL
-  - Example: URL `/kanban?status=sales` → load with sales filter applied
+- [x] **T2.2.7: Restore filter from URL on load**
+  - Added logic in syncBoardContext() to read URL query param `?status=...`
+  - Sets Vuex state from URL query on app mount
+  - Example: URL `/kanban?status=sales` → loads with sales filter already applied
 
 ### Phase 4: Testing
 - [ ] **T2.2.8: Unit tests - Vuex filter state**
@@ -274,7 +275,7 @@ This is pure frontend filtering.
 ## Development Agent Record
 
 **Assigned to:** @dev (Dex)  
-**Status:** Phase 1 & 2 Implementation Complete - Ready for Testing
+**Status:** Phase 1-3 Implementation Complete - Ready for Testing
 
 ### Implementation Summary
 
@@ -283,13 +284,18 @@ This is pure frontend filtering.
   - Added status dropdown to `FilterBar.vue` with stages from `crmPipeline/getStages`
   - Updated `filteredBoardContacts` in `Pipelines.vue` to filter by `stage_id`
   - Updated `buildContactFilterPayload` to include stage_id in API filters
-- 🔄 Phase 3-6: Testing & URL state management (pending)
-- Commit: 418eaca81
+- ✅ Phase 3: URL state management:
+  - Added watcher on status filter to update URL query param (`?status=stage-id`)
+  - Added restoration logic to read status from URL on mount
+  - URL persists when filtering and can be bookmarked/shared
+- 🔄 Phase 4-6: Testing (pending)
+- Commits: 418eaca81, 70ce8c603
 
-### Next Steps
+### Remaining Work
 
-- Phase 3: URL state management (T2.2.6, T2.2.7)
-- Phase 4-6: Testing (unit, integration, E2E, regression)
+- Phase 4: Unit tests for status filter
+- Phase 5: Integration & E2E tests
+- Phase 6: Regression testing
 
 ---
 
@@ -316,10 +322,11 @@ This is pure frontend filtering.
 
 ## Change Log
 
-| Date       | Author | Change                                                                    | Status      |
-|------------|--------|---------------------------------------------------------------------------|-------------|
-| 2026-05-04 | Dex    | Phase 1-2: Implemented status filter in FilterBar & Pipelines (418eaca81) | IN_PROGRESS |
-| 2026-05-04 | Aria   | Story created from EPIC-001-IMPLEMENTATION-PLAN                           | CREATED     |
+| Date       | Author | Change                                                        | Status      |
+|------------|--------|---------------------------------------------------------------|-------------|
+| 2026-05-04 | Dex    | Phase 3: Added URL state management for status filter         | IN_PROGRESS |
+| 2026-05-04 | Dex    | Phase 1-2: Implemented status filter in FilterBar & Pipelines | IN_PROGRESS |
+| 2026-05-04 | Aria   | Story created from EPIC-001-IMPLEMENTATION-PLAN               | CREATED     |
 
 ---
 
