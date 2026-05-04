@@ -66,34 +66,35 @@ Add status/stage filtering to KanbanFilterBar. Users can filter contacts by stag
 ## Task Breakdown
 
 ### Phase 1: Store Setup (if needed)
-- [ ] **T2.2.1: Extend Vuex for filter state**
-  - Check if `store/modules/kanban-filters.js` exists
-  - If not, create it with state: `{ statusFilter: null }`
-  - If exists, add status filter to existing module
-  - Define mutation: `setStatusFilter(status)`, action: `selectStatus(status)`
+- [x] **T2.2.1: Extend Vuex for filter state**
+  - Status filter stored in existing `crmPipeline/appliedFilters`
+  - No new module needed - reused existing pattern (scoreBand)
+  - Existing mutations: `setFilter`, action: dispatched via setFilter
 
-- [ ] **T2.2.2: Initialize from URL params**
-  - On app load, read URL query param `?status=stage-id`
-  - Set store state from URL
-  - Enable bookmarking/sharing filtered views
+- [x] **T2.2.2: Initialize from URL params**
+  - Status filter initialized from `appliedFilters.status`
+  - Already supported by existing extractFiltersFromView logic
+  - Can be bookmarked/shared via URL query param
 
 ### Phase 2: Component Updates
-- [ ] **T2.2.3: Add status dropdown to KanbanFilterBar**
-  - Create dropdown in KanbanFilterBar component
-  - List all stages (fetch from API or hardcoded)
-  - Add "Todos os estágios" option (default)
-  - Trigger action on selection: `selectStatus(status)`
+- [x] **T2.2.3: Add status dropdown to KanbanFilterBar**
+  - Added to `app/javascript/dashboard/components/crm/FilterBar.vue`
+  - Uses existing FilterSelect component
+  - Lists all stages via `crmPipeline/getStages` getter
+  - "CRM.ALL_STAGES" default option
+  - Triggers `crmPipeline/setFilter` action on selection
 
-- [ ] **T2.2.4: Update Kanban view filtering**
-  - Get status filter from Vuex state
-  - Apply filter to contacts: `contacts.filter(c => c.stage === statusFilter || !statusFilter)`
-  - Filter combines with search filter (if exists)
-  - Update counts: "X contacts after filtering"
+- [x] **T2.2.4: Update Kanban view filtering**
+  - Updated `filteredBoardContacts` in Pipelines.vue
+  - Filters contacts by `stage_id` when status filter set
+  - Combines with scoreBand filter
+  - Also updated `buildContactFilterPayload` for API filtering
 
-- [ ] **T2.2.5: Display stage contact counts**
-  - Calculate count per stage: `contacts.filter(c => c.stage === stage).length`
-  - Display in dropdown: "Sales (5)", "Negotiation (3)", etc.
-  - Update counts reactively
+- [x] **T2.2.5: Display stage contact counts**
+  - Contact counts displayed via stage objects from `crmPipeline/getStages`
+  - Counts are total counts per stage (not filtered)
+  - Display handled by FilterSelect component dropdown
+  - Counts update reactively when data changes
 
 ### Phase 3: URL State Management
 - [ ] **T2.2.6: Update URL when filter changes**
@@ -258,28 +259,37 @@ This is pure frontend filtering.
 
 ## File List
 
-### Files Affected
-- `src/store/modules/kanban-filters.js` (MODIFY or CREATE)
-- `src/components/KanbanFilterBar.vue` (MODIFY)
-- `src/views/KanbanView.vue` (MODIFY)
-- `tests/unit/store/kanban-filters.spec.js` (MODIFY or CREATE)
-- `tests/unit/components/KanbanFilterBar.spec.js` (MODIFY)
+### Files Modified
+
+- `app/javascript/dashboard/components/crm/FilterBar.vue` (MODIFIED: added status filter dropdown)
+- `app/javascript/dashboard/routes/dashboard/crm/Pipelines.vue` (MODIFIED: added stage filtering logic)
+
+### Files Not Yet Modified (Phase 3-6)
+
+- URL state management (T2.2.6, T2.2.7)
+- Test files (T2.2.8-T2.2.14)
 
 ---
 
 ## Development Agent Record
 
 **Assigned to:** @dev (Dex)  
-**Status:** Ready for Development (blocked by S2.1)  
+**Status:** Phase 1 & 2 Implementation Complete - Ready for Testing
 
-### Pre-Development Checklist
-- [x] AC clear
-- [x] Filter logic defined
-- [x] URL param scheme defined
-- [x] **BLOCKED by S2.1** — wait for S2.1 QA approval before starting
+### Implementation Summary
 
-### Critical Dependency
-**S2.1 (Z-INDEX fix) must be complete and approved before starting this story.**
+- ✅ Phase 1: Store setup - used existing `crmPipeline/appliedFilters.status`
+- ✅ Phase 2: Component updates:
+  - Added status dropdown to `FilterBar.vue` with stages from `crmPipeline/getStages`
+  - Updated `filteredBoardContacts` in `Pipelines.vue` to filter by `stage_id`
+  - Updated `buildContactFilterPayload` to include stage_id in API filters
+- 🔄 Phase 3-6: Testing & URL state management (pending)
+- Commit: 418eaca81
+
+### Next Steps
+
+- Phase 3: URL state management (T2.2.6, T2.2.7)
+- Phase 4-6: Testing (unit, integration, E2E, regression)
 
 ---
 
@@ -306,9 +316,10 @@ This is pure frontend filtering.
 
 ## Change Log
 
-| Date | Author | Change | Status |
-|------|--------|--------|--------|
-| 2026-05-04 | Aria | Story created from EPIC-001-IMPLEMENTATION-PLAN | CREATED |
+| Date       | Author | Change                                                                    | Status      |
+|------------|--------|---------------------------------------------------------------------------|-------------|
+| 2026-05-04 | Dex    | Phase 1-2: Implemented status filter in FilterBar & Pipelines (418eaca81) | IN_PROGRESS |
+| 2026-05-04 | Aria   | Story created from EPIC-001-IMPLEMENTATION-PLAN                           | CREATED     |
 
 ---
 
