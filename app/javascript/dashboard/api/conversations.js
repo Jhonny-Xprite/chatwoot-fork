@@ -13,6 +13,30 @@ class ConversationApi extends ApiClient {
   updateLabels(conversationID, labels) {
     return axios.post(`${this.url}/${conversationID}/labels`, { labels });
   }
+
+  markUnread(conversationID) {
+    return axios.patch(`${this.url}/${conversationID}`, {
+      unread_at: new Date().toISOString(),
+    });
+  }
+
+  markRead(conversationID) {
+    return axios.patch(`${this.url}/${conversationID}`, {
+      unread_at: null,
+    });
+  }
+
+  markPinned(conversationID) {
+    return axios.patch(`${this.url}/${conversationID}`, {
+      pinned_at: new Date().toISOString(),
+    });
+  }
+
+  markUnpinned(conversationID) {
+    return axios.patch(`${this.url}/${conversationID}`, {
+      pinned_at: null,
+    });
+  }
 }
 
 export default new ConversationApi();

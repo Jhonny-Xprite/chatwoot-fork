@@ -39,6 +39,39 @@ const deleteConversation = inject('deleteConversation');
 const showContextMenu = ref(false);
 const contextMenu = ref({ x: null, y: null });
 
+// Initialize unread/pinned states from conversation data
+watch(
+  () => props.source,
+  newConversation => {
+    if (newConversation?.id) {
+      if (newConversation.unread_at) {
+        store.commit(
+          'conversationState/SET_CONVERSATION_UNREAD',
+          newConversation.id
+        );
+      } else {
+        store.commit(
+          'conversationState/SET_CONVERSATION_READ',
+          newConversation.id
+        );
+      }
+
+      if (newConversation.pinned_at) {
+        store.commit(
+          'conversationState/SET_CONVERSATION_PINNED',
+          newConversation.id
+        );
+      } else {
+        store.commit(
+          'conversationState/SET_CONVERSATION_UNPINNED',
+          newConversation.id
+        );
+      }
+    }
+  },
+  { immediate: true }
+);
+
 // Reset context menu state when the row is recycled to a different conversation.
 watch(
   () => props.source.id,

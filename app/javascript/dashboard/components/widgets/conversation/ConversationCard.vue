@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useStore } from 'vuex';
 import { getLastMessage } from 'dashboard/helper/conversationHelper';
 import { dynamicTime, shortTimestamp } from 'shared/helpers/timeHelper';
 import { useMapGetter } from 'dashboard/composables/store';
@@ -33,6 +34,7 @@ const emit = defineEmits([
   'deSelectConversation',
 ]);
 const { t } = useI18n();
+const store = useStore();
 
 const hovered = ref(false);
 const accountLabels = useMapGetter('labels/getLabels');
@@ -144,6 +146,52 @@ const selectedModel = computed({
   set: value => onSelectConversation(value),
 });
 
+const isConversationUnread = computed(() => {
+  return store.getters['conversationState/isConversationUnread'](props.chat.id);
+});
+
+const isConversationPinned = computed(() => {
+  return store.getters['conversationState/isConversationPinned'](props.chat.id);
+});
+
+const toggleUnreadStatus = async e => {
+  e.stopPropagation();
+  try {
+    if (isConversationUnread.value) {
+      await store.dispatch(
+        'conversationState/markConversationRead',
+        props.chat.id
+      );
+    } else {
+      await store.dispatch(
+        'conversationState/markConversationUnread',
+        props.chat.id
+      );
+    }
+  } catch {
+    // Error handled by rollback in Vuex action
+  }
+};
+
+const togglePinStatus = async e => {
+  e.stopPropagation();
+  try {
+    if (isConversationPinned.value) {
+      await store.dispatch(
+        'conversationState/unmarkConversationPinned',
+        props.chat.id
+      );
+    } else {
+      await store.dispatch(
+        'conversationState/markConversationPinned',
+        props.chat.id
+      );
+    }
+  } catch {
+    // Error handled by rollback in Vuex action
+  }
+};
+
 watch(
   () => props.chat.id,
   () => {
@@ -241,6 +289,39 @@ watch(
               :priority="chat.priority"
               class="!size-3.5 opacity-80"
             />
+            <button
+              v-if="isConversationUnread"
+              type="button"
+              class="p-1 rounded hover:bg-n-slate-3/40 transition-colors opacity-0 group-hover:opacity-100"
+              :title="t('CRM.MARK_AS_READ')"
+              @click="toggleUnreadStatus"
+            >
+              <i class="i-lucide-mail-open h-3.5 w-3.5 text-n-brand-primary" />
+            </button>
+            <button
+              v-else
+              type="button"
+              class="p-1 rounded hover:bg-n-slate-3/40 transition-colors opacity-0 group-hover:opacity-100"
+              :title="t('CRM.MARK_AS_UNREAD')"
+              @click="toggleUnreadStatus"
+            >
+              <i class="i-lucide-mail h-3.5 w-3.5 text-n-slate-6" />
+            </button>
+            <button
+              :type="isConversationPinned ? 'button' : 'button'"
+              class="p-1 rounded hover:bg-n-slate-3/40 transition-colors opacity-0 group-hover:opacity-100"
+              :title="isConversationPinned ? t('CRM.UNPIN') : t('CRM.PIN')"
+              @click="togglePinStatus"
+            >
+              <i
+                class="h-3.5 w-3.5"
+                :class="[
+                  isConversationPinned
+                    ? 'i-lucide-pin text-n-brand-primary'
+                    : 'i-lucide-pin text-n-slate-6',
+                ]"
+              />
+            </button>
             <span
               class="text-[10px] font-bold text-n-slate-10 tracking-tight group-hover:text-n-slate-12 transition-colors"
             >

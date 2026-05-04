@@ -7,6 +7,7 @@
  */
 
 import * as types from '../mutation-types';
+import ConversationApi from '../../api/conversations';
 
 const state = {
   unreadConversations: new Set(),
@@ -73,40 +74,52 @@ const mutations = {
 const actions = {
   async markConversationUnread({ commit }, conversationId) {
     commit(types.SET_CONVERSATION_UNREAD, conversationId);
-    // TODO: Make API call to persist state
-    // await ConversationAPI.markUnread(conversationId);
+    try {
+      await ConversationApi.markUnread(conversationId);
+    } catch (error) {
+      commit(types.SET_CONVERSATION_READ, conversationId);
+      throw error;
+    }
   },
 
   async markConversationRead({ commit }, conversationId) {
     commit(types.SET_CONVERSATION_READ, conversationId);
-    // TODO: Make API call to persist state
-    // await ConversationAPI.markRead(conversationId);
+    try {
+      await ConversationApi.markRead(conversationId);
+    } catch (error) {
+      commit(types.SET_CONVERSATION_UNREAD, conversationId);
+      throw error;
+    }
   },
 
   async markConversationPinned({ commit }, conversationId) {
     commit(types.SET_CONVERSATION_PINNED, conversationId);
-    // TODO: Make API call to persist state
-    // await ConversationAPI.markPinned(conversationId);
+    try {
+      await ConversationApi.markPinned(conversationId);
+    } catch (error) {
+      commit(types.SET_CONVERSATION_UNPINNED, conversationId);
+      throw error;
+    }
   },
 
   async unmarkConversationPinned({ commit }, conversationId) {
     commit(types.SET_CONVERSATION_UNPINNED, conversationId);
-    // TODO: Make API call to persist state
-    // await ConversationAPI.unmarkPinned(conversationId);
+    try {
+      await ConversationApi.markUnpinned(conversationId);
+    } catch (error) {
+      commit(types.SET_CONVERSATION_PINNED, conversationId);
+      throw error;
+    }
   },
 
-  async loadUnreadConversations() {
-    // TODO: Implement API call to load unread conversations
-    // const { data } = await ConversationAPI.getUnread(accountId);
-    // const unreadIds = data.map(c => c.id);
-    // commit(types.SET_ALL_UNREAD_CONVERSATIONS, unreadIds);
+  async loadUnreadConversations({ commit }, conversations) {
+    const unreadIds = conversations.filter(c => c.unread_at).map(c => c.id);
+    commit(types.SET_ALL_UNREAD_CONVERSATIONS, unreadIds);
   },
 
-  async loadPinnedConversations() {
-    // TODO: Implement API call to load pinned conversations
-    // const { data } = await ConversationAPI.getPinned(accountId);
-    // const pinnedIds = data.map(c => c.id);
-    // commit(types.SET_ALL_PINNED_CONVERSATIONS, pinnedIds);
+  async loadPinnedConversations({ commit }, conversations) {
+    const pinnedIds = conversations.filter(c => c.pinned_at).map(c => c.id);
+    commit(types.SET_ALL_PINNED_CONVERSATIONS, pinnedIds);
   },
 
   clearConversationState({ commit }) {
