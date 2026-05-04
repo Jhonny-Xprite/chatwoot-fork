@@ -97,7 +97,7 @@ const createPipelineName = ref('');
 const isGroupEntity = name => GROUP_NAME_PATTERN.test(name || '');
 
 const filteredBoardContacts = computed(() => {
-  const { scoreBand } = store.getters['crmPipeline/appliedFilters'];
+  const { scoreBand, status } = store.getters['crmPipeline/appliedFilters'];
   let contacts = boardContacts.value;
 
   if (!showGroupsInPipeline.value) {
@@ -106,6 +106,13 @@ const filteredBoardContacts = computed(() => {
 
   if (!showStartedContacts.value) {
     contacts = contacts.filter(contact => !contact.lastActivityAt);
+  }
+
+  // Apply status filter
+  if (status) {
+    contacts = contacts.filter(
+      contact => String(contact.stage_id) === String(status)
+    );
   }
 
   if (!scoreBand) {
@@ -140,6 +147,15 @@ const buildContactFilterPayload = filters => {
       attribute_key: 'labels',
       filter_operator: 'equal_to',
       values: filters.labels,
+      query_operator: payload.length ? 'AND' : null,
+    });
+  }
+
+  if (filters.status) {
+    payload.push({
+      attribute_key: 'stage_id',
+      filter_operator: 'equal_to',
+      values: [Number(filters.status)],
       query_operator: payload.length ? 'AND' : null,
     });
   }

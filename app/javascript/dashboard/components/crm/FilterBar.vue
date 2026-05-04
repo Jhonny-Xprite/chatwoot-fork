@@ -20,8 +20,12 @@ const selectedLabels = ref([
 const selectedScoreBand = ref(
   vuexStore.getters['crmPipeline/appliedFilters'].scoreBand || ''
 );
+const selectedStatus = ref(
+  vuexStore.getters['crmPipeline/appliedFilters'].status || ''
+);
 
 const agents = computed(() => vuexStore.getters['agents/getAgents']);
+const stages = computed(() => vuexStore.getters['crmPipeline/getStages']);
 const assigneeOptions = computed(() => [
   { label: t('CRM.ALL_ASSIGNEES'), value: '' },
   ...agents.value.map(agent => ({
@@ -34,6 +38,13 @@ const scoreOptions = computed(() => [
   { label: t('CRM.SCORE_FILTER.HOT'), value: 'hot' },
   { label: t('CRM.SCORE_FILTER.WARM'), value: 'warm' },
   { label: t('CRM.SCORE_FILTER.COLD'), value: 'cold' },
+]);
+const statusOptions = computed(() => [
+  { label: t('CRM.ALL_STAGES'), value: '' },
+  ...stages.value.map(stage => ({
+    label: stage.name,
+    value: stage.id.toString(),
+  })),
 ]);
 
 const labels = computed(() => vuexStore.getters['labels/getLabels']);
@@ -67,6 +78,13 @@ watch(selectedScoreBand, newVal => {
   });
 });
 
+watch(selectedStatus, newVal => {
+  vuexStore.dispatch('crmPipeline/setFilter', {
+    key: 'status',
+    value: newVal,
+  });
+});
+
 onMounted(() => {
   vuexStore.dispatch('agents/get');
   vuexStore.dispatch('labels/get');
@@ -88,6 +106,7 @@ const clearFilters = () => {
   selectedAssigneeId.value = '';
   selectedLabels.value = [];
   selectedScoreBand.value = '';
+  selectedStatus.value = '';
   vuexStore.dispatch('crmPipeline/clearFilters');
 };
 </script>
@@ -156,13 +175,29 @@ const clearFilters = () => {
       />
     </div>
 
+    <!-- Status Filter -->
+    <div class="relative z-40 flex items-center gap-3 min-w-fit">
+      <span
+        class="text-[10px] font-black text-n-slate-10 uppercase tracking-widest"
+      >
+        {{ $t('CRM.STATUS') }}
+      </span>
+      <FilterSelect
+        v-model="selectedStatus"
+        :options="statusOptions"
+        variant="faded"
+        class="relative z-50 min-w-[172px] !rounded-xl !bg-n-slate-2/50 !border-n-slate-3/50"
+      />
+    </div>
+
     <!-- Clear Filters -->
     <button
       v-if="
         searchQuery ||
         selectedAssigneeId ||
         selectedLabels.length ||
-        selectedScoreBand
+        selectedScoreBand ||
+        selectedStatus
       "
       v-tooltip.top="$t('CRM.CLEAR_FILTERS')"
       class="p-2 rounded-xl text-n-ruby-9 hover:bg-n-ruby-9/10 transition-all ml-auto flex items-center justify-center group"
