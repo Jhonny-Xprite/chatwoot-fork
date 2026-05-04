@@ -145,6 +145,108 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     @contact
   end
 
+  def deduplicate
+    contact_id = params[:contact_id]
+    render json: { error: 'contact_id is required' }, status: :unprocessable_entity and return if contact_id.blank?
+
+    contact = Current.account.contacts.find_by(id: contact_id)
+    render json: { error: 'Contact not found' }, status: :not_found and return if contact.nil?
+
+    service = Contacts::DeduplicationService.new(contact)
+    exact_duplicates = service.find_exact_duplicates
+    fuzzy_duplicates = service.find_fuzzy_duplicates
+
+    duplicates = (exact_duplicates + fuzzy_duplicates).sort_by do |d|
+      confidence_rank = { 'HIGH' => 0, 'MEDIUM' => 1 }.fetch(d[:confidence], 2)
+      [confidence_rank, -(d[:similarity_score] || 1.0)]
+    end
+
+    render json: {
+      duplicates: duplicates.map { |d| serialize_duplicate(d) }
+    }
+  end
+
+  def merge
+    source_id = params[:source_contact_id]
+    target_id = params[:target_contact_id]
+
+    render json: { error: 'source_contact_id and target_contact_id are required' }, status: :unprocessable_entity and return if source_id.blank? || target_id.blank?
+
+    source = Current.account.contacts.find_by(id: source_id)
+    target = Current.account.contacts.find_by(id: target_id)
+
+    render json: { error: 'Source contact not found' }, status: :not_found and return if source.nil?
+    render json: { error: 'Target contact not found' }, status: :not_found and return if target.nil?
+
+    begin
+      service = Contacts::DeduplicationService.new(target)
+      service.merge_contacts(source_id, target_id, Current.user.email)
+
+      source.reload
+      target.reload
+
+      source_messages = Conversation.where(contact_id: source_id).count
+      target_messages = Conversation.where(contact_id: target_id).count
+
+      render json: {
+        status: 'merged',
+        source_contact: serialize_contact(source),
+        target_contact: serialize_contact(target),
+        source_message_count: source_messages,
+        target_message_count: target_messages,
+        total_message_count: source_messages + target_messages,
+        merge_log_id: ContactMergeLog.where(source_contact_id: source_id, target_contact_id: target_id).first&.id
+      }
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+  end
+
+  def merge_logs
+    contact_id = params[:contact_id]
+    page = params[:page] || 1
+    per_page = params[:per_page] || 10
+
+    logs = if contact_id.present?
+             ContactMergeLog.for_contact(contact_id)
+           else
+             ContactMergeLog.all
+           end
+
+    logs = logs.recent_first.page(page).per(per_page)
+
+    render json: {
+      merge_logs: logs.map { |log| serialize_merge_log(log) },
+      pagination: {
+        current_page: logs.current_page,
+        total_pages: logs.total_pages,
+        total_count: logs.total_count
+      }
+    }
+  end
+
+  def rollback_merge
+    merge_log_id = params[:merge_log_id]
+    render json: { error: 'merge_log_id is required' }, status: :unprocessable_entity and return if merge_log_id.blank?
+
+    merge_log = ContactMergeLog.find_by(id: merge_log_id)
+    render json: { error: 'Merge log not found' }, status: :not_found and return if merge_log.nil?
+
+    begin
+      service = Contacts::DeduplicationService.new(Contact.find(merge_log.source_contact_id))
+      service.rollback_merge(merge_log_id)
+
+      source = Contact.find(merge_log.source_contact_id)
+      render json: {
+        status: 'rolled_back',
+        source_contact: serialize_contact(source),
+        merge_log_id: merge_log_id
+      }
+    rescue StandardError => e
+      render json: { error: e.message }, status: :unprocessable_entity
+    end
+  end
+
   private
 
   # TODO: Move this to a finder class
@@ -243,5 +345,39 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
 
   def render_error(error, error_status)
     render json: error, status: error_status
+  end
+
+  def serialize_contact(contact)
+    {
+      id: contact.id,
+      name: contact.name,
+      email: contact.email,
+      phone_number: contact.phone_number,
+      message_count: Conversation.where(contact_id: contact.id).count,
+      is_deleted: contact.is_deleted,
+      deleted_at: contact.deleted_at
+    }
+  end
+
+  def serialize_duplicate(duplicate)
+    {
+      contact: serialize_contact(duplicate[:contact]),
+      confidence: duplicate[:confidence],
+      reason: duplicate[:reason],
+      similarity_score: duplicate[:similarity_score]
+    }
+  end
+
+  def serialize_merge_log(merge_log)
+    {
+      id: merge_log.id,
+      source_contact_id: merge_log.source_contact_id,
+      target_contact_id: merge_log.target_contact_id,
+      source_contact_name: merge_log.source_contact&.name,
+      target_contact_name: merge_log.target_contact&.name,
+      merged_by: merge_log.merged_by,
+      merged_at: merge_log.merged_at,
+      merge_data: merge_log.merge_data
+    }
   end
 end

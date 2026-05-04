@@ -195,6 +195,10 @@ Rails.application.routes.draw do
               post :filter
               post :import
               post :export
+              post :deduplicate
+              post :merge
+              get :merge_logs
+              post :rollback_merge
             end
             member do
               get :contactable_inboxes
