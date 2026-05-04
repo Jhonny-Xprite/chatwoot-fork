@@ -1,10 +1,30 @@
 # EPIC-001: Kanban & Chat Platform Refinements
 
-**Status:** 📋 Planning  
+**Status:** 🚀 In Progress (Wave 1-2 Implementation)  
 **Priority:** 🔴 Critical  
 **Created:** 2026-05-04  
 **Owner:** Morgan (PM)  
 **Target Release:** Sprint TBD
+
+---
+
+## Progress Summary (2026-05-04)
+
+### ✅ Wave 1: COMPLETED
+
+- S1.1: Link colors (WCAG AA compliant) ✓
+- S1.2: Conversation detail colors ✓
+- S1.3: Unread/Pin state management ✓
+
+### 🟡 Wave 2: IN PROGRESS (90%)
+
+- S2.1: Z-INDEX fix (READY FOR QA) ✓
+- S2.2: Status filter (Phase 1-3 done, testing pending) 🔄
+
+### 🔄 Wave 3-4: READY
+
+- S3.1: Drag & Drop (blocked until Wave 2 QA complete)
+- S4.1: Deduplication (scheduled after Wave 3)
 
 ---
 
