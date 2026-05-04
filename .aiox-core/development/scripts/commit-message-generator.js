@@ -11,7 +11,7 @@ class CommitMessageGenerator {
   constructor(options = {}) {
     this.diffGenerator = new DiffGenerator();
     this.validator = new ModificationValidator();
-    
+
     // Conventional commit types
     this.commitTypes = {
       feat: 'A new feature',
@@ -26,7 +26,7 @@ class CommitMessageGenerator {
       chore: 'Other changes that don\'t modify src or test files',
       revert: 'Reverts a previous commit'
     };
-    
+
     // Component-specific actions
     this.componentActions = {
       agent: {
@@ -52,7 +52,7 @@ class CommitMessageGenerator {
         fix: 'Fixed workflow issues'
       }
     };
-    
+
     // Keywords for categorizing changes
     this.changeKeywords = {
       feat: ['add', 'new', 'implement', 'introduce', 'create'],
@@ -85,11 +85,11 @@ class CommitMessageGenerator {
         originalContent,
         modifiedContent
       );
-      
+
       // Determine commit type and action
       const commitType = this.determineCommitType(analysis, userIntent);
       const action = this.determineAction(componentType, analysis, userIntent);
-      
+
       // Generate summary
       const summary = this.generateSummary(
         componentType,
@@ -98,17 +98,17 @@ class CommitMessageGenerator {
         analysis,
         userIntent
       );
-      
+
       // Generate detailed description
       const details = this.generateDetails(analysis, metadata);
-      
+
       // Check for breaking changes
       const breakingChanges = await this.detectBreakingChanges(
         componentType,
         originalContent,
         modifiedContent
       );
-      
+
       // Construct the full message
       const message = this.constructMessage({
         type: commitType,
@@ -118,7 +118,7 @@ class CommitMessageGenerator {
         breaking: breakingChanges,
         metadata
       });
-      
+
       return {
         message,
         type: commitType,
@@ -127,7 +127,7 @@ class CommitMessageGenerator {
         analysis,
         breakingChanges
       };
-      
+
     } catch (_error) {
       throw new Error(`Failed to generate commit message: ${error.message}`);
     }
@@ -163,7 +163,7 @@ class CommitMessageGenerator {
     // Parse diff to extract changes
     const lines = diff.split('\n');
     let _currentSection = null;
-    
+
     for (const line of lines) {
       if (line.startsWith('+') && !line.startsWith('+++')) {
         analysis.statistics.linesAdded++;
@@ -216,7 +216,7 @@ class CommitMessageGenerator {
    */
   async analyzeAgentChanges(originalContent, modifiedContent) {
     const changes = [];
-    
+
     try {
       const originalParts = this.parseAgentContent(originalContent);
       const modifiedParts = this.parseAgentContent(modifiedContent);
@@ -227,14 +227,14 @@ class CommitMessageGenerator {
       if (originalMeta.commands || modifiedMeta.commands) {
         const originalCmds = Object.keys(originalMeta.commands || {});
         const modifiedCmds = Object.keys(modifiedMeta.commands || {});
-        
+
         const added = modifiedCmds.filter(cmd => !originalCmds.includes(cmd));
         const removed = originalCmds.filter(cmd => !modifiedCmds.includes(cmd));
-        const modified = originalCmds.filter(cmd => 
-          modifiedCmds.includes(cmd) && 
+        const modified = originalCmds.filter(cmd =>
+          modifiedCmds.includes(cmd) &&
           originalMeta.commands[cmd] !== modifiedMeta.commands[cmd]
         );
-        
+
         if (added.length > 0) {
           changes.push({ type: 'commands_added', items: added });
         }
@@ -290,7 +290,7 @@ class CommitMessageGenerator {
     for (const section of sections) {
       const originalSection = this.extractSection(originalContent, section);
       const modifiedSection = this.extractSection(modifiedContent, section);
-      
+
       if (originalSection !== modifiedSection) {
         changes.push({
           type: 'section_modified',
@@ -303,7 +303,7 @@ class CommitMessageGenerator {
     // Check elicitation blocks
     const originalElicits = (originalContent.match(/\[\[LLM:[\s\S]*?\]\]/g) || []).length;
     const modifiedElicits = (modifiedContent.match(/\[\[LLM:[\s\S]*?\]\]/g) || []).length;
-    
+
     if (originalElicits !== modifiedElicits) {
       changes.push({
         type: 'elicitation_changed',
@@ -315,7 +315,7 @@ class CommitMessageGenerator {
     // Check task steps
     const originalSteps = (originalContent.match(/### \d+\./g) || []).length;
     const modifiedSteps = (modifiedContent.match(/### \d+\./g) || []).length;
-    
+
     if (originalSteps !== modifiedSteps) {
       changes.push({
         type: 'steps_changed',
@@ -341,10 +341,10 @@ class CommitMessageGenerator {
       // Check phase changes
       const originalPhases = Object.keys(originalWorkflow.phases || {});
       const modifiedPhases = Object.keys(modifiedWorkflow.phases || {});
-      
+
       const added = modifiedPhases.filter(p => !originalPhases.includes(p));
       const removed = originalPhases.filter(p => !modifiedPhases.includes(p));
-      
+
       if (added.length > 0) {
         changes.push({ type: 'phases_added', items: added });
       }
@@ -357,7 +357,7 @@ class CommitMessageGenerator {
         if (modifiedPhases.includes(phase)) {
           const originalPhase = originalWorkflow.phases[phase];
           const modifiedPhase = modifiedWorkflow.phases[phase];
-          
+
           if (JSON.stringify(originalPhase) !== JSON.stringify(modifiedPhase)) {
             changes.push({
               type: 'phase_modified',
@@ -381,7 +381,7 @@ class CommitMessageGenerator {
    */
   determineCommitType(analysis, userIntent) {
     const intent = userIntent.toLowerCase();
-    
+
     // Check user intent first
     for (const [type, keywords] of Object.entries(this.changeKeywords)) {
       if (keywords.some(keyword => intent.includes(keyword))) {
@@ -391,21 +391,21 @@ class CommitMessageGenerator {
 
     // Analyze semantic changes
     const semanticTypes = analysis.semanticChanges.map(change => change.type);
-    
+
     if (semanticTypes.some(type => type.includes('added') || type.includes('new'))) {
       return 'feat';
     }
-    
+
     if (semanticTypes.some(type => type.includes('fixed') || type.includes('corrected'))) {
       return 'fix';
     }
-    
+
     if (semanticTypes.some(type => type.includes('performance') || type.includes('optimized'))) {
       return 'perf';
     }
-    
-    if (analysis.changeType === 'modification' && 
-        analysis.statistics.linesAdded > 0 && 
+
+    if (analysis.changeType === 'modification' &&
+        analysis.statistics.linesAdded > 0 &&
         analysis.statistics.linesRemoved > 0) {
       return 'refactor';
     }
@@ -421,7 +421,7 @@ class CommitMessageGenerator {
   determineAction(componentType, analysis, userIntent) {
     const actions = this.componentActions[componentType] || {};
     const intent = userIntent.toLowerCase();
-    
+
     // Check if user intent matches known actions
     for (const [action, description] of Object.entries(actions)) {
       if (intent.includes(action) || intent.includes(description.toLowerCase())) {
@@ -431,15 +431,15 @@ class CommitMessageGenerator {
 
     // Determine from semantic changes
     const changeTypes = analysis.semanticChanges.map(c => c.type);
-    
+
     if (changeTypes.includes('commands_added') || changeTypes.includes('phases_added')) {
       return 'enhance';
     }
-    
+
     if (changeTypes.includes('commands_removed') || changeTypes.includes('phases_removed')) {
       return 'remove';
     }
-    
+
     if (changeTypes.some(t => t.includes('modified'))) {
       return 'update';
     }
@@ -460,7 +460,7 @@ class CommitMessageGenerator {
     // Generate based on analysis
     const _changeCount = analysis.semanticChanges.length;
     const primaryChange = analysis.semanticChanges[0];
-    
+
     if (primaryChange) {
       switch (primaryChange.type) {
         case 'commands_added':
@@ -487,7 +487,7 @@ class CommitMessageGenerator {
    */
   generateDetails(analysis, metadata) {
     const details = [];
-    
+
     // Add statistics
     if (analysis.statistics.linesAdded > 0 || analysis.statistics.linesRemoved > 0) {
       details.push(
@@ -535,11 +535,11 @@ class CommitMessageGenerator {
     if (metadata.reason) {
       details.push(`\nReason: ${metadata.reason}`);
     }
-    
+
     if (metadata.impact) {
       details.push(`Impact: ${metadata.impact}`);
     }
-    
+
     if (metadata.relatedIssues && metadata.relatedIssues.length > 0) {
       details.push(`\nRelated: ${metadata.relatedIssues.join(', ')}`);
     }
@@ -557,7 +557,7 @@ class CommitMessageGenerator {
       originalContent,
       modifiedContent
     );
-    
+
     return validation.breakingChanges || [];
   }
 
@@ -567,15 +567,15 @@ class CommitMessageGenerator {
    */
   constructMessage(parts) {
     const { type, scope, summary, body, breaking, metadata } = parts;
-    
+
     // Header
     let message = `${type}(${scope}): ${summary}`;
-    
+
     // Body
     if (body && body.length > 0) {
       message += '\n\n' + body.join('\n');
     }
-    
+
     // Breaking changes
     if (breaking && breaking.length > 0) {
       message += '\n\nBREAKING CHANGE:';
@@ -586,24 +586,24 @@ class CommitMessageGenerator {
         }
       }
     }
-    
+
     // Footer
     const footer = [];
-    
+
     if (metadata.approvedBy) {
       footer.push(`Approved-by: ${metadata.approvedBy}`);
     }
-    
+
     if (metadata.reviewedBy) {
       footer.push(`Reviewed-by: ${metadata.reviewedBy}`);
     }
-    
+
     footer.push('Generated-by: aiox-developer meta-agent');
-    
+
     if (footer.length > 0) {
       message += '\n\n' + footer.join('\n');
     }
-    
+
     return message;
   }
 
@@ -621,41 +621,41 @@ class CommitMessageGenerator {
       workflows: 0,
       total: modifications.length
     };
-    
+
     // Process each modification
     for (const mod of modifications) {
       const result = await this.generateCommitMessage(mod);
       summaries.push(`- ${result.scope}: ${result.summary}`);
       allBreaking.push(...result.breakingChanges);
-      
+
       // Count by type
       stats[`${mod.componentType}s`]++;
     }
-    
+
     // Determine overall type
     const hasBreaking = allBreaking.length > 0;
     const type = hasBreaking ? 'feat!' : 'chore';
-    
+
     // Construct message
     let message = `${type}: batch update ${stats.total} components`;
-    
+
     message += '\n\nModifications:';
     message += '\n' + summaries.join('\n');
-    
+
     message += '\n\nSummary:';
     if (stats.agents > 0) message += `\n- ${stats.agents} agent(s)`;
     if (stats.tasks > 0) message += `\n- ${stats.tasks} task(s)`;
     if (stats.workflows > 0) message += `\n- ${stats.workflows} workflow(s)`;
-    
+
     if (hasBreaking) {
       message += '\n\nBREAKING CHANGES:';
       for (const breaking of allBreaking) {
         message += `\n- ${breaking.impact}`;
       }
     }
-    
+
     message += '\n\nGenerated-by: aiox-developer meta-agent';
-    
+
     return {
       message,
       type,
@@ -673,7 +673,7 @@ class CommitMessageGenerator {
     const suggestions = [];
     const lines = message.split('\n');
     const header = lines[0];
-    
+
     // Check header format
     const headerMatch = header.match(/^(\w+)(\([\w-]+\))?: (.+)$/);
     if (!headerMatch) {
@@ -684,7 +684,7 @@ class CommitMessageGenerator {
       });
     } else {
       const [, type, scope, subject] = headerMatch;
-      
+
       // Check type
       if (!this.commitTypes[type]) {
         suggestions.push({
@@ -693,7 +693,7 @@ class CommitMessageGenerator {
           suggestion: `Use one of: ${Object.keys(this.commitTypes).join(', ')}`
         });
       }
-      
+
       // Check subject length
       if (subject.length > 50) {
         suggestions.push({
@@ -702,7 +702,7 @@ class CommitMessageGenerator {
           suggestion: 'Keep subject under 50 characters'
         });
       }
-      
+
       // Check subject format
       if (subject[0] === subject[0].toUpperCase()) {
         suggestions.push({
@@ -711,7 +711,7 @@ class CommitMessageGenerator {
           suggestion: 'Use lowercase for subject'
         });
       }
-      
+
       if (subject.endsWith('.')) {
         suggestions.push({
           type: 'punctuation',
@@ -720,7 +720,7 @@ class CommitMessageGenerator {
         });
       }
     }
-    
+
     // Check body
     if (lines.length > 1) {
       if (lines[1] !== '') {
@@ -730,7 +730,7 @@ class CommitMessageGenerator {
           suggestion: 'Add blank line between header and body'
         });
       }
-      
+
       // Check line length in body
       for (let i = 2; i < lines.length; i++) {
         if (lines[i].length > 72 && !lines[i].startsWith('BREAKING')) {
@@ -742,7 +742,7 @@ class CommitMessageGenerator {
         }
       }
     }
-    
+
     return {
       valid: suggestions.length === 0,
       suggestions,
@@ -756,11 +756,11 @@ class CommitMessageGenerator {
    */
   applyImprovements(message, suggestions) {
     let improved = message;
-    
+
     for (const suggestion of suggestions) {
       switch (suggestion.type) {
         case 'case':
-          improved = improved.replace(/^(\w+)(\([\w-]+\))?: (.)/, (match, type, scope, firstChar) => 
+          improved = improved.replace(/^(\w+)(\([\w-]+\))?: (.)/, (match, type, scope, firstChar) =>
             `${type}${scope || ''}: ${firstChar.toLowerCase()}`
           );
           break;
@@ -776,7 +776,7 @@ class CommitMessageGenerator {
           break;
       }
     }
-    
+
     return improved;
   }
 
@@ -806,14 +806,14 @@ class CommitMessageGenerator {
   compareDependencies(original, modified) {
     const changes = [];
     const types = ['tasks', 'workflows', 'agents'];
-    
+
     for (const type of types) {
       const originalDeps = original[type] || [];
       const modifiedDeps = modified[type] || [];
-      
+
       const added = modifiedDeps.filter(d => !originalDeps.includes(d));
       const removed = originalDeps.filter(d => !modifiedDeps.includes(d));
-      
+
       if (added.length > 0) {
         changes.push({ type: `${type}_dependencies_added`, items: added });
       }
@@ -821,28 +821,28 @@ class CommitMessageGenerator {
         changes.push({ type: `${type}_dependencies_removed`, items: removed });
       }
     }
-    
+
     return changes;
   }
 
   comparePhases(originalPhase, modifiedPhase) {
     const details = [];
-    
+
     if (originalPhase.sequence !== modifiedPhase.sequence) {
       details.push(`sequence ${originalPhase.sequence}→${modifiedPhase.sequence}`);
     }
-    
+
     const originalAgents = originalPhase.agents || [];
     const modifiedAgents = modifiedPhase.agents || [];
-    
+
     if (JSON.stringify(originalAgents) !== JSON.stringify(modifiedAgents)) {
       details.push('agents changed');
     }
-    
+
     if (JSON.stringify(originalPhase.artifacts) !== JSON.stringify(modifiedPhase.artifacts)) {
       details.push('artifacts changed');
     }
-    
+
     return details;
   }
 }

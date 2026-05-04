@@ -145,11 +145,11 @@ class CodeQualityImprover {
    */
   async improveCode(_filePath, options = {}) {
     console.log(chalk.blue(`🎯 Improving: ${_filePath}`));
-    
+
     try {
       const content = await fs.readFile(_filePath, 'utf-8');
       const fileType = path.extname(_filePath);
-      
+
       if (!['.js', '.jsx', '.ts', '.tsx'].includes(fileType)) {
         return {
           _filePath,
@@ -180,7 +180,7 @@ class CodeQualityImprover {
 
         try {
           const result = await pattern.improver(improvedContent, _filePath, options);
-          
+
           if (result.improved) {
             improvedContent = result.content;
             appliedImprovements.push({
@@ -190,7 +190,7 @@ class CodeQualityImprover {
               changes: result.changes,
               impact: result.impact || 'medium'
             });
-            
+
             this.improvements.push(...result.improvements || []);
           }
         } catch (_error) {
@@ -294,7 +294,7 @@ class CodeQualityImprover {
         return { improved: false, content, changes: [] };
       }
       const results = await this.eslint.lintText(content, { _filePath });
-      
+
       if (results[0]?.output) {
         return {
           improved: true,
@@ -393,10 +393,10 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Group imports by source
       const imports = new Map();
-      
+
       ast.find(j.ImportDeclaration)
         .forEach(path => {
           const source = path.node.source.value;
@@ -420,7 +420,7 @@ class CodeQualityImprover {
           for (let i = 1; i < importPaths.length; i++) {
             j(importPaths[i]).remove();
           }
-          
+
           improved = true;
           changes.push(`Merged imports from ${source}`);
         }
@@ -439,13 +439,13 @@ class CodeQualityImprover {
         importNodes.sort((a, b) => {
           const aSource = a.source.value;
           const bSource = b.source.value;
-          
+
           const aExternal = !aSource.startsWith('.') && !aSource.startsWith('/');
           const bExternal = !bSource.startsWith('.') && !bSource.startsWith('/');
-          
+
           if (aExternal && !bExternal) return -1;
           if (!aExternal && bExternal) return 1;
-          
+
           return aSource.localeCompare(bSource);
         });
 
@@ -454,7 +454,7 @@ class CodeQualityImprover {
         importNodes.reverse().forEach(node => {
           program.get('body').unshift(node);
         });
-        
+
         improved = true;
         changes.push('Sorted imports');
       }
@@ -485,7 +485,7 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Find all variable declarations and their usage
       const declaredVars = new Map();
       const usedVars = new Set();
@@ -513,7 +513,7 @@ class CodeQualityImprover {
       for (const [varName, declaratorPath] of declaredVars) {
         if (!usedVars.has(varName) && !this.isExported(declaratorPath)) {
           const declaration = declaratorPath.parent;
-          
+
           if (declaration.node.declarations.length === 1) {
             // Remove entire declaration
             j(declaration).remove();
@@ -521,7 +521,7 @@ class CodeQualityImprover {
             // Remove just this declarator
             j(declaratorPath).remove();
           }
-          
+
           improved = true;
           changes.push(`Removed unused variable: ${varName}`);
           improvements.push({
@@ -586,25 +586,25 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Convert snake_case to camelCase for variables and functions
       ast.find(j.Identifier)
         .filter(path => {
           const name = path.node.name;
-          return name.includes('_') && 
+          return name.includes('_') &&
                  (path.parent.node.type === 'VariableDeclarator' ||
                   path.parent.node.type === 'FunctionDeclaration');
         })
         .forEach(path => {
           const oldName = path.node.name;
           const newName = this.snakeToCamel(oldName);
-          
+
           // Rename all occurrences
           ast.find(j.Identifier, { name: oldName })
             .forEach(p => {
               p.node.name = newName;
             });
-          
+
           improved = true;
           changes.push(`Renamed ${oldName} to ${newName}`);
           improvements.push({
@@ -623,13 +623,13 @@ class CodeQualityImprover {
         .forEach(path => {
           const oldName = path.node.id.name;
           const newName = oldName[0].toUpperCase() + oldName.slice(1);
-          
+
           // Rename all occurrences
           ast.find(j.Identifier, { name: oldName })
             .forEach(p => {
               p.node.name = newName;
             });
-          
+
           improved = true;
           changes.push(`Renamed class ${oldName} to ${newName}`);
           improvements.push({
@@ -649,13 +649,13 @@ class CodeQualityImprover {
               if (this.shouldBeConstantCase(declarator) && !this.isConstantCase(name)) {
                 const oldName = name;
                 const newName = this.toConstantCase(name);
-                
+
                 // Rename all occurrences
                 ast.find(j.Identifier, { name: oldName })
                   .forEach(p => {
                     p.node.name = newName;
                   });
-                
+
                 improved = true;
                 changes.push(`Renamed constant ${oldName} to ${newName}`);
                 improvements.push({
@@ -690,13 +690,13 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Add try-catch to async functions without error handling
       ast.find(j.FunctionDeclaration)
         .filter(path => path.node.async)
         .forEach(path => {
           const hasErrorHandling = j(_path).find(j.TryStatement).length > 0;
-          
+
           if (!hasErrorHandling && path.node.body.body.length > 0) {
             // Wrap body in try-catch
             const originalBody = path.node.body.body;
@@ -718,10 +718,10 @@ class CodeQualityImprover {
                 ])
               )
             );
-            
+
             path.node.body.body = [tryStatement];
             improved = true;
-            
+
             const funcName = path.node.id?.name || 'anonymous';
             changes.push(`Added error handling to ${funcName}`);
             improvements.push({
@@ -737,13 +737,13 @@ class CodeQualityImprover {
         .filter(path => {
           // Check if catch block is empty or only logs
           const body = path.node.body.body;
-          return body.length === 0 || 
+          return body.length === 0 ||
                  (body.length === 1 && this.isOnlyConsoleLog(body[0]));
         })
         .forEach(path => {
           // Add proper error handling
           const errorParam = path.node.param || j.identifier('error');
-          
+
           path.node.body.body = [
             j.expressionStatement(
               j.callExpression(
@@ -756,7 +756,7 @@ class CodeQualityImprover {
             ),
             j.throwStatement(errorParam)
           ];
-          
+
           improved = true;
           changes.push('Improved catch block to properly handle errors');
           improvements.push({
@@ -788,7 +788,7 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Convert .then().catch() chains to async/await
       ast.find(j.CallExpression)
         .filter(path => {
@@ -798,15 +798,15 @@ class CodeQualityImprover {
         .forEach(path => {
           // Find the containing function
           const containingFunction = j(_path).closest(j.Function);
-          
+
           if (containingFunction.length > 0) {
             const func = containingFunction.get();
-            
+
             // Make function async if not already
             if (!func.node.async) {
               func.node.async = true;
             }
-            
+
             // Convert promise chain to await
             // This is simplified - real implementation would be more complex
             improved = true;
@@ -828,7 +828,7 @@ class CodeQualityImprover {
         })
         .forEach(path => {
           const promiseCallback = path.node.arguments[0];
-          
+
           // Convert to async function
           const asyncFunction = j.functionExpression(
             promiseCallback.id,
@@ -837,7 +837,7 @@ class CodeQualityImprover {
             promiseCallback.generator,
             true // async
           );
-          
+
           path.node.arguments[0] = asyncFunction;
           improved = true;
           changes.push('Converted Promise constructor to async function');
@@ -870,14 +870,14 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Add parameter validation to functions
       ast.find(j.FunctionDeclaration)
         .forEach(path => {
           const params = path.node.params;
           if (params.length > 0) {
             const validationStatements = [];
-            
+
             params.forEach(param => {
               if (param.type === 'Identifier') {
                 // Add basic validation
@@ -898,12 +898,12 @@ class CodeQualityImprover {
                 );
               }
             });
-            
+
             if (validationStatements.length > 0) {
               // Insert at beginning of function body
               path.node.body.body.unshift(...validationStatements);
               improved = true;
-              
+
               const funcName = path.node.id?.name || 'anonymous';
               changes.push(`Added parameter validation to ${funcName}`);
               improvements.push({
@@ -920,7 +920,7 @@ class CodeQualityImprover {
         .filter(path => {
           // Check if it's a chain that could throw
           return path.node.object.type === 'MemberExpression' ||
-                 (path.node.object.type === 'Identifier' && 
+                 (path.node.object.type === 'Identifier' &&
                   !this.isKnownSafeObject(path.node.object.name));
         })
         .forEach(path => {
@@ -962,7 +962,7 @@ class CodeQualityImprover {
 
     try {
       const ast = j(content);
-      
+
       // Add JSDoc to functions without documentation
       ast.find(j.FunctionDeclaration)
         .filter(path => {
@@ -974,24 +974,24 @@ class CodeQualityImprover {
           const funcName = path.node.id?.name || 'anonymous';
           const params = path.node.params;
           const isAsync = path.node.async;
-          
+
           // Generate JSDoc
           let jsdoc = '/**\n';
           jsdoc += ` * ${this.generateFunctionDescription(funcName)}\n`;
-          
+
           params.forEach(param => {
             const paramName = param.type === 'Identifier' ? param.name : 'param';
             jsdoc += ` * @param {*} ${paramName} - ${this.generateParamDescription(paramName)}\n`;
           });
-          
+
           jsdoc += ` * @returns {${isAsync ? 'Promise<*>' : '*'}} ${this.generateReturnDescription(funcName)}\n`;
           jsdoc += ' */';
-          
+
           // Add JSDoc comment
           path.node.leadingComments = [
             j.commentBlock(jsdoc.replace('/**', '*').replace('*/', ''), true)
           ];
-          
+
           improved = true;
           changes.push(`Added JSDoc to ${funcName}`);
           improvements.push({
@@ -1009,15 +1009,15 @@ class CodeQualityImprover {
         })
         .forEach(path => {
           const className = path.node.id?.name || 'Class';
-          
+
           let jsdoc = '/**\n';
           jsdoc += ` * ${this.generateClassDescription(className)}\n`;
           jsdoc += ' */';
-          
+
           path.node.leadingComments = [
             j.commentBlock(jsdoc.replace('/**', '*').replace('*/', ''), true)
           ];
-          
+
           improved = true;
           changes.push(`Added JSDoc to class ${className}`);
           improvements.push({
@@ -1090,7 +1090,7 @@ class CodeQualityImprover {
   calculateCyclomaticComplexity(content) {
     // Simplified complexity calculation
     let complexity = 1;
-    
+
     const complexityPatterns = [
       /\bif\s*\(/g,
       /\belse\s+if\s*\(/g,
@@ -1102,14 +1102,14 @@ class CodeQualityImprover {
       /\|\|/g,
       /&&/g
     ];
-    
+
     complexityPatterns.forEach(pattern => {
       const matches = content.match(pattern);
       if (matches) {
         complexity += matches.length;
       }
     });
-    
+
     return complexity;
   }
 
@@ -1117,17 +1117,17 @@ class CodeQualityImprover {
     // Simplified maintainability index (0-100)
     const lines = content.split('\n').length;
     const complexity = this.calculateCyclomaticComplexity(content);
-    const comments = (content.match(/\/\//g) || []).length + 
+    const comments = (content.match(/\/\//g) || []).length +
                     (content.match(/\/\*/g) || []).length;
-    
+
     // Simple formula
     const commentRatio = comments / lines;
     const complexityRatio = complexity / lines;
-    
-    const maintainability = Math.min(100, Math.max(0, 
+
+    const maintainability = Math.min(100, Math.max(0,
       100 - (complexityRatio * 50) + (commentRatio * 20)
     ));
-    
+
     return Math.round(maintainability);
   }
 
@@ -1135,9 +1135,9 @@ class CodeQualityImprover {
     // Calculate percentage of documented functions/classes
     const functionMatches = content.match(/function\s+\w+|class\s+\w+/g) || [];
     const jsdocMatches = content.match(/\/\*\*[\s\S]*?\*\//g) || [];
-    
+
     if (functionMatches.length === 0) return 100;
-    
+
     const coverage = (jsdocMatches.length / functionMatches.length) * 100;
     return Math.min(100, Math.round(coverage));
   }
@@ -1149,7 +1149,7 @@ class CodeQualityImprover {
       maintainability: Math.max(0, after.maintainability - before.maintainability),
       coverage: Math.max(0, after.coverage - before.coverage)
     };
-    
+
     // Calculate weighted score
     const score = (
       improvements.issues * 3 +
@@ -1157,21 +1157,21 @@ class CodeQualityImprover {
       improvements.maintainability +
       improvements.coverage * 0.5
     ) / 6.5;
-    
+
     return Math.round(score * 10) / 10;
   }
 
   summarizeLintFixes(lintResult) {
     const fixedRules = new Map();
-    
+
     lintResult.messages.forEach(message => {
       if (message.fix) {
         const count = fixedRules.get(message.ruleId) || 0;
         fixedRules.set(message.ruleId, count + 1);
       }
     });
-    
-    return Array.from(fixedRules.entries()).map(([rule, count]) => 
+
+    return Array.from(fixedRules.entries()).map(([rule, count]) =>
       `Fixed ${count} ${rule} issue${count > 1 ? 's' : ''}`
     );
   }
@@ -1179,28 +1179,28 @@ class CodeQualityImprover {
   isVariableReassigned(j, variableDeclarator) {
     const varName = variableDeclarator.node.id.name;
     const scope = variableDeclarator.scope;
-    
+
     let reassigned = false;
-    
+
     j(scope.path).find(j.AssignmentExpression)
       .filter(path => {
-        return path.node.left.type === 'Identifier' && 
+        return path.node.left.type === 'Identifier' &&
                path.node.left.name === varName;
       })
       .forEach(() => {
         reassigned = true;
       });
-    
+
     return reassigned;
   }
 
   isExported(_path) {
     // Check if the declaration is exported
     const parent = path.parent;
-    
+
     return parent.node.type === 'ExportNamedDeclaration' ||
            parent.node.type === 'ExportDefaultDeclaration' ||
-           (parent.node.type === 'AssignmentExpression' && 
+           (parent.node.type === 'AssignmentExpression' &&
             parent.node.left.type === 'MemberExpression' &&
             parent.node.left.object.name === 'module' &&
             parent.node.left.property.name === 'exports');
@@ -1226,7 +1226,7 @@ class CodeQualityImprover {
     // Check if the value is a literal or simple value
     const init = declarator.init;
     if (!init) return false;
-    
+
     return init.type === 'Literal' ||
            init.type === 'UnaryExpression' ||
            (init.type === 'Identifier' && init.name === init.name.toUpperCase());
@@ -1285,7 +1285,7 @@ class CodeQualityImprover {
       // Write improved content
       await fs.writeFile(_filePath, improvedContent);
       console.log(chalk.green(`✅ Improvements applied to: ${_filePath}`));
-      
+
       return { success: true };
     } catch (_error) {
       console.error(chalk.red(`Failed to apply improvements: ${error.message}`));
@@ -1313,7 +1313,7 @@ class CodeQualityImprover {
       }
     }
 
-    stats.averageScore = this.metrics.size > 0 ? 
+    stats.averageScore = this.metrics.size > 0 ?
       (totalScore / this.metrics.size).toFixed(2) : 0;
 
     // Count improvements by type

@@ -1,13 +1,13 @@
 /**
  * @deprecated Use agent-config-loader.js instead
  * This file will be removed in a future version.
- * 
+ *
  * Migration guide:
  * - Old: const { loadAgentConfig } = require('./config-loader');
  * - New: const { AgentConfigLoader } = require('./agent-config-loader');
  *        const loader = new AgentConfigLoader(agentId);
  *        const config = await loader.load(coreConfig);
- * 
+ *
  * AIOX Config Loader with Lazy Loading
  *
  * Intelligent configuration loader that only loads what each agent needs,

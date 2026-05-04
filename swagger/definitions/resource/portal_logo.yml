@@ -20,4 +20,4 @@ properties:
     description: ID of the blob
   filename:
     type: string
-    description: Name of the file 
+    description: Name of the file

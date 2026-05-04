@@ -31,9 +31,9 @@ class BranchManager {
     const timestamp = Date.now();
     const sanitizedTarget = target.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
     const sanitizedAction = action.replace(/[^a-zA-Z0-9-]/g, '-').toLowerCase();
-    
+
     let branchName = `${this.branchPrefix}${type}/${sanitizedTarget}-${sanitizedAction}-${timestamp}`;
-    
+
     if (ticketId) {
       branchName = `${this.branchPrefix}${ticketId}/${type}-${sanitizedTarget}`;
     }
@@ -79,7 +79,7 @@ class BranchManager {
       for (const branch of branches) {
         const lastCommit = await this.git.execGit(`log -1 --format="%H|%at|%s" ${branch}`);
         const [hash, timestamp, subject] = lastCommit.split('|');
-        
+
         branchDetails.push({
           name: branch,
           lastCommitHash: hash,
@@ -159,7 +159,7 @@ class BranchManager {
         if (options.deleteBranch) {
           await this.deleteBranch(branchName);
         }
-        
+
         return {
           success: true,
           message: 'Branch merged successfully',
@@ -190,7 +190,7 @@ class BranchManager {
     try {
       const flag = force ? '-D' : '-d';
       await this.git.execGit(`branch ${flag} ${branchName}`);
-      
+
       console.log(chalk.green(`✅ Deleted branch: ${branchName}`));
       return { success: true };
     } catch (error) {
@@ -298,7 +298,7 @@ class BranchManager {
    */
   async compareBranches(branch1, branch2 = null) {
     const targetBranch = branch2 || this.git.defaultBranch;
-    
+
     try {
       // Get commits ahead/behind
       const ahead = await this.git.execGit(
@@ -340,7 +340,7 @@ class BranchManager {
     const diff = now - timestamp;
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    
+
     if (days > 0) {
       return `${days} day${days > 1 ? 's' : ''} ago`;
     } else if (hours > 0) {

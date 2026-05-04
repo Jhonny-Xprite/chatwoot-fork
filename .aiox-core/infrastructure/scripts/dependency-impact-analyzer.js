@@ -22,22 +22,22 @@ class DependencyImpactAnalyzer {
   async initialize() {
     try {
       console.log(chalk.gray('Initializing dependency impact analyzer...'));
-      
+
       // Build comprehensive dependency graph
       await this.buildDependencyGraph();
-      
+
       // Build reverse dependency graph for impact analysis
       await this.buildReverseDependencyGraph();
-      
+
       // Register all components for quick lookup
       await this.registerAllComponents();
-      
+
       console.log(chalk.green('✅ Dependency impact analyzer initialized'));
       console.log(chalk.gray(`   Components registered: ${this.componentRegistry.size}`));
       console.log(chalk.gray(`   Dependencies mapped: ${this.dependencyGraph.size}`));
-      
+
       return true;
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to initialize dependency analyzer: ${error.message}`));
       throw error;
@@ -49,10 +49,10 @@ class DependencyImpactAnalyzer {
    */
   async analyzeDependencyImpact(targetComponent, options = {}) {
     const analysisId = `impact-${Date.now()}`;
-    
+
     try {
       console.log(chalk.blue(`🔍 Analyzing dependency impact for: ${targetComponent.path}`));
-      
+
       const config = {
         depth: options.depth || 'medium',
         includeTests: options.includeTests || false,
@@ -63,32 +63,32 @@ class DependencyImpactAnalyzer {
 
       // Determine analysis depth
       const maxDepth = this.getAnalysisDepth(config.depth);
-      
+
       // Find all components that depend on the target
       const directDependents = await this.findDirectDependents(targetComponent);
-      
+
       // Perform recursive dependency analysis
       const affectedComponents = await this.analyzeRecursiveDependencies(
-        targetComponent, 
-        directDependents, 
-        maxDepth, 
+        targetComponent,
+        directDependents,
+        maxDepth,
         config,
       );
-      
+
       // Calculate impact scores for each affected component
       const scoredComponents = await this.calculateImpactScores(
-        targetComponent, 
-        affectedComponents, 
+        targetComponent,
+        affectedComponents,
         config,
       );
-      
+
       // Categorize impact by severity
       const impactCategories = this.categorizeImpactBySeverity(scoredComponents);
-      
+
       // Generate dependency recommendations
       const recommendations = await this.generateDependencyRecommendations(
-        targetComponent, 
-        scoredComponents, 
+        targetComponent,
+        scoredComponents,
         config,
       );
 
@@ -114,13 +114,13 @@ class DependencyImpactAnalyzer {
 
       // Cache analysis results
       this.analysisCache.set(analysisId, result);
-      
+
       console.log(chalk.green('✅ Dependency analysis completed'));
       console.log(chalk.gray(`   Affected components: ${result.statistics.totalComponents}`));
       console.log(chalk.gray(`   High impact: ${result.statistics.highImpactComponents}`));
-      
+
       return result;
-      
+
     } catch (error) {
       console.error(chalk.red(`Dependency analysis failed: ${error.message}`));
       throw error;
@@ -132,17 +132,17 @@ class DependencyImpactAnalyzer {
    */
   async buildDependencyGraph() {
     const componentTypes = ['agents', 'tasks', 'workflows', 'utils'];
-    
+
     for (const type of componentTypes) {
       const typeDir = path.join(this.rootPath, 'aiox-core', type);
-      
+
       try {
         const files = await fs.readdir(typeDir);
-        
+
         for (const file of files) {
           const filePath = path.join(typeDir, file);
           const stats = await fs.stat(filePath);
-          
+
           if (stats.isFile()) {
             await this.analyzeDependenciesForFile(filePath, type.slice(0, -1));
           }
@@ -164,9 +164,9 @@ class DependencyImpactAnalyzer {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const relativePath = path.relative(this.rootPath, filePath);
-      
+
       const dependencies = this.extractDependenciesFromContent(content, filePath);
-      
+
       // Store in dependency graph
       this.dependencyGraph.set(relativePath, {
         path: relativePath,
@@ -174,7 +174,7 @@ class DependencyImpactAnalyzer {
         dependencies: dependencies,
         lastAnalyzed: new Date().toISOString(),
       });
-      
+
     } catch (error) {
       console.warn(chalk.yellow(`Failed to analyze dependencies for ${filePath}: ${error.message}`));
     }
@@ -260,7 +260,7 @@ class DependencyImpactAnalyzer {
         if (!this.reverseDependencyGraph.has(dep)) {
           this.reverseDependencyGraph.set(dep, []);
         }
-        
+
         this.reverseDependencyGraph.get(dep).push({
           path: componentPath,
           type: componentData.type,
@@ -290,7 +290,7 @@ class DependencyImpactAnalyzer {
   async findDirectDependents(targetComponent) {
     const dependents = [];
     const targetPath = targetComponent.path;
-    
+
     // Check reverse dependency graph
     if (this.reverseDependencyGraph.has(targetPath)) {
       dependents.push(...this.reverseDependencyGraph.get(targetPath));
@@ -300,7 +300,7 @@ class DependencyImpactAnalyzer {
     const componentName = path.basename(targetPath, path.extname(targetPath));
     for (const [componentPath, componentData] of this.dependencyGraph) {
       if (componentPath === targetPath) continue;
-      
+
       const content = await this.getComponentContent(componentPath);
       if (content && this.containsReferenceTo(content, componentName, targetComponent.type)) {
         dependents.push({
@@ -321,22 +321,22 @@ class DependencyImpactAnalyzer {
     const visited = new Set();
     const affectedComponents = [];
     const queue = directDependents.map(dep => ({ ...dep, depth: 1 }));
-    
+
     visited.add(targetComponent.path);
-    
+
     while (queue.length > 0 && affectedComponents.length < 1000) { // Safety limit
       const current = queue.shift();
-      
+
       if (visited.has(current.path) || current.depth > maxDepth) {
         continue;
       }
-      
+
       visited.add(current.path);
       affectedComponents.push(current);
-      
+
       // Find dependents of current component
       const currentDependents = await this.findDirectDependents(current);
-      
+
       for (const dependent of currentDependents) {
         if (!visited.has(dependent.path)) {
           queue.push({ ...dependent, depth: current.depth + 1 });
@@ -352,14 +352,14 @@ class DependencyImpactAnalyzer {
    */
   async calculateImpactScores(targetComponent, affectedComponents, config) {
     const scoredComponents = [];
-    
+
     for (const component of affectedComponents) {
       const impactScore = await this.calculateComponentImpactScore(
-        targetComponent, 
-        component, 
+        targetComponent,
+        component,
         config,
       );
-      
+
       scoredComponents.push({
         ...component,
         impactScore: impactScore.score,
@@ -368,7 +368,7 @@ class DependencyImpactAnalyzer {
         reason: impactScore.primaryReason,
       });
     }
-    
+
     return scoredComponents.sort((a, b) => b.impactScore - a.impactScore);
   }
 
@@ -434,15 +434,15 @@ class DependencyImpactAnalyzer {
     if (component.type === 'util' && component.path.includes('core')) {
       return 3;
     }
-    
+
     if (component.type === 'agent' || component.type === 'workflow') {
       return 2;
     }
-    
+
     if (component.type === 'task') {
       return 1.5;
     }
-    
+
     return 1;
   }
 
@@ -469,23 +469,23 @@ class DependencyImpactAnalyzer {
    */
   determinePrimaryImpactReason(factors, config) {
     const maxFactor = Math.max(...Object.values(factors));
-    
+
     if (factors.modificationRisk === maxFactor && config.modificationType === 'remove') {
       return 'Component removal will break dependent functionality';
     }
-    
+
     if (factors.componentCriticality === maxFactor) {
       return 'Critical component with high framework dependency';
     }
-    
+
     if (factors.dependencyType === maxFactor) {
       return 'Direct internal dependency requiring code changes';
     }
-    
+
     if (factors.usageFrequency === maxFactor) {
       return 'Widely used component affecting multiple dependents';
     }
-    
+
     return 'Component modification may require updates';
   }
 
@@ -516,10 +516,10 @@ class DependencyImpactAnalyzer {
    */
   async generateDependencyRecommendations(targetComponent, scoredComponents, config) {
     const recommendations = [];
-    
+
     const criticalComponents = scoredComponents.filter(c => c.impactScore >= 9);
     const highImpactComponents = scoredComponents.filter(c => c.impactScore >= 7 && c.impactScore < 9);
-    
+
     // Critical impact recommendations
     if (criticalComponents.length > 0) {
       recommendations.push({
@@ -530,7 +530,7 @@ class DependencyImpactAnalyzer {
         actionRequired: true,
       });
     }
-    
+
     // High impact recommendations
     if (highImpactComponents.length > 0) {
       recommendations.push({
@@ -541,7 +541,7 @@ class DependencyImpactAnalyzer {
         actionRequired: true,
       });
     }
-    
+
     // Modification-specific recommendations
     if (config.modificationType === 'remove') {
       recommendations.push({
@@ -557,7 +557,7 @@ class DependencyImpactAnalyzer {
         ],
       });
     }
-    
+
     if (config.modificationType === 'refactor') {
       recommendations.push({
         priority: 'medium',
@@ -595,7 +595,7 @@ class DependencyImpactAnalyzer {
    */
   async analyzeTestDependencies() {
     const testDir = path.join(this.rootPath, 'tests');
-    
+
     try {
       await this.analyzeDirectoryRecursively(testDir, 'test');
     } catch (error) {
@@ -609,11 +609,11 @@ class DependencyImpactAnalyzer {
   async analyzeDirectoryRecursively(dir, componentType) {
     try {
       const files = await fs.readdir(dir);
-      
+
       for (const file of files) {
         const filePath = path.join(dir, file);
         const stats = await fs.stat(filePath);
-        
+
         if (stats.isDirectory()) {
           await this.analyzeDirectoryRecursively(filePath, componentType);
         } else if (stats.isFile() && (file.endsWith('.js') || file.endsWith('.md'))) {
@@ -647,7 +647,7 @@ class DependencyImpactAnalyzer {
       new RegExp(`require.*${componentName}`, 'i'),
       new RegExp(`import.*${componentName}`, 'i'),
     ];
-    
+
     return patterns.some(pattern => pattern.test(content));
   }
 
@@ -690,8 +690,8 @@ class DependencyImpactAnalyzer {
       totalComponents: this.componentRegistry.size,
       totalDependencies: this.dependencyGraph.size,
       averageDependencies: Array.from(this.dependencyGraph.values()).reduce((sum, comp) => {
-        const totalDeps = comp.dependencies.internal.length + 
-                         comp.dependencies.framework.length + 
+        const totalDeps = comp.dependencies.internal.length +
+                         comp.dependencies.framework.length +
                          comp.dependencies.external.length;
         return sum + totalDeps;
       }, 0) / this.dependencyGraph.size,

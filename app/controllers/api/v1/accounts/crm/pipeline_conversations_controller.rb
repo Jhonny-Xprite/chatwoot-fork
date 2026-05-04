@@ -1,6 +1,7 @@
 class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Accounts::BaseController
   before_action :set_stage
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def index
     authorize @stage, :show?
     @conversations = @stage.conversations.includes(:contact, :inbox, :assignee, :pipeline_stage, :pipeline)
@@ -17,13 +18,16 @@ class Api::V1::Accounts::Crm::PipelineConversationsController < Api::V1::Account
                                    .per(params[:per_page] || 25)
                                    .order(last_activity_at: :desc)
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   # Handle moving a conversation between stages
   def update
     authorize @stage, :show?
     @conversation = current_account.conversations.find_by!(display_id: params[:id])
     old_stage_id = @conversation.pipeline_stage_id
-    Rails.logger.info "[CRM] Movendo conversa ##{@conversation.display_id} do estágio #{old_stage_id} para #{@stage.id} no pipeline ##{@stage.pipeline_id}"
+    Rails.logger.info do
+      "[CRM] Movendo conversa ##{@conversation.display_id} do estágio #{old_stage_id} para #{@stage.id} no pipeline ##{@stage.pipeline_id}"
+    end
     @conversation.update!(pipeline_stage_id: @stage.id, pipeline_id: @stage.pipeline_id)
     render :update
   end

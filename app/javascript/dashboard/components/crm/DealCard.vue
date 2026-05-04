@@ -4,7 +4,6 @@ import { useStore } from 'vuex';
 import { useI18n } from 'vue-i18n';
 import Avatar from 'dashboard/components-next/avatar/Avatar.vue';
 import CardPriorityIcon from 'dashboard/components-next/Conversation/ConversationCard/CardPriorityIcon.vue';
-import SLACardLabel from 'dashboard/components-next/Conversation/Sla/SLACardLabel.vue';
 
 import Button from 'dashboard/components-next/button/Button.vue';
 import Popover from 'dashboard/components-next/popover/Popover.vue';
@@ -41,7 +40,6 @@ const activeLabels = computed(() => {
     conversationLabels.value.includes(label.title)
   );
 });
-const hasSlaPolicyId = computed(() => props.conversation?.sla_policy_id);
 const companyName = computed(
   () => contact.value.additional_attributes?.company_name || ''
 );
@@ -95,6 +93,7 @@ const showReplyNeeded = computed(
 // --- Restored Interactive Functions ---
 
 const agents = computed(() => store.getters['agents/getAgents']);
+
 const agentOptions = computed(() =>
   agents.value.map(agent => ({
     label: agent.name,
@@ -196,9 +195,7 @@ const dynamicAttributes = computed(() => {
     @click="emit('select', conversation)"
   >
     <!-- Premium Backdrop Glow (Hover only) -->
-    <div
-      class="absolute inset-0 bg-gradient-to-tr from-n-brand-primary/0 via-n-brand-primary/0 to-n-brand-primary/5 opacity-0 transition-opacity group-hover:opacity-100"
-    />
+    <div class="absolute inset-0 bg-gradient-to-tr from-n-brand-primary/0 via-n-brand-primary/0 to-n-brand-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
 
     <!-- Top: Priority, ID & Indicators -->
     <div class="flex items-center justify-between gap-2 relative z-10">
@@ -246,20 +243,6 @@ const dynamicAttributes = computed(() => {
             <span>{{ leadScore }}</span>
           </span>
         </span>
-      </div>
-
-      <div class="flex items-center gap-1.5">
-        <SLACardLabel
-          v-if="hasSlaPolicyId && viewPrefs.showSla"
-          :chat="conversation"
-        />
-        <div v-if="hasUnread" class="flex h-5 w-5 animate-bounce">
-          <span
-            class="inline-flex h-full w-full items-center justify-center rounded-full bg-n-brand-primary text-[10px] font-black text-white shadow-lg shadow-n-brand-primary/40"
-          >
-            {{ unreadCount }}
-          </span>
-        </div>
       </div>
     </div>
 

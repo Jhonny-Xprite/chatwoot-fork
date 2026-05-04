@@ -26,7 +26,7 @@ class ComponentMetadata {
       persistencePath: path.join(this.rootPath, 'aiox-memory-layer-mvp', 'data'),
       namespace: 'component-metadata',
     }) : null;
-    
+
     // Component metadata schema version
     this.schemaVersion = '1.0';
   }
@@ -80,7 +80,7 @@ class ComponentMetadata {
       },
       customFields: {},
     };
-    
+
     // Add type-specific fields
     switch (componentType) {
       case 'agent':
@@ -93,7 +93,7 @@ class ComponentMetadata {
             integrations: [],
           },
         };
-        
+
       case 'task':
         return {
           ...baseSchema,
@@ -106,7 +106,7 @@ class ComponentMetadata {
             errorCodes: [],
           },
         };
-        
+
       case 'workflow':
         return {
           ...baseSchema,
@@ -118,7 +118,7 @@ class ComponentMetadata {
             branchingLogic: {},
           },
         };
-        
+
       default:
         return baseSchema;
     }
@@ -134,7 +134,7 @@ class ComponentMetadata {
   async createMetadata(componentType, componentData, context = {}) {
     try {
       const schema = this.getMetadataSchema(componentType);
-      
+
       // Populate metadata
       const metadata = {
         ...schema,
@@ -159,22 +159,22 @@ class ComponentMetadata {
         status: context.status || 'active',
         visibility: context.visibility || 'private',
       };
-      
+
       // Add type-specific data
       this.addTypeSpecificData(componentType, metadata, componentData);
-      
+
       // Save to memory layer
       await this.memoryClient.addMemory({
         type: 'component_metadata',
         component: componentType,
         metadata: metadata,
       });
-      
+
       // Save to file system
       await this.saveMetadataToFile(componentType, metadata.id, metadata);
-      
+
       return metadata;
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to create metadata: ${error.message}`));
       throw error;
@@ -195,7 +195,7 @@ class ComponentMetadata {
           metadata.agentSpecific.integrations = componentData.dependencies || [];
         }
         break;
-        
+
       case 'task':
         if (metadata.taskSpecific) {
           metadata.taskSpecific.agent = componentData.agentName;
@@ -206,7 +206,7 @@ class ComponentMetadata {
           metadata.taskSpecific.errorCodes = componentData.errorCodes || [];
         }
         break;
-        
+
       case 'workflow':
         if (metadata.workflowSpecific) {
           metadata.workflowSpecific.steps = componentData.steps || [];
@@ -234,10 +234,10 @@ class ComponentMetadata {
       if (!metadata) {
         throw new Error(`Metadata not found for ${componentType}: ${componentId}`);
       }
-      
+
       // Apply updates
       Object.assign(metadata, updates);
-      
+
       // Update modified fields
       metadata.modified = {
         timestamp: new Date().toISOString(),
@@ -252,12 +252,12 @@ class ComponentMetadata {
           },
         ],
       };
-      
+
       // Update version if significant change
       if (context.incrementVersion) {
         metadata.version = this.incrementVersion(metadata.version);
       }
-      
+
       // Save to memory layer
       await this.memoryClient.updateMemory({
         type: 'component_metadata',
@@ -265,12 +265,12 @@ class ComponentMetadata {
         id: componentId,
         metadata: metadata,
       });
-      
+
       // Save to file system
       await this.saveMetadataToFile(componentType, componentId, metadata);
-      
+
       return metadata;
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to update metadata: ${error.message}`));
       throw error;
@@ -293,19 +293,19 @@ class ComponentMetadata {
           'metadata.id': componentId,
         },
       });
-      
+
       if (memories && memories.length > 0) {
         return memories[0].metadata;
       }
-      
+
       // Fallback to file system
       const filePath = this.getMetadataFilePath(componentType, componentId);
       if (await fs.pathExists(filePath)) {
         return await fs.readJson(filePath);
       }
-      
+
       return null;
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to get metadata: ${error.message}`));
       return null;
@@ -327,14 +327,14 @@ class ComponentMetadata {
         if (!sourceMetadata.relationships) {
           sourceMetadata.relationships = { dependencies: [], dependents: [], related: [] };
         }
-        
+
         const relationship = {
           type: target.type,
           id: target.id,
           relationshipType,
           timestamp: new Date().toISOString(),
         };
-        
+
         switch (relationshipType) {
           case 'depends-on':
             sourceMetadata.relationships.dependencies.push(relationship);
@@ -346,26 +346,26 @@ class ComponentMetadata {
             sourceMetadata.relationships.related.push(relationship);
             break;
         }
-        
+
         await this.updateMetadata(source.type, source.id, {
           relationships: sourceMetadata.relationships,
         });
       }
-      
+
       // Update target component (reverse relationship)
       const targetMetadata = await this.getMetadata(target.type, target.id);
       if (targetMetadata) {
         if (!targetMetadata.relationships) {
           targetMetadata.relationships = { dependencies: [], dependents: [], related: [] };
         }
-        
+
         const reverseRelationship = {
           type: source.type,
           id: source.id,
           relationshipType: this.getReverseRelationship(relationshipType),
           timestamp: new Date().toISOString(),
         };
-        
+
         switch (reverseRelationship.relationshipType) {
           case 'depends-on':
             targetMetadata.relationships.dependencies.push(reverseRelationship);
@@ -377,12 +377,12 @@ class ComponentMetadata {
             targetMetadata.relationships.related.push(reverseRelationship);
             break;
         }
-        
+
         await this.updateMetadata(target.type, target.id, {
           relationships: targetMetadata.relationships,
         });
       }
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to track relationship: ${error.message}`));
       throw error;
@@ -397,28 +397,28 @@ class ComponentMetadata {
   async searchComponents(criteria = {}) {
     try {
       const filters = {};
-      
+
       // Build filters
       if (criteria.type) {
         filters.component = criteria.type;
       }
-      
+
       if (criteria.tags && criteria.tags.length > 0) {
         filters['metadata.tags'] = { $in: criteria.tags };
       }
-      
+
       if (criteria.status) {
         filters['metadata.status'] = criteria.status;
       }
-      
+
       if (criteria.creator) {
         filters['metadata.created.creator'] = criteria.creator;
       }
-      
+
       if (criteria.text) {
         filters.$text = { $search: criteria.text };
       }
-      
+
       // Search in memory layer
       const memories = await this.memoryClient.searchMemories({
         filters: {
@@ -427,9 +427,9 @@ class ComponentMetadata {
         },
         limit: criteria.limit || 100,
       });
-      
+
       return memories.map(m => m.metadata);
-      
+
     } catch (error) {
       console.error(chalk.red(`Search failed: ${error.message}`));
       return [];
@@ -449,7 +449,7 @@ class ComponentMetadata {
       if (!metadata) {
         return;
       }
-      
+
       // Update usage stats
       if (!metadata.usage) {
         metadata.usage = {
@@ -459,10 +459,10 @@ class ComponentMetadata {
           contexts: [],
         };
       }
-      
+
       metadata.usage.count++;
       metadata.usage.lastUsed = new Date().toISOString();
-      
+
       // Add context if provided
       if (usageData.context) {
         metadata.usage.contexts.push({
@@ -472,16 +472,16 @@ class ComponentMetadata {
           duration: usageData.duration,
           success: usageData.success !== false,
         });
-        
+
         // Keep only last 100 contexts
         if (metadata.usage.contexts.length > 100) {
           metadata.usage.contexts = metadata.usage.contexts.slice(-100);
         }
       }
-      
+
       // Update frequency based on usage patterns
       metadata.usage.frequency = this.calculateFrequency(metadata.usage);
-      
+
       // Save updated metadata
       await this.updateMetadata(componentType, componentId, {
         usage: metadata.usage,
@@ -489,7 +489,7 @@ class ComponentMetadata {
         changeType: 'usage',
         changeDescription: 'Usage analytics updated',
       });
-      
+
       // Also log to memory layer for analytics
       await this.memoryClient.addMemory({
         type: 'component_usage',
@@ -498,7 +498,7 @@ class ComponentMetadata {
         timestamp: new Date().toISOString(),
         ...usageData,
       });
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to collect usage analytics: ${error.message}`));
     }
@@ -516,7 +516,7 @@ class ComponentMetadata {
       if (!metadata) {
         return [];
       }
-      
+
       // Extract version history from changes
       const versionHistory = metadata.modified.changes
         .filter(change => change.type === 'version')
@@ -527,9 +527,9 @@ class ComponentMetadata {
           description: change.description,
           changes: change.fields || [],
         }));
-      
+
       return versionHistory;
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to get version history: ${error.message}`));
       return [];
@@ -542,19 +542,19 @@ class ComponentMetadata {
    */
   extractCapabilities(componentData) {
     const capabilities = [];
-    
+
     if (componentData.commands) {
       capabilities.push(...componentData.commands.map(cmd => `command:${cmd}`));
     }
-    
+
     if (componentData.integrations) {
       capabilities.push(...componentData.integrations.map(int => `integration:${int}`));
     }
-    
+
     if (componentData.features) {
       capabilities.push(...componentData.features);
     }
-    
+
     return capabilities;
   }
 
@@ -568,7 +568,7 @@ class ComponentMetadata {
       'used-by': 'depends-on',
       'related-to': 'related-to',
     };
-    
+
     return reverseMap[relationshipType] || relationshipType;
   }
 
@@ -580,15 +580,15 @@ class ComponentMetadata {
     if (!usage.contexts || usage.contexts.length === 0) {
       return 'never';
     }
-    
+
     // Get usage in last 30 days
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
-    const recentUsage = usage.contexts.filter(ctx => 
+
+    const recentUsage = usage.contexts.filter(ctx =>
       new Date(ctx.timestamp) > thirtyDaysAgo,
     ).length;
-    
+
     if (recentUsage === 0) return 'rarely';
     if (recentUsage < 5) return 'occasionally';
     if (recentUsage < 20) return 'frequently';

@@ -37,4 +37,4 @@ properties:
   logo:
     $ref: '#/components/schemas/portal_logo'
   meta:
-    $ref: '#/components/schemas/portal_meta' 
+    $ref: '#/components/schemas/portal_meta'

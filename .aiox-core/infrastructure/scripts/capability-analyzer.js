@@ -13,7 +13,7 @@ class CapabilityAnalyzer {
     this.rootPath = options.rootPath || process.cwd();
     this.coreDir = path.join(this.rootPath, 'aiox-core');
     this.security = new SecurityChecker();
-    
+
     // Capability categories
     this.categories = {
       error_handling: {
@@ -54,9 +54,9 @@ class CapabilityAnalyzer {
    */
   async analyzeCapabilities(options = {}) {
     const { target_areas = Object.keys(this.categories), currentImplementation } = options;
-    
+
     console.log(chalk.blue('🔍 Analyzing current capabilities...'));
-    
+
     const analysis = {
       timestamp: new Date().toISOString(),
       overall_score: 0,
@@ -69,10 +69,10 @@ class CapabilityAnalyzer {
     // Analyze each category
     for (const category of target_areas) {
       if (!this.categories[category]) continue;
-      
+
       const categoryAnalysis = await this.analyzeCategory(category, currentImplementation);
       analysis.categories[category] = categoryAnalysis;
-      
+
       // Identify strengths and weaknesses
       if (categoryAnalysis.score >= 8) {
         analysis.strengths.push({
@@ -87,17 +87,17 @@ class CapabilityAnalyzer {
           issues: categoryAnalysis.issues,
         });
       }
-      
+
       // Add improvement opportunities
       analysis.improvement_opportunities.push(...categoryAnalysis.opportunities);
     }
 
     // Calculate overall score
     analysis.overall_score = this.calculateOverallScore(analysis.categories);
-    
+
     // Sort opportunities by impact
     analysis.improvement_opportunities.sort((a, b) => b.impact - a.impact);
-    
+
     return analysis;
   }
 
@@ -120,14 +120,14 @@ class CapabilityAnalyzer {
     for (const metric of categoryDef.metrics) {
       const metricResult = await this.analyzeMetric(category, metric, basePath);
       analysis.metrics[metric] = metricResult;
-      
+
       if (metricResult.score < 6) {
         analysis.issues.push({
           metric,
           score: metricResult.score,
           description: metricResult.description,
         });
-        
+
         // Generate improvement opportunity
         if (metricResult.improvement) {
           analysis.opportunities.push({
@@ -151,7 +151,7 @@ class CapabilityAnalyzer {
     // Calculate category score
     const metricScores = Object.values(analysis.metrics).map(m => m.score);
     analysis.score = metricScores.reduce((sum, score) => sum + score, 0) / metricScores.length;
-    
+
     return analysis;
   }
 
@@ -161,12 +161,12 @@ class CapabilityAnalyzer {
    */
   async analyzeMetric(category, metric, basePath) {
     const methodName = `analyze_${category}_${metric}`.replace(/_([a-z])/g, (g) => g[1].toUpperCase());
-    
+
     // Use specific analyzer if available
     if (typeof this[methodName] === 'function') {
       return await this[methodName](basePath);
     }
-    
+
     // Default metric analysis
     return this.defaultMetricAnalysis(category, metric);
   }
@@ -222,7 +222,7 @@ class CapabilityAnalyzer {
     return {
       score,
       description: `Try-catch coverage: ${coverage.toFixed(1)}% (${functionsWithTryCatch}/${totalFunctions} functions)`,
-      improvement: asyncWithoutTryCatch.length > 0 
+      improvement: asyncWithoutTryCatch.length > 0
         ? `Add try-catch blocks to ${asyncWithoutTryCatch.length} async functions`
         : null,
       effort: asyncWithoutTryCatch.length > 10 ? 'high' : 'medium',
@@ -245,7 +245,7 @@ class CapabilityAnalyzer {
       try {
         const content = await fs.readFile(file, 'utf-8');
         const errorMatches = content.match(/throw\s+new\s+Error\([^)]+\)/g) || [];
-        
+
         errorMatches.forEach(match => {
           totalErrors++;
           // Check if error includes context (variables, state, etc.)
@@ -291,16 +291,16 @@ class CapabilityAnalyzer {
     for (const file of files) {
       try {
         const content = await fs.readFile(file, 'utf-8');
-        
+
         // Look for retry patterns
         if (content.match(/retry|retries|attempt|maxAttempts/i)) {
           retryPatterns++;
         }
-        
+
         // Look for network operations
         const networkOps = content.match(/fetch|axios|request|http\.|https\./g) || [];
         networkOperations += networkOps.length;
-        
+
         // Check if network operations have retry
         if (networkOps.length > 0 && !content.match(/retry|retries|attempt/i)) {
           missingRetry.push({
@@ -334,9 +334,9 @@ class CapabilityAnalyzer {
    */
   async generateImprovementPlan(params) {
     const { analysis, request, constraints = {} } = params;
-    
+
     console.log(chalk.blue('📋 Generating improvement plan...'));
-    
+
     const plan = {
       id: `self-imp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       timestamp: new Date().toISOString(),
@@ -351,7 +351,7 @@ class CapabilityAnalyzer {
 
     // Filter opportunities based on request and constraints
     let opportunities = analysis.improvement_opportunities;
-    
+
     if (constraints.max_files) {
       opportunities = opportunities.slice(0, constraints.max_files);
     }
@@ -370,7 +370,7 @@ class CapabilityAnalyzer {
     // Deduplicate
     plan.target_areas = [...new Set(plan.target_areas)];
     plan.affectedFiles = [...new Set(plan.affectedFiles)];
-    
+
     // Calculate effort and risk
     plan.estimatedEffort = this.calculateEffort(plan.changes);
     plan.riskLevel = this.calculateRiskLevel(plan.changes);
@@ -472,7 +472,7 @@ class CapabilityAnalyzer {
     const totalEffort = changes.reduce((sum, change) => {
       return sum + (effortMap[change.risk] || 2);
     }, 0);
-    
+
     if (totalEffort <= 5) return 'low';
     if (totalEffort <= 15) return 'medium';
     return 'high';
@@ -485,7 +485,7 @@ class CapabilityAnalyzer {
   calculateRiskLevel(changes) {
     const hasHighRisk = changes.some(c => c.risk === 'high');
     const mediumRiskCount = changes.filter(c => c.risk === 'medium').length;
-    
+
     if (hasHighRisk || mediumRiskCount > 3) return 'high';
     if (mediumRiskCount > 0) return 'medium';
     return 'low';
@@ -497,13 +497,13 @@ class CapabilityAnalyzer {
    */
   async getJavaScriptFiles(dir) {
     const files = [];
-    
+
     try {
       const entries = await fs.readdir(dir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(dir, entry.name);
-        
+
         if (entry.isDirectory() && !entry.name.startsWith('.') && entry.name !== 'node_modules') {
           files.push(...await this.getJavaScriptFiles(fullPath));
         } else if (entry.isFile() && entry.name.endsWith('.js')) {
@@ -513,7 +513,7 @@ class CapabilityAnalyzer {
     } catch (error) {
       console.error(`Error reading directory ${dir}: ${error.message}`);
     }
-    
+
     return files;
   }
 

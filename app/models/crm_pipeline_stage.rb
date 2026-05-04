@@ -1,7 +1,7 @@
 class CrmPipelineStage < ApplicationRecord
   belongs_to :account
-  belongs_to :pipeline, class_name: 'CrmPipeline'
-  has_many :conversations, foreign_key: 'pipeline_stage_id', dependent: :nullify
+  belongs_to :pipeline, class_name: 'CrmPipeline', inverse_of: :stages
+  has_many :conversations, foreign_key: 'pipeline_stage_id', dependent: :nullify, inverse_of: :pipeline_stage
 
   validates :name, presence: true, uniqueness: { scope: [:account_id, :pipeline_id] }
   validates :position, presence: true
@@ -21,7 +21,7 @@ class CrmPipelineStage < ApplicationRecord
     default_stage = pipeline.stages.where.not(id: id).first
     if default_stage
       count = conversations.count
-      conversations.update_all(pipeline_stage_id: default_stage.id)
+      conversations.update_all(pipeline_stage_id: default_stage.id) # rubocop:disable Rails/SkipsModelValidations
       Rails.logger.info "[CRM] #{count} conversas movidas para o estágio ##{default_stage.id}."
     else
       Rails.logger.warn "[CRM] Nenhum outro estágio disponível no pipeline ##{pipeline_id}. Conversas ficarão sem estágio."

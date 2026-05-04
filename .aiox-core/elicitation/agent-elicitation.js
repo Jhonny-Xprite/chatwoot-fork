@@ -30,7 +30,7 @@ const agentElicitationSteps = [
         smartDefault: {
           type: 'fromAnswer',
           source: 'agentName',
-          transform: (name) => name.split('-').map(w => 
+          transform: (name) => name.split('-').map(w =>
             w.charAt(0).toUpperCase() + w.slice(1),
           ).join(' '),
         },
@@ -55,7 +55,7 @@ const agentElicitationSteps = [
     ],
     required: ['agentName', 'agentTitle', 'whenToUse'],
   },
-  
+
   {
     title: 'Agent Persona & Style',
     description: 'Define how your agent communicates and behaves',
@@ -114,7 +114,7 @@ const agentElicitationSteps = [
     ],
     required: ['personaRole', 'personaStyle', 'personaIdentity'],
   },
-  
+
   {
     title: 'Agent Commands',
     description: 'Define what commands this agent will respond to',
@@ -151,7 +151,7 @@ const agentElicitationSteps = [
       },
     ],
   },
-  
+
   {
     title: 'Dependencies & Resources',
     description: 'Specify what resources this agent needs',
@@ -186,7 +186,7 @@ const agentElicitationSteps = [
       },
     ],
   },
-  
+
   {
     title: 'Security & Access Control',
     description: 'Configure security settings for this agent',
@@ -236,7 +236,7 @@ const agentElicitationSteps = [
       },
     ],
   },
-  
+
   {
     title: 'Advanced Options',
     description: 'Configure advanced agent features',

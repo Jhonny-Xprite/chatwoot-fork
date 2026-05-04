@@ -116,7 +116,7 @@ class VersionTracker {
       await this.saveVersionInfo();
 
       console.log(chalk.green(`✅ Recorded new framework version: ${version}`));
-      
+
       if (migration_required) {
         console.log(chalk.yellow(`⚠️  Migration required from ${this.versionInfo.previous_version} to ${version}`));
       }
@@ -219,28 +219,28 @@ class VersionTracker {
 
       // Check semantic version compatibility
       const versionDiff = semver.diff(fromVersion, toVersion);
-      
+
       switch (versionDiff) {
         case 'patch':
           compatibility.compatible = true;
           compatibility.risk_level = 'low';
           compatibility.estimated_effort = 'minimal';
           break;
-          
+
         case 'minor':
           compatibility.compatible = true;
           compatibility.migration_required = toVersionInfo?.migration_required || false;
           compatibility.risk_level = 'low';
           compatibility.estimated_effort = 'low';
           break;
-          
+
         case 'major':
           compatibility.migration_required = true;
           compatibility.risk_level = 'high';
           compatibility.estimated_effort = 'high';
           compatibility.compatible = false;
           break;
-          
+
         case 'premajor':
         case 'preminor':
         case 'prepatch':
@@ -253,7 +253,7 @@ class VersionTracker {
 
       // Collect breaking changes in the path
       const versionsInPath = this.getVersionsInPath(fromVersion, toVersion);
-      
+
       for (const version of versionsInPath) {
         if (version.breaking_changes?.length > 0) {
           compatibility.breaking_changes.push(...version.breaking_changes);
@@ -280,7 +280,7 @@ class VersionTracker {
   async deprecateVersion(version, deprecationInfo = {}) {
     try {
       const versionEntry = this.versionInfo.versions.find(v => v.version === version);
-      
+
       if (!versionEntry) {
         throw new Error(`Version ${version} not found`);
       }
@@ -328,7 +328,7 @@ class VersionTracker {
 
     try {
       const versionsInPath = this.getVersionsInPath(fromVersion, toVersion);
-      
+
       for (const version of versionsInPath) {
         if (version.migration_required) {
           const step = {
@@ -341,11 +341,11 @@ class VersionTracker {
             prerequisites: version.migration_prerequisites || [],
             rollback_supported: true
           };
-          
+
           path.steps.push(step);
           path.total_migrations++;
           path.estimated_duration += step.estimated_time;
-          
+
           if (step.risk_level === 'high') {
             path.risk_assessment = 'high';
           } else if (step.risk_level === 'medium' && path.risk_assessment === 'low') {
@@ -400,14 +400,14 @@ class VersionTracker {
     // Analyze version distribution
     this.versionInfo.versions.forEach(version => {
       report.version_distribution[version.status]++;
-      
+
       if (version.migration_required) {
         report.migration_summary.total_migrations++;
       }
-      
+
       if (version.breaking_changes?.length > 0) {
         report.breaking_changes_summary.total_breaking_versions++;
-        
+
         if (semver.gte(version.version, semver.major(this.currentVersion) + '.0.0')) {
           report.breaking_changes_summary.recent_breaking_changes.push({
             version: version.version,
@@ -501,7 +501,7 @@ class VersionTracker {
     const versions = this.versionInfo.versions.filter(v => {
       return semver.gt(v.version, fromVersion) && semver.lte(v.version, toVersion);
     });
-    
+
     return versions.sort((a, b) => semver.compare(a.version, b.version));
   }
 
@@ -510,14 +510,14 @@ class VersionTracker {
     const baseTime = 30; // minutes
     const breakingChangeMultiplier = version.breaking_changes?.length || 0;
     const componentMultiplier = version.components_modified?.length || 0;
-    
+
     return baseTime + (breakingChangeMultiplier * 15) + (componentMultiplier * 5);
   }
 
   assessMigrationRisk(version) {
     const breakingChanges = version.breaking_changes?.length || 0;
     const componentsModified = version.components_modified?.length || 0;
-    
+
     if (breakingChanges > 5 || componentsModified > 20) return 'high';
     if (breakingChanges > 2 || componentsModified > 10) return 'medium';
     return 'low';

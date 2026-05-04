@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
+ActiveRecord::Schema[7.1].define(version: 2026_05_02_000000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -659,6 +659,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
     t.string "country_code", default: ""
     t.boolean "blocked", default: false, null: false
     t.bigint "company_id"
+    t.integer "lead_score", default: 0
     t.index "lower((email)::text), account_id", name: "index_contacts_on_lower_email_account_id"
     t.index ["account_id", "contact_type"], name: "index_contacts_on_account_id_and_contact_type"
     t.index ["account_id", "email", "phone_number", "identifier"], name: "index_contacts_on_nonempty_fields", where: "(((email)::text <> ''::text) OR ((phone_number)::text <> ''::text) OR ((identifier)::text <> ''::text))"
@@ -669,6 +670,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
     t.index ["company_id"], name: "index_contacts_on_company_id"
     t.index ["email", "account_id"], name: "uniq_email_per_account_contact", unique: true
     t.index ["identifier", "account_id"], name: "uniq_identifier_per_account_contact", unique: true
+    t.index ["lead_score"], name: "index_contacts_on_lead_score"
     t.index ["name", "email", "phone_number", "identifier"], name: "index_contacts_on_name_email_phone_number_identifier", opclass: :gin_trgm_ops, using: :gin
     t.index ["phone_number", "account_id"], name: "index_contacts_on_phone_number_and_account_id"
   end
@@ -712,9 +714,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
     t.datetime "waiting_since"
     t.text "cached_label_list"
     t.bigint "assignee_agent_bot_id"
+    t.bigint "pipeline_id"
+    t.bigint "pipeline_stage_id"
     t.index ["account_id", "display_id"], name: "index_conversations_on_account_id_and_display_id", unique: true
     t.index ["account_id", "id"], name: "index_conversations_on_id_and_account_id"
     t.index ["account_id", "inbox_id", "status", "assignee_id"], name: "conv_acid_inbid_stat_asgnid_idx"
+    t.index ["account_id", "pipeline_stage_id", "last_activity_at"], name: "index_conversations_on_crm_pipeline_lookup", order: { last_activity_at: :desc }
     t.index ["account_id"], name: "index_conversations_on_account_id"
     t.index ["assignee_id", "account_id"], name: "index_conversations_on_assignee_id_and_account_id"
     t.index ["campaign_id"], name: "index_conversations_on_campaign_id"
@@ -752,6 +757,48 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
     t.index ["account_id"], name: "index_copilot_threads_on_account_id"
     t.index ["assistant_id"], name: "index_copilot_threads_on_assistant_id"
     t.index ["user_id"], name: "index_copilot_threads_on_user_id"
+  end
+
+  create_table "crm_lead_scoring_rules", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "attribute_model", null: false
+    t.string "attribute_key", null: false
+    t.string "filter_operator", null: false
+    t.jsonb "values", default: []
+    t.integer "score", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_crm_lead_scoring_rules_on_account_id"
+  end
+
+  create_table "crm_pipeline_stages", force: :cascade do |t|
+    t.string "name", null: false
+    t.string "color", default: "#6366f1"
+    t.integer "position", default: 0
+    t.boolean "active", default: true
+    t.bigint "account_id", null: false
+    t.bigint "pipeline_id", null: false
+    t.integer "conversations_count", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "pipeline_id", "name"], name: "uniq_name_per_pipeline_account", unique: true
+    t.index ["account_id"], name: "index_crm_pipeline_stages_on_account_id"
+    t.index ["pipeline_id", "position"], name: "index_crm_pipeline_stages_on_pipeline_id_and_position"
+    t.index ["pipeline_id"], name: "index_crm_pipeline_stages_on_pipeline_id"
+  end
+
+  create_table "crm_pipelines", force: :cascade do |t|
+    t.string "name", null: false
+    t.integer "position", default: 0
+    t.boolean "active", default: true
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "is_default", default: false, null: false
+    t.index ["account_id", "is_default"], name: "index_crm_pipelines_on_account_id_and_is_default"
+    t.index ["account_id", "name"], name: "uniq_name_per_account_pipeline", unique: true
+    t.index ["account_id", "position"], name: "index_crm_pipelines_on_account_id_and_position"
+    t.index ["account_id"], name: "index_crm_pipelines_on_account_id"
   end
 
   create_table "csat_survey_responses", force: :cascade do |t|
@@ -832,6 +879,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
     t.text "processing_errors"
     t.integer "total_records"
     t.integer "processed_records"
+    t.json "mapping", default: {}
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_data_imports_on_account_id"
@@ -1319,6 +1367,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_27_094500) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "conversations", "crm_pipeline_stages", column: "pipeline_stage_id"
+  add_foreign_key "conversations", "crm_pipelines", column: "pipeline_id"
+  add_foreign_key "crm_lead_scoring_rules", "accounts"
+  add_foreign_key "crm_pipeline_stages", "accounts"
+  add_foreign_key "crm_pipeline_stages", "crm_pipelines", column: "pipeline_id"
+  add_foreign_key "crm_pipelines", "accounts"
   add_foreign_key "inboxes", "portals"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").

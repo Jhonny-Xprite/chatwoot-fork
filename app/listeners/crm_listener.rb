@@ -9,11 +9,12 @@ class CrmListener < BaseListener
     previous_labels, current_labels = changed_attributes[:label_list]
     new_labels = current_labels - (previous_labels || [])
 
-    if new_labels.include?('GADS-Qualified')
-      move_to_stage(conversation, 'Qualified')
-    end
+    return unless new_labels.include?('GADS-Qualified')
+
+    move_to_stage(conversation, 'Qualified')
   end
 
+  # rubocop:disable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
   def message_created(event)
     message = event.data[:message]
     conversation = message.conversation
@@ -22,30 +23,31 @@ class CrmListener < BaseListener
 
     # Check for GADS Masterclass automation triggers
     # Trigger 1: Waitlist registration (specific keyword or button)
-    if message.content.to_s.downcase.include?('lista de espera') || 
+    if message.content.to_s.downcase.include?('lista de espera') ||
        message.content_attributes.dig('data', 'button_text')&.downcase&.include?('lista de espera')
       move_to_stage(conversation, 'Waitlist')
     end
 
     # Trigger 2: Registration completed
-    if message.content.to_s.downcase.include?('inscrito') || 
+    if message.content.to_s.downcase.include?('inscrito') ||
        message.content_attributes.dig('data', 'button_text')&.downcase&.include?('finalizar inscrição')
       move_to_stage(conversation, 'Registration')
     end
 
     # Trigger 3: Joined Groups
-    if message.content.to_s.downcase.include?('entrei no grupo') || 
+    if message.content.to_s.downcase.include?('entrei no grupo') ||
        message.content_attributes.dig('data', 'button_text')&.downcase&.include?('acessar grupo')
       move_to_stage(conversation, 'Groups')
     end
   end
+  # rubocop:enable Metrics/AbcSize, Metrics/CyclomaticComplexity, Metrics/PerceivedComplexity
 
   private
 
   def move_to_stage(conversation, stage_name)
     # Find the stage in the conversation's account
     stage = conversation.account.crm_pipeline_stages.find_by('name ILIKE ?', stage_name)
-    
+
     return unless stage
 
     # Move conversation to the stage

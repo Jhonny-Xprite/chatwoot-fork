@@ -5,9 +5,7 @@ task before_assets_precompile: :environment do
     ENV.fetch('SKIP_PRECOMPILE_PNPM_INSTALL', false)
   )
 
-  unless skip_pnpm_install
-    system('pnpm install') || abort('pnpm install failed before assets:precompile')
-  end
+  system('pnpm install') || abort('pnpm install failed before assets:precompile') unless skip_pnpm_install
 
   system('echo "-------------- Bulding SDK for Production --------------"')
   system('pnpm run build:sdk') || abort('pnpm run build:sdk failed before assets:precompile')

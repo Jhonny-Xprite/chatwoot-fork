@@ -1,7 +1,7 @@
 class CrmPipeline < ApplicationRecord
   belongs_to :account
   has_many :stages, class_name: 'CrmPipelineStage', foreign_key: 'pipeline_id', dependent: :delete_all, inverse_of: :pipeline
-  has_many :conversations, foreign_key: 'pipeline_id', dependent: :nullify
+  has_many :conversations, foreign_key: 'pipeline_id', dependent: :nullify, inverse_of: :pipeline
 
   validates :name, presence: true, uniqueness: { scope: :account_id }
   validates :position, presence: true
@@ -15,7 +15,7 @@ class CrmPipeline < ApplicationRecord
   private
 
   def ensure_default_pipeline
-    return unless account.present?
+    return if account.blank?
 
     self.is_default = true if account.crm_pipelines.where.not(id: id).none?
     self.position ||= (account.crm_pipelines.maximum(:position) || -1) + 1
@@ -23,7 +23,7 @@ class CrmPipeline < ApplicationRecord
 
   def clear_other_default_pipelines
     # Remove o estado de padrão dos outros funis desta conta de forma segura
-    account.crm_pipelines.where.not(id: id).where(is_default: true).update_all(is_default: false)
+    account.crm_pipelines.where.not(id: id).where(is_default: true).update_all(is_default: false) # rubocop:disable Rails/SkipsModelValidations
   end
 
   def migrate_conversations_and_ensure_default
@@ -35,22 +35,20 @@ class CrmPipeline < ApplicationRecord
     if target_pipeline
       # 2. Busca o primeiro estágio disponível no funil de destino
       target_stage = target_pipeline.stages.first
-      
+
       if target_stage
         # 3. Migra todas as conversas/leads para o novo funil/estágio via SQL direto (ultra seguro)
-        Conversation.where(pipeline_id: id).update_all(
-          pipeline_id: target_pipeline.id, 
+        Conversation.where(pipeline_id: id).update_all( # rubocop:disable Rails/SkipsModelValidations
+          pipeline_id: target_pipeline.id,
           pipeline_stage_id: target_stage.id
         )
       end
 
       # 4. Se este funil era o padrão, passa o bastão para o próximo
-      if is_default?
-        target_pipeline.update_column(:is_default, true)
-      end
+      target_pipeline.update_column(:is_default, true) if is_default? # rubocop:disable Rails/SkipsModelValidations
     else
       # Se não houver mais nenhum funil, apenas limpa as referências para evitar erro de FK
-      Conversation.where(pipeline_id: id).update_all(pipeline_id: nil, pipeline_stage_id: nil)
+      Conversation.where(pipeline_id: id).update_all(pipeline_id: nil, pipeline_stage_id: nil) # rubocop:disable Rails/SkipsModelValidations
     end
   rescue StandardError => e
     Rails.logger.error "[CRM] Erro durante a migração preventiva da pipeline ##{id}: #{e.message}"

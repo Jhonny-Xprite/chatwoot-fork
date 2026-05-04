@@ -17,10 +17,10 @@ class BackupManager {
     this.backupDir = path.join(this.rootPath, '.aiox', 'backup');
     this.maxBackups = options.maxBackups || 10;
     this.compressionLevel = options.compressionLevel || 6;
-    
+
     // Active backup tracking
     this.activeBackup = null;
-    
+
     // Backup metadata
     this.metadataFile = path.join(this.backupDir, 'backup-metadata.json');
   }
@@ -32,7 +32,7 @@ class BackupManager {
   async initialize() {
     try {
       await fs.mkdir(this.backupDir, { recursive: true });
-      
+
       // Initialize metadata if not exists
       try {
         await fs.access(this.metadataFile);
@@ -60,11 +60,11 @@ class BackupManager {
    */
   async createFullBackup(params) {
     const { files, metadata = {} } = params;
-    
+
     await this.initialize();
-    
+
     console.log(chalk.blue('📦 Creating backup...'));
-    
+
     const backupId = this.generateBackupId();
     const backupPath = path.join(this.backupDir, `${backupId}.tar.gz`);
     const backupInfo = {
@@ -87,12 +87,12 @@ class BackupManager {
       for (const file of files) {
         const relPath = path.relative(this.rootPath, file);
         const tempPath = path.join(tempDir, relPath);
-        
+
         await fs.mkdir(path.dirname(tempPath), { recursive: true });
-        
+
         try {
           await fs.copyFile(file, tempPath);
-          
+
           // Calculate checksum
           const content = await fs.readFile(file);
           const checksum = crypto.createHash('sha256').update(content).digest('hex');
@@ -128,10 +128,10 @@ class BackupManager {
 
       // Update metadata
       await this.addBackupToMetadata(backupInfo);
-      
+
       // Set as active backup
       this.activeBackup = backupId;
-      
+
       // Clean old backups
       await this.cleanOldBackups();
 
@@ -145,7 +145,7 @@ class BackupManager {
       try {
         await fs.unlink(backupPath);
       } catch {}
-      
+
       throw new Error(`Backup creation failed: ${error.message}`);
     }
   }
@@ -158,9 +158,9 @@ class BackupManager {
    */
   async restoreBackup(backupId, options = {}) {
     const { targetPath = this.rootPath, dryRun = false } = options;
-    
+
     console.log(chalk.blue(`🔄 Restoring backup: ${backupId}`));
-    
+
     const result = {
       success: true,
       backupId,
@@ -173,13 +173,13 @@ class BackupManager {
       // Load backup metadata
       const metadata = await this.loadMetadata();
       const backupInfo = metadata.backups.find(b => b.id === backupId);
-      
+
       if (!backupInfo) {
         throw new Error(`Backup not found: ${backupId}`);
       }
 
       const backupPath = path.join(this.backupDir, `${backupId}.tar.gz`);
-      
+
       // Verify backup exists
       try {
         await fs.access(backupPath);
@@ -207,7 +207,7 @@ class BackupManager {
         try {
           const content = await fs.readFile(tempFile);
           const actualChecksum = crypto.createHash('sha256').update(content).digest('hex');
-          
+
           if (actualChecksum !== expectedChecksum) {
             result.warnings.push(`Checksum mismatch for ${relPath}`);
           }
@@ -221,21 +221,21 @@ class BackupManager {
         for (const relPath of manifest.files) {
           const sourcePath = path.join(restoreTemp, relPath);
           const destPath = path.join(targetPath, relPath);
-          
+
           try {
             // Create backup of current file if it exists
             try {
               await fs.access(destPath);
               await fs.copyFile(destPath, `${destPath}.pre-restore`);
             } catch {}
-            
+
             // Ensure directory exists
             await fs.mkdir(path.dirname(destPath), { recursive: true });
-            
+
             // Restore file
             await fs.copyFile(sourcePath, destPath);
             result.restored_files.push(relPath);
-            
+
           } catch (error) {
             result.failed_files.push({
               file: relPath,
@@ -278,21 +278,21 @@ class BackupManager {
    */
   async emergencyRestore() {
     console.log(chalk.red('🚨 EMERGENCY RESTORE INITIATED'));
-    
+
     if (!this.activeBackup) {
       // Find most recent backup
       const metadata = await this.loadMetadata();
       const backups = metadata.backups
         .filter(b => b.status === 'completed')
         .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-      
+
       if (backups.length === 0) {
         throw new Error('No backups available for emergency restore');
       }
-      
+
       this.activeBackup = backups[0].id;
     }
-    
+
     console.log(chalk.yellow(`Restoring backup: ${this.activeBackup}`));
     return await this.restoreBackup(this.activeBackup);
   }
@@ -310,15 +310,15 @@ class BackupManager {
     if (filter.status) {
       backups = backups.filter(b => b.status === filter.status);
     }
-    
+
     if (filter.after) {
       const afterDate = new Date(filter.after);
       backups = backups.filter(b => new Date(b.timestamp) > afterDate);
     }
-    
+
     if (filter.metadata) {
       backups = backups.filter(b => {
-        return Object.entries(filter.metadata).every(([key, value]) => 
+        return Object.entries(filter.metadata).every(([key, value]) =>
           b.metadata[key] === value,
         );
       });
@@ -346,26 +346,26 @@ class BackupManager {
     try {
       const backupPath = path.join(this.backupDir, `${backupId}.tar.gz`);
       await fs.unlink(backupPath);
-      
+
       // Remove from metadata
       const metadata = await this.loadMetadata();
       const index = metadata.backups.findIndex(b => b.id === backupId);
-      
+
       if (index !== -1) {
         const backup = metadata.backups[index];
         metadata.statistics.total_size -= backup.size;
         metadata.backups.splice(index, 1);
         await this.saveMetadata(metadata);
       }
-      
+
       // Clear active backup if deleted
       if (this.activeBackup === backupId) {
         this.activeBackup = null;
       }
-      
+
       console.log(chalk.gray(`Deleted backup: ${backupId}`));
       return true;
-      
+
     } catch (error) {
       console.error(chalk.red(`Failed to delete backup: ${error.message}`));
       return false;
@@ -380,11 +380,11 @@ class BackupManager {
   async getBackupDetails(backupId) {
     const metadata = await this.loadMetadata();
     const backup = metadata.backups.find(b => b.id === backupId);
-    
+
     if (!backup) {
       throw new Error(`Backup not found: ${backupId}`);
     }
-    
+
     return backup;
   }
 
@@ -395,7 +395,7 @@ class BackupManager {
    */
   async verifyBackup(backupId) {
     console.log(chalk.blue(`🔍 Verifying backup: ${backupId}`));
-    
+
     const result = {
       valid: true,
       backupId,
@@ -405,7 +405,7 @@ class BackupManager {
 
     try {
       const backupPath = path.join(this.backupDir, `${backupId}.tar.gz`);
-      
+
       // Check file exists
       try {
         await fs.access(backupPath);
@@ -422,7 +422,7 @@ class BackupManager {
           file: backupPath,
           onentry: entry => entries.push(entry.path),
         });
-        
+
         if (!entries.includes('./backup-manifest.json')) {
           result.valid = false;
           result.errors.push('Missing backup manifest');
@@ -487,11 +487,11 @@ class BackupManager {
    */
   async addBackupToMetadata(backupInfo) {
     const metadata = await this.loadMetadata();
-    
+
     metadata.backups.push(backupInfo);
     metadata.statistics.total_backups++;
     metadata.statistics.total_size += backupInfo.size;
-    
+
     await this.saveMetadata(metadata);
   }
 
@@ -507,11 +507,11 @@ class BackupManager {
 
     if (backups.length > this.maxBackups) {
       const toDelete = backups.slice(this.maxBackups);
-      
+
       for (const backup of toDelete) {
         await this.deleteBackup(backup.id);
       }
-      
+
       console.log(chalk.gray(`Cleaned ${toDelete.length} old backups`));
     }
   }
@@ -534,12 +534,12 @@ class BackupManager {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = bytes;
     let unitIndex = 0;
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
       size /= 1024;
       unitIndex++;
     }
-    
+
     return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 
@@ -552,25 +552,25 @@ class BackupManager {
   async exportBackup(backupId, exportPath) {
     const backupPath = path.join(this.backupDir, `${backupId}.tar.gz`);
     const metadataPath = path.join(this.backupDir, `${backupId}-metadata.json`);
-    
+
     try {
       // Copy backup file
       await fs.copyFile(backupPath, exportPath);
-      
+
       // Export metadata
       const metadata = await this.getBackupDetails(backupId);
       await fs.writeFile(
         metadataPath,
         JSON.stringify(metadata, null, 2),
       );
-      
+
       return {
         success: true,
         exported: exportPath,
         metadata: metadataPath,
         size: metadata.size,
       };
-      
+
     } catch (error) {
       throw new Error(`Export failed: ${error.message}`);
     }
@@ -585,19 +585,19 @@ class BackupManager {
   async importBackup(importPath, metadata) {
     const backupId = metadata.id || this.generateBackupId();
     const backupPath = path.join(this.backupDir, `${backupId}.tar.gz`);
-    
+
     try {
       // Copy backup file
       await fs.copyFile(importPath, backupPath);
-      
+
       // Update metadata
       metadata.id = backupId;
       metadata.imported = new Date().toISOString();
-      
+
       await this.addBackupToMetadata(metadata);
-      
+
       return backupId;
-      
+
     } catch (error) {
       throw new Error(`Import failed: ${error.message}`);
     }

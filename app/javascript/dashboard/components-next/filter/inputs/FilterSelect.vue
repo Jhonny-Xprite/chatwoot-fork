@@ -8,7 +8,7 @@ import DropdownItem from 'next/dropdown-menu/base/DropdownItem.vue';
 
 import Button from 'next/button/Button.vue';
 
-// [{label, icon, value}]
+// [{label, icon, thumbnail, value}]
 const props = defineProps({
   options: {
     type: Array,
@@ -49,6 +49,7 @@ const selectedOption = computed(() => {
 
 const iconToRender = computed(() => {
   if (props.hideIcon) return null;
+  if (selectedOption.value.thumbnail) return null;
   return selectedOption.value.icon || 'i-lucide-chevron-down';
 });
 
@@ -74,7 +75,9 @@ const onToggle = toggle => {
           slate
           :variant
           :icon="iconToRender"
-          :trailing-icon="selectedOption.icon ? false : true"
+          :trailing-icon="
+            selectedOption.icon || selectedOption.thumbnail ? false : true
+          "
           :label="label || (hideLabel ? null : selectedOption.label)"
           @click="onToggle(toggle)"
         />

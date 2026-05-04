@@ -79,7 +79,7 @@ class PerformanceAnalyzer {
       // Analyze each component
       for (const component of components) {
         const componentAnalysis = await this.analyzeComponentPerformance(component);
-        
+
         // Aggregate results
         analysis.bottlenecks.push(...componentAnalysis.bottlenecks);
         analysis.optimization_opportunities.push(...componentAnalysis.optimizations);
@@ -88,7 +88,7 @@ class PerformanceAnalyzer {
         analysis.code_quality_issues.push(...componentAnalysis.quality_issues);
         analysis.file_size_issues.push(...componentAnalysis.file_size_issues);
         analysis.complexity_issues.push(...componentAnalysis.complexity_issues);
-        
+
         analysis.metrics.total_files_analyzed++;
       }
 
@@ -228,7 +228,7 @@ class PerformanceAnalyzer {
           matches.forEach(match => {
             let severity = 'medium';
             let recommendation = 'Optimize memory usage';
-            
+
             if (match.includes('new Array')) {
               severity = 'high';
               recommendation = 'Use array literals or streaming for large datasets';
@@ -270,7 +270,7 @@ class PerformanceAnalyzer {
           matches.forEach(match => {
             let severity = 'low';
             let recommendation = 'Remove or optimize';
-            
+
             if (match.includes('console.log')) {
               recommendation = 'Remove console.log statements from production code';
             } else if (match.includes('debugger')) {
@@ -312,7 +312,7 @@ class PerformanceAnalyzer {
           matches.forEach(match => {
             let severity = 'medium';
             let recommendation = 'Optimize loop structure';
-            
+
             if (match.includes('.length')) {
               recommendation = 'Cache array length in variable before loop';
             } else if (match.includes('while(true)')) {
@@ -434,12 +434,12 @@ class PerformanceAnalyzer {
    */
   async findDeadCode(content, component) {
     const issues = [];
-    
+
     // This is a simplified implementation
     // A full implementation would analyze the entire codebase for usage
     const functions = this.extractFunctions(content);
     const exports = this.extractExports(content);
-    
+
     // Check for functions that are defined but never called within the file
     functions.forEach(func => {
       if (!func.name.startsWith('_') && !exports.includes(func.name)) {
@@ -473,7 +473,7 @@ class PerformanceAnalyzer {
       const matches = [...line.matchAll(functionRegex)];
       matches.forEach(match => {
         const name = match[1] || match[2] || match[3] || 'anonymous';
-        
+
         // Calculate function metrics (simplified)
         const funcInfo = {
           name,
@@ -571,9 +571,9 @@ class PerformanceAnalyzer {
   estimateComplexity(lines, startIndex) {
     let complexity = 1; // Base complexity
     const complexityKeywords = ['if', 'else', 'while', 'for', 'switch', 'case', 'catch', '&&', '||', '?'];
-    
+
     const functionLines = lines.slice(startIndex, startIndex + this.estimateFunctionLength(lines, startIndex));
-    
+
     functionLines.forEach(line => {
       complexityKeywords.forEach(keyword => {
         const matches = line.match(new RegExp(`\\b${keyword}\\b`, 'g'));
@@ -592,9 +592,9 @@ class PerformanceAnalyzer {
   estimateNestingDepth(lines, startIndex) {
     let maxDepth = 0;
     let currentDepth = 0;
-    
+
     const functionLines = lines.slice(startIndex, startIndex + this.estimateFunctionLength(lines, startIndex));
-    
+
     functionLines.forEach(line => {
       for (const char of line) {
         if (char === '{') {
@@ -730,7 +730,7 @@ class PerformanceAnalyzer {
   shouldAnalyzeComponent(component) {
     const analyzableTypes = ['utility', 'task'];
     const analyzableExtensions = ['.js', '.mjs', '.ts'];
-    
+
     if (!analyzableTypes.includes(component.type)) {
       return false;
     }

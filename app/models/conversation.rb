@@ -59,8 +59,10 @@ class Conversation < ApplicationRecord
   include ActivityMessageHandler
   include UrlHelper
 
-  belongs_to :pipeline, class_name: 'CrmPipeline', optional: true
-  belongs_to :pipeline_stage, class_name: 'CrmPipelineStage', counter_cache: true, optional: true
+  CONVERSATION_CREATED = 'conversation.created'.freeze
+
+  belongs_to :pipeline, class_name: 'CrmPipeline', optional: true, inverse_of: :conversations
+  belongs_to :pipeline_stage, class_name: 'CrmPipelineStage', counter_cache: true, optional: true, inverse_of: :conversations
   include SortHandler
   include PushDataHelper
   include ConversationMuteHelpers
@@ -104,7 +106,8 @@ class Conversation < ApplicationRecord
     return all if query.blank?
 
     joins(:contact).where(
-      'conversations.display_id::text ILIKE :query OR contacts.name ILIKE :query OR contacts.email ILIKE :query OR contacts.phone_number ILIKE :query',
+      'conversations.display_id::text ILIKE :query OR contacts.name ILIKE :query OR ' \
+      'contacts.email ILIKE :query OR contacts.phone_number ILIKE :query',
       query: "%#{query}%"
     )
   }

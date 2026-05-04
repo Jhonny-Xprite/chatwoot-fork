@@ -132,7 +132,7 @@ class DiffGenerator {
    */
   generateDiffSummary(diff) {
     const lines = [];
-    
+
     lines.push(this.colors.header('=== Modification Summary ==='));
     lines.push('');
 
@@ -200,7 +200,7 @@ class DiffGenerator {
       }
     } else if (typeof original === 'object' && typeof modified === 'object') {
       const allKeys = new Set([...Object.keys(original), ...Object.keys(modified)]);
-      
+
       for (const key of allKeys) {
         if (!original.hasOwnProperty(key)) {
           changes.push({ type: 'added', key, value: modified[key] });
@@ -254,7 +254,7 @@ class DiffGenerator {
         colorized.push(this.colors.removed(`-${lineNum}${line.substring(1)}`));
         lineNumOriginal++;
       } else if (line.startsWith(' ')) {
-        const lineNum = showLineNumbers ? 
+        const lineNum = showLineNumbers ?
           `${lineNumOriginal.toString().padStart(4)}: ` : '';
         colorized.push(this.colors.unchanged(` ${lineNum}${line.substring(1)}`));
         lineNumOriginal++;

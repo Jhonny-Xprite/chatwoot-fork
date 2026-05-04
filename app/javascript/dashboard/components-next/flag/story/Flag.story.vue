@@ -58,15 +58,15 @@ const AllFlags = {
       </label>
 
       <div class="grid grid-cols-2 gap-4 p-4 border rounded border-n-strong md:grid-cols-3 lg:grid-cols-4">
-        <div 
-          v-for="country in countries" 
+        <div
+          v-for="country in countries"
           :key="country.id"
           class="flex items-center gap-2 px-4 py-2 border rounded border-n-strong"
         >
-          <Flag 
-            :country="country.id" 
+          <Flag
+            :country="country.id"
             :squared="isSquared"
-            class="size-6" 
+            class="size-6"
           />
           <span class="text-sm">{{ country.name }}</span>
         </div>

@@ -15,4 +15,4 @@ properties:
           description: Number of articles in this locale
         categories_count:
           type: integer
-          description: Number of categories in this locale 
+          description: Number of categories in this locale

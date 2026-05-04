@@ -84,7 +84,7 @@ class SecurityChecker {
         // Check if it's in a safe context
         let isSafe = false;
         const patternName = pattern.source.split('\\')[0];
-        
+
         if (this.safePatterns[patternName]) {
           for (const safePattern of this.safePatterns[patternName]) {
             if (code.match(safePattern)) {
@@ -146,7 +146,7 @@ class SecurityChecker {
 
     try {
       const parsed = yaml.load(yamlContent);
-      
+
       // Check for dangerous YAML features
       if (yamlContent.includes('!!') && !yamlContent.includes('!!str')) {
         results.warnings.push({
@@ -157,7 +157,7 @@ class SecurityChecker {
 
       // Validate structure
       this.validateYAMLStructure(parsed, results);
-      
+
     } catch (error) {
       results.valid = false;
       results.errors.push({
@@ -176,7 +176,7 @@ class SecurityChecker {
     if (typeof obj === 'object' && obj !== null) {
       for (const [key, value] of Object.entries(obj)) {
         const currentPath = path ? `${path}.${key}` : key;
-        
+
         // Check for command injection in string values
         if (typeof value === 'string') {
           for (const pattern of this.commandInjectionPatterns) {
@@ -189,7 +189,7 @@ class SecurityChecker {
             }
           }
         }
-        
+
         // Recurse for nested objects
         if (typeof value === 'object') {
           this.validateYAMLStructure(value, results, currentPath);
@@ -277,12 +277,12 @@ class SecurityChecker {
         // Allow only alphanumeric, dash, underscore, and dot
         sanitized = sanitized.replace(/[^a-zA-Z0-9\-_\.]/g, '');
         break;
-      
+
       case 'identifier':
         // Allow only alphanumeric, dash, and underscore
         sanitized = sanitized.replace(/[^a-zA-Z0-9\-_]/g, '');
         break;
-      
+
       case 'yaml':
         // Escape special YAML characters
         sanitized = sanitized
@@ -291,7 +291,7 @@ class SecurityChecker {
           .replace(/>/g, '\\>')
           .replace(/</g, '\\<');
         break;
-      
+
       case 'general':
       default:
         // Basic HTML/script escaping

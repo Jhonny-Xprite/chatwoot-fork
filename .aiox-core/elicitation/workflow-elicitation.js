@@ -30,7 +30,7 @@ const workflowElicitationSteps = [
         smartDefault: {
           type: 'fromAnswer',
           source: 'workflowId',
-          transform: (id) => id.split('-').map(w => 
+          transform: (id) => id.split('-').map(w =>
             w.charAt(0).toUpperCase() + w.slice(1),
           ).join(' '),
         },

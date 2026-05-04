@@ -383,8 +383,8 @@ zh:
       home: 首页
       last_updated_on: 最近更新时间为 %{last_updated_on}
       view_all_articles: 查看全部
-      article: 文章
-      articles: 文章
+      article: 文�
+      articles: 文�
       author: 作者
       authors: 作者
       other: 其他
@@ -400,7 +400,7 @@ zh:
         system: 系统
         light: 浅色
         dark: 暗色
-      featured_articles: 精选文章
+      featured_articles: 精选文�
       uncategorized: 未分类
     404:
       title: 页面不存在

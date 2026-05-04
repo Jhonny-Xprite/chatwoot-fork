@@ -102,7 +102,7 @@ class UsageTracker {
    */
   async trackUsageChanges(componentId, baselineAnalysis) {
     const currentAnalysis = await this.analyzeComponentUsage(componentId);
-    
+
     const changes = {
       component_id: componentId,
       comparison_timestamp: new Date().toISOString(),
@@ -175,7 +175,7 @@ class UsageTracker {
     };
 
     const componentsToAnalyze = componentIds || await this.getAllTrackedComponents();
-    
+
     for (const componentId of componentsToAnalyze) {
       try {
         const analysis = await this.getOrAnalyzeUsage(componentId);
@@ -251,7 +251,7 @@ class UsageTracker {
    */
   async scanFile(filePath, component) {
     const references = [];
-    
+
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const lines = content.split('\n');
@@ -262,7 +262,7 @@ class UsageTracker {
 
         // Check for various reference patterns
         const matches = this.findReferencesInLine(line, component);
-        
+
         for (const match of matches) {
           references.push({
             file: filePath,
@@ -310,10 +310,10 @@ class UsageTracker {
    */
   async analyzeDependencyRelationships(component, options = {}) {
     const dependencies = [];
-    
+
     // This would analyze manifest files, import statements, etc.
     // For now, return empty array as placeholder
-    
+
     return dependencies;
   }
 
@@ -322,7 +322,7 @@ class UsageTracker {
    */
   async scanForExternalReferences(component, options = {}) {
     const externalRefs = [];
-    
+
     // Check configuration files
     const configRefs = await this.scanConfigurationFiles(component);
     externalRefs.push(...configRefs);
@@ -397,7 +397,7 @@ class UsageTracker {
     // This would typically integrate with the component registry
     // For now, return a basic component structure
     const [type, name] = componentId.split('/');
-    
+
     return {
       id: componentId,
       type: type,
@@ -433,13 +433,13 @@ class UsageTracker {
 
   async getFilesToScan(scanPath) {
     const files = [];
-    
+
     try {
       const entries = await fs.readdir(scanPath, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = path.join(scanPath, entry.name);
-        
+
         if (entry.isDirectory()) {
           // Recursively scan subdirectories
           const subFiles = await this.getFilesToScan(fullPath);
@@ -472,7 +472,7 @@ class UsageTracker {
 
     for (const configFile of configFiles) {
       const configPath = path.join(this.rootPath, configFile);
-      
+
       try {
         const refs = await this.scanFile(configPath, component);
         configRefs.push(...refs.map(ref => ({ ...ref, source: 'configuration' })));
@@ -487,10 +487,10 @@ class UsageTracker {
   async scanDocumentationFiles(component) {
     const docRefs = [];
     const docsPath = path.join(this.rootPath, 'docs');
-    
+
     try {
       const files = await this.getFilesToScan(docsPath);
-      
+
       for (const file of files) {
         const refs = await this.scanFile(file, component);
         docRefs.push(...refs.map(ref => ({ ...ref, source: 'documentation' })));
@@ -503,16 +503,16 @@ class UsageTracker {
   }
 
   findNewUsages(oldUsages, newUsages) {
-    return newUsages.filter(newUsage => 
-      !oldUsages.some(oldUsage => 
+    return newUsages.filter(newUsage =>
+      !oldUsages.some(oldUsage =>
         oldUsage.file === newUsage.file && oldUsage.line === newUsage.line
       )
     );
   }
 
   findRemovedUsages(oldUsages, newUsages) {
-    return oldUsages.filter(oldUsage => 
-      !newUsages.some(newUsage => 
+    return oldUsages.filter(oldUsage =>
+      !newUsages.some(newUsage =>
         newUsage.file === oldUsage.file && newUsage.line === oldUsage.line
       )
     );
@@ -520,7 +520,7 @@ class UsageTracker {
 
   calculateUsageTrend(baseline, current) {
     const referenceChange = current.total_references - baseline.total_references;
-    
+
     if (referenceChange > 0) return 'increasing';
     if (referenceChange < 0) return 'decreasing';
     return 'stable';
@@ -528,24 +528,24 @@ class UsageTracker {
 
   calculateMigrationProgress(baseline, current) {
     if (baseline.total_references === 0) return 1.0;
-    
+
     const remainingUsages = current.total_references;
     const originalUsages = baseline.total_references;
-    
+
     return Math.max(0, (originalUsages - remainingUsages) / originalUsages);
   }
 
   generateWarningMessage(componentId, deprecationInfo, usage) {
     let message = `DEPRECATED: ${componentId} is deprecated`;
-    
+
     if (deprecationInfo.replacement) {
       message += ` - use ${deprecationInfo.replacement} instead`;
     }
-    
+
     if (deprecationInfo.removalVersion) {
       message += ` (will be removed in ${deprecationInfo.removalVersion})`;
     }
-    
+
     return message;
   }
 
@@ -557,18 +557,18 @@ class UsageTracker {
 
   generateSuggestedActions(componentId, deprecationInfo, usage) {
     const actions = [];
-    
+
     if (deprecationInfo.replacement) {
       actions.push(`Replace with ${deprecationInfo.replacement}`);
     }
-    
+
     if (deprecationInfo.migrationGuide) {
       actions.push(`See migration guide: ${deprecationInfo.migrationGuide}`);
     }
-    
+
     actions.push('Update imports and references');
     actions.push('Test functionality after replacement');
-    
+
     return actions;
   }
 
@@ -584,7 +584,7 @@ class UsageTracker {
     if (this.usageCache.has(componentId)) {
       return this.usageCache.get(componentId);
     }
-    
+
     return await this.analyzeComponentUsage(componentId);
   }
 
@@ -597,21 +597,21 @@ class UsageTracker {
   async saveUsageAnalysis(analysis) {
     const filename = `usage-${analysis.component_id.replace('/', '-')}-${Date.now()}.json`;
     const filePath = path.join(this.usageDir, filename);
-    
+
     await fs.writeFile(filePath, JSON.stringify(analysis, null, 2));
   }
 
   async saveUsageChanges(changes) {
     const filename = `changes-${changes.component_id.replace('/', '-')}-${Date.now()}.json`;
     const filePath = path.join(this.usageDir, filename);
-    
+
     await fs.writeFile(filePath, JSON.stringify(changes, null, 2));
   }
 
   async saveUsageWarnings(componentId, warnings) {
     const filename = `warnings-${componentId.replace('/', '-')}-${Date.now()}.json`;
     const filePath = path.join(this.usageDir, filename);
-    
+
     await fs.writeFile(filePath, JSON.stringify(warnings, null, 2));
   }
 

@@ -20,7 +20,7 @@ const fsModule = require('fs');
 function validateTask(filename, content) {
   const errors = [];
   const warnings = [];
-  
+
   // 1. Task identifier check
   if (content.includes('{TODO: task identifier}')) {
     errors.push('Task identifier not resolved');
@@ -30,12 +30,12 @@ function validateTask(filename, content) {
       errors.push('Task identifier malformed');
     }
   }
-  
+
   // 2. Agent assignment check
   if (content.includes('{TODO: Agent Name}')) {
     errors.push('Agent assignment not resolved');
   }
-  
+
   // 3. Atomic layer check
   if (content.includes('{TODO: Atom|Molecule|Organism}')) {
     errors.push('Atomic layer not resolved');
@@ -50,7 +50,7 @@ function validateTask(filename, content) {
       }
     }
   }
-  
+
   // 4. Performance metrics check
   if (content.includes('{TODO: X minutes}')) {
     errors.push('Duration metric not resolved');
@@ -58,23 +58,23 @@ function validateTask(filename, content) {
   if (content.includes('{TODO: $X}')) {
     errors.push('Cost metric not resolved');
   }
-  
+
   // 5. Error strategy check
   if (content.includes('{TODO: Fail-fast | Graceful degradation | Retry with backoff}')) {
     errors.push('Error strategy not resolved');
   }
-  
+
   return { errors, warnings };
 }
 
 // Main
 function main() {
   console.log('🔍 Spot-Check Validator\n');
-  
+
   // Get all task files
   const allFiles = fsModule.readdirSync(TASKS_DIR)
     .filter(f => f.endsWith('.md') && !f.includes('backup') && !f.includes('.legacy'));
-  
+
   // Random sampling
   const sampled = [];
   const filesCopy = [...allFiles];
@@ -82,21 +82,21 @@ function main() {
     const randomIndex = Math.floor(Math.random() * filesCopy.length);
     sampled.push(filesCopy.splice(randomIndex, 1)[0]);
   }
-  
+
   console.log(`📝 Spot-checking ${sampled.length} random tasks:\n`);
-  
+
   const results = {
     passed: [],
     failed: [],
     warnings: [],
   };
-  
+
   // Validate each sampled task
   sampled.forEach((filename, index) => {
     const filePath = path.join(TASKS_DIR, filename);
     const content = fsModule.readFileSync(filePath, 'utf8');
     const validation = validateTask(filename, content);
-    
+
     if (validation.errors.length === 0) {
       results.passed.push(filename);
       console.log(`${index + 1}. ✅ ${filename}`);
@@ -110,7 +110,7 @@ function main() {
       validation.errors.forEach(e => console.log(`   ❌ ${e}`));
     }
   });
-  
+
   // Summary
   console.log('\n' + '='.repeat(60));
   console.log('📊 Spot-Check Summary:');
@@ -118,7 +118,7 @@ function main() {
   console.log(`   ❌ Failed: ${results.failed.length}/${sampled.length}`);
   console.log(`   ⚠️  Warnings: ${results.warnings.length}`);
   console.log('='.repeat(60) + '\n');
-  
+
   if (results.failed.length > 0) {
     console.log('Failed tasks:');
     results.failed.forEach(({ filename, errors }) => {
@@ -126,12 +126,12 @@ function main() {
     });
     console.log('');
   }
-  
+
   // Save report
   const reportPath = path.join(__dirname, '../../.ai/mid-point-spot-check-report.json');
   fsModule.writeFileSync(reportPath, JSON.stringify(results, null, 2), 'utf8');
   console.log(`📄 Report saved: ${reportPath}\n`);
-  
+
   return results;
 }
 

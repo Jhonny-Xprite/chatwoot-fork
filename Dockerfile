@@ -1,5 +1,5 @@
 # --- BASE RUBY IMAGE ---
-FROM ruby:3.4.4-slim-bookworm AS ruby-base
+FROM ruby:3.4.9-slim-bookworm AS ruby-base
 
 ENV BUNDLER_VERSION=2.5.16
 ENV BUNDLE_PATH="/gems"
@@ -71,7 +71,7 @@ RUN SECRET_KEY_BASE=precompile_placeholder RAILS_LOG_TO_STDOUT=enabled \
     bundle exec rake assets:precompile
 
 # --- FINAL PRODUCTION IMAGE ---
-FROM ruby:3.4.4-slim-bookworm
+FROM ruby:3.4.9-slim-bookworm
 
 ENV BUNDLE_PATH="/gems"
 ENV RAILS_ENV=production

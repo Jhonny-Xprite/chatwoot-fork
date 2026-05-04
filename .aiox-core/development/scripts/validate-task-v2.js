@@ -2,13 +2,13 @@
 
 /**
  * Task Format V2.0 Validation Script
- * 
+ *
  * Validates task files against the V2.0 specification with 11 compliance rules.
- * 
+ *
  * Usage:
  *   node validate-task-v2.js <task-file>          # Validate single task
  *   node validate-task-v2.js --all                # Validate all tasks
- * 
+ *
  * Exit codes:
  *   0 = All tasks compliant
  *   1 = Some tasks non-compliant
@@ -35,7 +35,7 @@ const validationRules = [
     id: 1,
     name: 'Execution Modes section',
     check: (content) => {
-      return content.includes('## Execution Modes') || 
+      return content.includes('## Execution Modes') ||
              content.includes('# Execution Modes');
     },
     message: 'Missing "Execution Modes" section',
@@ -44,7 +44,7 @@ const validationRules = [
     id: 2,
     name: 'Task Definition YAML format',
     check: (content) => {
-      return content.includes('task:') && 
+      return content.includes('task:') &&
              content.includes('responsável:') &&
              content.includes('responsavel_type:') &&
              content.includes('atomic_layer:');
@@ -55,7 +55,7 @@ const validationRules = [
     id: 3,
     name: 'Entrada and Saída defined',
     check: (content) => {
-      return content.includes('**Entrada:**') && 
+      return content.includes('**Entrada:**') &&
              content.includes('**Saída:**');
     },
     message: 'Missing Entrada or Saída sections',
@@ -64,7 +64,7 @@ const validationRules = [
     id: 4,
     name: 'Checklist restructured',
     check: (content) => {
-      return content.includes('pre-conditions:') && 
+      return content.includes('pre-conditions:') &&
              content.includes('post-conditions:') &&
              content.includes('acceptance-criteria:');
     },
@@ -85,7 +85,7 @@ const validationRules = [
     id: 6,
     name: 'Tools section present',
     check: (content) => {
-      return content.includes('## Tools') || 
+      return content.includes('## Tools') ||
              content.includes('**Tools:**') ||
              content.includes('- N/A') && content.toLowerCase().includes('tool');
     },
@@ -95,7 +95,7 @@ const validationRules = [
     id: 7,
     name: 'Scripts section present',
     check: (content) => {
-      return content.includes('## Scripts') || 
+      return content.includes('## Scripts') ||
              content.includes('**Scripts:**') ||
              content.includes('- N/A') && content.toLowerCase().includes('script');
     },
@@ -135,7 +135,7 @@ const validationRules = [
     name: 'Standardized output template',
     check: (content) => {
       // Check for output template markers (less strict as this might be in separate template file)
-      return content.includes('Duration:') || 
+      return content.includes('Duration:') ||
              content.includes('Tokens Used:') ||
              content.includes('Metrics') ||
              content.includes('task-execution-report');
@@ -166,7 +166,7 @@ function validateTask(filePath) {
     // Run all validation rules
     for (const rule of validationRules) {
       const passed = rule.check(content);
-      
+
       if (passed) {
         result.passed.push({
           id: rule.id,
@@ -196,7 +196,7 @@ function validateTask(filePath) {
  */
 function validateAllTasks() {
   const tasksDir = path.join(process.cwd(), '.aiox-core', 'tasks');
-  
+
   if (!fs.existsSync(tasksDir)) {
     console.error(`${colors.red}✗ Tasks directory not found: ${tasksDir}${colors.reset}`);
     process.exit(2);
@@ -232,7 +232,7 @@ function validateAllTasks() {
     console.log(`${colors.green}✅ RESULT: ${compliantCount}/${results.length} tasks V2.0 compliant${colors.reset}\n`);
   } else {
     console.log(`${colors.red}✗ RESULT: ${compliantCount}/${results.length} tasks compliant, ${nonCompliantCount} non-compliant${colors.reset}\n`);
-    
+
     // Show non-compliant tasks
     console.log(`${colors.yellow}Non-compliant tasks:${colors.reset}`);
     results.filter(r => !r.compliant).forEach(result => {
@@ -297,7 +297,7 @@ function main() {
     process.exit(summary.nonCompliant > 0 ? 1 : 0);
   } else {
     const taskFile = args[0];
-    
+
     if (!fs.existsSync(taskFile)) {
       console.error(`${colors.red}✗ File not found: ${taskFile}${colors.reset}`);
       process.exit(2);
@@ -305,7 +305,7 @@ function main() {
 
     const result = validateTask(taskFile);
     printResult(result);
-    
+
     process.exit(result.compliant ? 0 : 1);
   }
 }

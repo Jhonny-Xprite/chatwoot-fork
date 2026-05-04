@@ -39,4 +39,4 @@ responses:
     description: Unauthorized
   404:
     description: The given user does not exist
-    
+

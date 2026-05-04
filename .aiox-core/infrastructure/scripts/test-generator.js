@@ -47,7 +47,7 @@ class TestGenerator {
    */
   async generateTestFile(component, testFile, config) {
     const startTime = Date.now();
-    
+
     try {
       console.log(chalk.blue(`🧪 Generating ${testFile.test_type} test for ${component.name}`));
 
@@ -64,7 +64,7 @@ class TestGenerator {
       this.updateGenerationStats(true, Date.now() - startTime);
 
       console.log(chalk.green(`✅ Generated ${testFile.test_type} test for ${component.name}`));
-      
+
       return processedContent;
 
     } catch (error) {
@@ -87,7 +87,7 @@ class TestGenerator {
     for (const testFile of testSuite.test_files) {
       try {
         const testContent = await this.generateTestFile(component, testFile, config);
-        
+
         generatedFiles.push({
           file_path: testFile.file_path,
           test_type: testFile.test_type,
@@ -146,8 +146,8 @@ class TestGenerator {
 
       // Add component-specific test cases
       const additionalTestCases = await this.generateAdditionalTestCases(
-        componentAnalysis, 
-        testFile.test_type, 
+        componentAnalysis,
+        testFile.test_type,
         config,
       );
 
@@ -200,7 +200,7 @@ class TestGenerator {
 
       // Read component file
       const content = await fs.readFile(component.filePath, 'utf-8');
-      
+
       if (component.type === 'util') {
         // Analyze JavaScript utility
         analysis.exports = this.extractExports(content);
@@ -542,7 +542,7 @@ ${content}`;
       // Check for balanced brackets
       const openBrackets = (content.match(/\{/g) || []).length;
       const closeBrackets = (content.match(/\}/g) || []).length;
-      
+
       if (openBrackets !== closeBrackets) {
         throw new Error('Unbalanced brackets in generated test');
       }
@@ -559,14 +559,14 @@ ${content}`;
 
     const additionalTests = testCases.map(testCase => {
       let caseContent = `  it('${testCase.name}', async () => {\n`;
-      
+
       if (testCase.setup) {
         caseContent += `    ${testCase.setup}\n\n`;
       }
-      
+
       caseContent += testCase.assertions.map(assertion => `    ${assertion}`).join('\n');
       caseContent += '\n  });';
-      
+
       return caseContent;
     }).join('\n\n');
 
@@ -584,7 +584,7 @@ ${content}`;
 
     const importSection = imports.join('\n');
     const existingImports = content.match(/^(const|import|require).*$/gm);
-    
+
     if (existingImports && existingImports.length > 0) {
       // Add after existing imports
       const lastImportIndex = content.lastIndexOf(existingImports[existingImports.length - 1]);
@@ -615,7 +615,7 @@ ${content}`;
 
   extractExports(content) {
     const exports = [];
-    
+
     // Extract module.exports
     const moduleExports = content.match(/module\.exports\s*=\s*([^;]+)/);
     if (moduleExports) {
@@ -636,7 +636,7 @@ ${content}`;
 
   extractFunctions(content) {
     const functions = [];
-    
+
     // Extract function declarations
     const functionDeclarations = content.match(/(?:async\s+)?function\s+(\w+)\s*\([^)]*\)/g);
     if (functionDeclarations) {
@@ -674,7 +674,7 @@ ${content}`;
 
   extractClasses(content) {
     const classes = [];
-    
+
     const classDeclarations = content.match(/class\s+(\w+)(?:\s+extends\s+\w+)?\s*\{[^}]*\}/g);
     if (classDeclarations) {
       classDeclarations.forEach(cls => {
@@ -700,7 +700,7 @@ ${content}`;
 
   extractDependencies(content) {
     const dependencies = [];
-    
+
     const requires = content.match(/require\(['"]([^'"]+)['"]\)/g);
     if (requires) {
       requires.forEach(req => {
@@ -766,7 +766,7 @@ ${content}`;
 
   generateSetupTeardown(componentAnalysis, testType) {
     const setup = [];
-    
+
     if (componentAnalysis.type === 'util' && componentAnalysis.classes.length > 0) {
       setup.push('  let instance;\n');
       setup.push(`  beforeEach(() => {\n    instance = new ${componentAnalysis.classes[0].name}();\n  });\n`);
@@ -823,8 +823,8 @@ ${content}`;
   getGenerationStats() {
     return {
       ...this.generationStats,
-      success_rate: this.generationStats.total_generated > 0 
-        ? this.generationStats.successful / this.generationStats.total_generated 
+      success_rate: this.generationStats.total_generated > 0
+        ? this.generationStats.successful / this.generationStats.total_generated
         : 0,
       average_generation_time: this.generationStats.total_generated > 0
         ? this.generationStats.generation_time / this.generationStats.total_generated
