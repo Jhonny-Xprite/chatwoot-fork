@@ -4,7 +4,7 @@
 - [ ] Draft
 - [x] Ready for Development
 - [x] In Progress
-- [ ] In Review
+- [x] In Review
 - [ ] QA Review
 - [ ] Done
 
@@ -249,16 +249,24 @@ This is a pure frontend CSS fix.
 ## Development Agent Record
 
 **Assigned to:** @dev (Dex)  
-**Status:** Ready for Implementation  
+**Status:** Implementation Complete - Ready for QA
 
-### Pre-Development Checklist
-- [x] AC clear
-- [x] Simple CSS change
-- [x] No blocking dependencies
-- [x] CRITICAL: Blocks S2.2, prioritize
+### Implementation Summary
+
+- ✅ Located filter dropdown component: `app/javascript/dashboard/components-next/filter/ConversationFilter.vue`
+- ✅ Changed z-index from `z-40` to `z-[1000]` on line 108
+- ✅ Committed: cc156ca85
+- ✅ Story file updated with implementation details
 
 ### ⚠️ CRITICAL: This Blocks S2.2
-**Do NOT start S2.2 until S2.1 is DONE and QA approved.**
+
+**QA Must Complete Testing Before S2.2 Can Start:**
+
+- Verify dropdown appears above 50+ cards in Kanban
+- Test keyboard accessibility (Tab, Escape)
+- Test viewport edge cases (bottom/right scroll)
+- Verify no z-index conflicts with modals
+- Cross-browser testing (Chrome, Firefox, Safari)
 
 ---
 
