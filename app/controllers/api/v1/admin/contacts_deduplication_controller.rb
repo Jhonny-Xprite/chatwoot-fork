@@ -1,4 +1,4 @@
-class Api::V1::Admin::ContactsDeduplicationController < Api::V1::BaseController
+class Api::V1::Admin::ContactsDeduplicationController < Api::BaseController
   before_action :require_admin!
   before_action :set_contact, only: [:detect_duplicates]
 
@@ -12,8 +12,8 @@ class Api::V1::Admin::ContactsDeduplicationController < Api::V1::BaseController
 
     # Combine and deduplicate results
     all_duplicates = (exact_duplicates + fuzzy_duplicates)
-      .uniq { |d| d[:contact].id }
-      .sort_by { |d| d[:confidence] == 'HIGH' ? 0 : 1 }
+                     .uniq { |d| d[:contact].id }
+                     .sort_by { |d| d[:confidence] == 'HIGH' ? 0 : 1 }
 
     duplicates_response = all_duplicates.map do |dup|
       {
@@ -62,8 +62,8 @@ class Api::V1::Admin::ContactsDeduplicationController < Api::V1::BaseController
     per_page = params[:per_page] || 50
 
     logs = ContactMergeLog.recent_first
-      .page(page)
-      .per(per_page)
+                          .page(page)
+                          .per(per_page)
 
     logs_response = logs.map do |log|
       {
@@ -115,9 +115,9 @@ class Api::V1::Admin::ContactsDeduplicationController < Api::V1::BaseController
   end
 
   def validate_merge_params!
-    unless merge_params[:source_contact_id].present? && merge_params[:target_contact_id].present?
-      render json: { error: 'source_contact_id and target_contact_id required' }, status: :bad_request
-    end
+    return if merge_params[:source_contact_id].present? && merge_params[:target_contact_id].present?
+
+    render json: { error: 'source_contact_id and target_contact_id required' }, status: :bad_request
   end
 
   def serialize_contact(contact)
