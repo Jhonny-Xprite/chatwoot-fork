@@ -195,7 +195,9 @@ const dynamicAttributes = computed(() => {
     @click="emit('select', conversation)"
   >
     <!-- Premium Backdrop Glow (Hover only) -->
-    <div class="absolute inset-0 bg-gradient-to-tr from-n-brand-primary/0 via-n-brand-primary/0 to-n-brand-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
+    <div
+      class="absolute inset-0 bg-gradient-to-tr from-n-brand-primary/0 via-n-brand-primary/0 to-n-brand-primary/5 opacity-0 transition-opacity group-hover:opacity-100"
+    />
 
     <!-- Top: Priority, ID & Indicators -->
     <div class="flex items-center justify-between gap-2 relative z-10">

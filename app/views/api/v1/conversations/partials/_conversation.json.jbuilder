@@ -67,9 +67,7 @@ if conversation.pipeline_stage_id
   end
 end
 
-if conversation.pipeline_id
-  json.pipeline_name conversation.pipeline&.name
-end
+json.pipeline_name conversation.pipeline&.name if conversation.pipeline_id
 
 json.waiting_since conversation.waiting_since.to_i.to_i
 json.sla_policy_id conversation.sla_policy_id

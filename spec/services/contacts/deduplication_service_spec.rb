@@ -6,7 +6,7 @@ describe Contacts::DeduplicationService do
       contact = create(:contact, email: 'john@example.com')
       duplicate = create(:contact, email: 'john@example.com')
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
       duplicates = service.find_exact_duplicates
 
       expect(duplicates).to include(hash_including(contact: duplicate, confidence: 'HIGH'))
@@ -16,7 +16,7 @@ describe Contacts::DeduplicationService do
       contact = create(:contact, phone_number: '1234567890')
       duplicate = create(:contact, phone_number: '1234567890')
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
       duplicates = service.find_exact_duplicates
 
       expect(duplicates).to include(hash_including(contact: duplicate, confidence: 'HIGH'))
@@ -26,7 +26,7 @@ describe Contacts::DeduplicationService do
       contact = create(:contact, email: 'john@example.com')
       deleted_duplicate = create(:contact, email: 'john@example.com', is_deleted: true)
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
       duplicates = service.find_exact_duplicates
 
       expect(duplicates).not_to include(hash_including(contact: deleted_duplicate))
@@ -35,7 +35,7 @@ describe Contacts::DeduplicationService do
     it 'does not match contact with itself' do
       contact = create(:contact, email: 'john@example.com')
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
       duplicates = service.find_exact_duplicates
 
       expect(duplicates).not_to include(hash_including(contact: contact))
@@ -47,7 +47,7 @@ describe Contacts::DeduplicationService do
       contact = create(:contact, name: 'John Smith')
       fuzzy_match = create(:contact, name: 'Jon Smith') # 95%+ similar
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
       duplicates = service.find_fuzzy_duplicates
 
       expect(duplicates).to include(hash_including(contact: fuzzy_match, confidence: 'MEDIUM'))
@@ -57,7 +57,7 @@ describe Contacts::DeduplicationService do
       contact = create(:contact, name: 'John Smith')
       no_match = create(:contact, name: 'Jane Doe') # <95% similar
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
       duplicates = service.find_fuzzy_duplicates
 
       expect(duplicates).not_to include(hash_including(contact: no_match))
@@ -65,9 +65,9 @@ describe Contacts::DeduplicationService do
 
     it 'handles nil names gracefully' do
       contact = create(:contact, name: nil)
-      other = create(:contact, name: 'John Smith')
+      create(:contact, name: 'John Smith')
 
-      service = Contacts::DeduplicationService.new(contact)
+      service = described_class.new(contact)
 
       expect { service.find_fuzzy_duplicates }.not_to raise_error
     end
@@ -81,7 +81,7 @@ describe Contacts::DeduplicationService do
       # Create conversations for source
       create_list(:conversation, 3, contact_id: source.id)
 
-      service = Contacts::DeduplicationService.new(target)
+      service = described_class.new(target)
       service.merge_contacts(source.id, target.id, 'admin@example.com')
 
       expect(Conversation.where(contact_id: source.id).count).to eq(0)
@@ -89,7 +89,7 @@ describe Contacts::DeduplicationService do
     end
 
     it 'marks source as deleted' do
-      service = Contacts::DeduplicationService.new(target)
+      service = described_class.new(target)
       service.merge_contacts(source.id, target.id, 'admin@example.com')
 
       source.reload
@@ -98,7 +98,7 @@ describe Contacts::DeduplicationService do
     end
 
     it 'creates audit log entry' do
-      service = Contacts::DeduplicationService.new(target)
+      service = described_class.new(target)
       service.merge_contacts(source.id, target.id, 'admin@example.com')
 
       log = ContactMergeLog.find_by(source_contact_id: source.id, target_contact_id: target.id)
@@ -107,15 +107,15 @@ describe Contacts::DeduplicationService do
     end
 
     it 'prevents self-merge' do
-      service = Contacts::DeduplicationService.new(source)
+      service = described_class.new(source)
 
-      expect {
+      expect do
         service.merge_contacts(source.id, source.id, 'admin@example.com')
-      }.to raise_error(StandardError, /Cannot merge contact with itself/)
+      end.to raise_error(StandardError, /Cannot merge contact with itself/)
     end
 
     it 'prevents duplicate merge' do
-      service = Contacts::DeduplicationService.new(target)
+      service = described_class.new(target)
 
       # First merge succeeds
       service.merge_contacts(source.id, target.id, 'admin@example.com')
@@ -125,20 +125,20 @@ describe Contacts::DeduplicationService do
       source.update(is_deleted: false, deleted_at: nil)
 
       # Second merge should fail
-      expect {
+      expect do
         service.merge_contacts(source.id, target.id, 'admin@example.com')
-      }.to raise_error(StandardError, /already merged/)
+      end.to raise_error(StandardError, /already merged/)
     end
 
     it 'prevents circular merges' do
       # Create a chain: A → B
       contact_c = create(:contact)
-      contact_d = create(:contact)
+      create(:contact)
 
-      service_b = Contacts::DeduplicationService.new(target)
+      service_b = described_class.new(target)
       service_b.merge_contacts(source.id, target.id, 'admin@example.com')
 
-      service_c = Contacts::DeduplicationService.new(contact_c)
+      service_c = described_class.new(contact_c)
       service_c.merge_contacts(target.id, contact_c.id, 'admin@example.com')
 
       # Now try to merge C → B (which would create a circle)
@@ -147,17 +147,17 @@ describe Contacts::DeduplicationService do
       target.reload
       target.update(is_deleted: false, deleted_at: nil)
 
-      service_source = Contacts::DeduplicationService.new(source)
-      expect {
+      service_source = described_class.new(source)
+      expect do
         service_source.merge_contacts(contact_c.id, source.id, 'admin@example.com')
-      }.to raise_error(StandardError, /Circular merge/)
+      end.to raise_error(StandardError, /Circular merge/)
     end
 
     it 'verifies no data loss' do
       create_list(:conversation, 2, contact_id: source.id)
       create_list(:conversation, 3, contact_id: target.id)
 
-      service = Contacts::DeduplicationService.new(target)
+      service = described_class.new(target)
       service.merge_contacts(source.id, target.id, 'admin@example.com')
 
       target.reload
@@ -172,7 +172,7 @@ describe Contacts::DeduplicationService do
 
       merge_log = create(:contact_merge_log, source_contact_id: source.id, target_contact_id: target.id)
 
-      service = Contacts::DeduplicationService.new(source)
+      service = described_class.new(source)
       service.rollback_merge(merge_log.id)
 
       source.reload

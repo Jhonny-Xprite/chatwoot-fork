@@ -9,12 +9,12 @@ class Crm::LeadScoring::CalculateScoreService
     return if @rules.empty?
 
     total_score = 0
-    
+
     @rules.each do |rule|
       total_score += rule.score if rule_matches?(rule)
     end
 
-    Rails.logger.debug "[CRM] Calculando Lead Score para Contato ##{@contact.id}: #{total_score}"
+    Rails.logger.debug { "[CRM] Calculando Lead Score para Contato ##{@contact.id}: #{total_score}" }
     @contact.update!(lead_score: total_score)
   end
 
@@ -68,7 +68,7 @@ class Crm::LeadScoring::CalculateScoreService
     # Check labels on contact and all its conversations, using downcase for safety
     all_labels = (@contact.label_list + @contact.conversations.flat_map(&:label_list)).map(&:downcase).uniq
     rule_values = rule.values.map(&:downcase)
-    
+
     case rule.filter_operator
     when 'equal_to', 'contains'
       (all_labels & rule_values).any?

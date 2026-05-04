@@ -1,7 +1,7 @@
 class AddSoftDeletesAndContactMergeLogs < ActiveRecord::Migration[6.1]
   def change
     # Phase 1.1: Add soft delete columns to contacts table
-    add_column :contacts, :is_deleted, :boolean, default: false
+    add_column :contacts, :is_deleted, :boolean, default: false, null: false
     add_column :contacts, :deleted_at, :datetime
 
     # Add indexes for soft delete filtering and sorting

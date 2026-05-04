@@ -24,7 +24,7 @@ describe('useAppearanceHotKeys', () => {
 
   it('should have the correct number of appearance options', () => {
     const { goToAppearanceHotKeys } = useAppearanceHotKeys();
-    expect(goToAppearanceHotKeys.value.length).toBe(4); // 1 parent + 3 theme options
+    expect(goToAppearanceHotKeys.value.length).toBe(6); // 1 parent + 5 theme options
   });
 
   it('should have the correct parent option', () => {
@@ -33,7 +33,7 @@ describe('useAppearanceHotKeys', () => {
       option => option.id === 'appearance_settings'
     );
     expect(parentOption).toBeDefined();
-    expect(parentOption.children.length).toBe(3);
+    expect(parentOption.children.length).toBe(5);
   });
 
   it('should have the correct theme options', () => {
@@ -41,11 +41,13 @@ describe('useAppearanceHotKeys', () => {
     const themeOptions = goToAppearanceHotKeys.value.filter(
       option => option.parent === 'appearance_settings'
     );
-    expect(themeOptions.length).toBe(3);
+    expect(themeOptions.length).toBe(5);
     expect(themeOptions.map(option => option.id)).toEqual([
       'light',
       'dark',
       'auto',
+      'apple',
+      'linear',
     ]);
   });
 
@@ -61,7 +63,7 @@ describe('useAppearanceHotKeys', () => {
       LOCAL_STORAGE_KEYS.COLOR_SCHEME,
       'light'
     );
-    expect(setColorTheme).toHaveBeenCalledWith(false);
+    expect(setColorTheme).toHaveBeenCalledWith(false, 'light');
   });
 
   it('should handle system dark mode preference', () => {
@@ -78,6 +80,6 @@ describe('useAppearanceHotKeys', () => {
       LOCAL_STORAGE_KEYS.COLOR_SCHEME,
       'auto'
     );
-    expect(setColorTheme).toHaveBeenCalledWith(true);
+    expect(setColorTheme).toHaveBeenCalledWith(true, 'auto');
   });
 });

@@ -172,7 +172,10 @@ class Api::V1::Accounts::ContactsController < Api::V1::Accounts::BaseController
     source_id = params[:source_contact_id]
     target_id = params[:target_contact_id]
 
-    render json: { error: 'source_contact_id and target_contact_id are required' }, status: :unprocessable_entity and return if source_id.blank? || target_id.blank?
+    if source_id.blank? || target_id.blank?
+      render json: { error: 'source_contact_id and target_contact_id are required' },
+             status: :unprocessable_entity and return
+    end
 
     source = Current.account.contacts.find_by(id: source_id)
     target = Current.account.contacts.find_by(id: target_id)
