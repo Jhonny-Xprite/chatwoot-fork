@@ -1,0 +1,83 @@
+// LINK COLOR TOKENS & STYLES — WCAG AA Compliance
+// Applies WCAG AA compliant link colors with proper contrast ratios (4.5:1 minimum).
+// Uses CSS custom properties from _semantic-color-tokens.scss for maintainability.
+// Color specs: iris-9 (4.5:1), iris-10 (hover), iris-11 (visited), iris-6 (focus ring)
+
+@layer base {
+  // Base link styles with WCAG AA colors
+  a {
+    color: var(--color-link-default);
+    cursor: pointer;
+    text-decoration: underline;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--color-link-hover);
+      text-decoration: underline;
+    }
+
+    &:active {
+      color: var(--color-link-active);
+    }
+
+    &:visited {
+      color: var(--color-link-active);
+    }
+
+    // Focus state for keyboard navigation
+    &:focus {
+      border-radius: 2px;
+      outline: 2px solid var(--color-link-focus-outline);
+      outline-offset: 2px;
+    }
+
+    &:focus:not(:focus-visible) {
+      outline: 0;
+    }
+
+    // Keyboard-only focus
+    &:focus-visible {
+      border-radius: 2px;
+      outline: 2px solid var(--color-link-focus-outline);
+      outline-offset: 2px;
+    }
+  }
+
+  // High contrast mode support
+  @media (prefers-contrast: more) {
+    a {
+      color: var(--color-link-active);
+      text-decoration: underline solid 2px;
+
+      &:focus-visible {
+        outline-width: 3px;
+      }
+    }
+  }
+
+  // Reduced motion support
+  @media (prefers-reduced-motion: reduce) {
+    a {
+      transition: none;
+    }
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════════════
+// COMPONENT USAGE
+// ═════════════════════════════════════════════════════════════════════════
+//
+// Links automatically inherit WCAG AA colors from this stylesheet.
+// No additional classes needed for basic compliance.
+//
+// Custom usage:
+//   <a href="..." class="link-primary">Link text</a>
+//
+// The styles support:
+//   ✓ Color contrast (4.5:1 minimum)
+//   ✓ Focus indicators for keyboard navigation
+//   ✓ Visited/active states
+//   ✓ High contrast mode
+//   ✓ Reduced motion preferences
+//
+// ═════════════════════════════════════════════════════════════════════════

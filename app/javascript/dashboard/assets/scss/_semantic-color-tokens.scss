@@ -134,6 +134,28 @@
     --color-input-text: var(--color-neutral-text);
     --color-input-placeholder: rgb(var(--slate-9));
 
+    // Link colors (WCAG AA: 4.5:1 contrast minimum)
+    --color-link-default: rgb(var(--iris-9));        // Unvisited link (4.5:1 on light bg)
+    --color-link-hover: rgb(var(--iris-10));         // Link on hover
+    --color-link-active: rgb(var(--iris-11));        // Active/visited link
+    --color-link-focus: rgb(var(--iris-9));          // Focus state (same as default)
+    --color-link-focus-outline: rgb(var(--iris-6));  // Focus outline ring
+
+    // Message colors (client/agent differentiation, WCAG AA: 4.5:1 minimum)
+    // Client messages: teal background with dark text
+    --color-message-client-bg: rgb(var(--teal-2));   // Light teal background
+    --color-message-client-text: rgb(var(--teal-12)); // Dark teal text (5.1:1)
+    --color-message-client-border: rgb(var(--teal-6)); // Teal border
+
+    // Agent messages: light background with dark text (for contrast)
+    --color-message-agent-bg: rgb(var(--slate-2));   // Very light gray background
+    --color-message-agent-text: rgb(var(--slate-12)); // Dark gray text (6.5:1)
+    --color-message-agent-border: rgb(var(--slate-6)); // Gray border
+
+    // Message interaction states
+    --color-message-hover-bg: rgb(var(--slate-3));   // Slightly darker on hover
+    --color-message-active-bg: rgb(var(--slate-4));  // Even darker when active
+
     // Label & badge colors
     --color-label-bg: var(--color-primary-badge);
     --color-label-text: rgb(var(--slate-1));

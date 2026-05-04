@@ -21,6 +21,12 @@
 // Semantic color tokens (Intent-based: primary, secondary, error, success, warning, neutral, info)
 @import 'semantic-color-tokens';
 
+// Link color tokens (WCAG AA compliant, 4.5:1 contrast minimum)
+@import 'link-tokens';
+
+// Message color tokens (client/agent differentiation, WCAG AA compliant)
+@import 'message-tokens';
+
 // Spacing scale (4px baseline)
 @import 'spacing-tokens';
 

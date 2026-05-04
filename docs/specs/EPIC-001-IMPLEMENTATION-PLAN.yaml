@@ -1,0 +1,1024 @@
+---
+plan_id: EPIC-001-IMPLEMENTATION-PLAN
+epic_id: EPIC-001-KANBAN
+epic_title: "Kanban & Chat Platform Refinements"
+plan_version: "1.0"
+created_at: "2026-05-04"
+created_by: "Aria (Architect)"
+status: "APPROVED"
+
+# ============================================================================
+# EXECUTIVE SUMMARY
+# ============================================================================
+executive_summary:
+  objective: "Execute 4-wave implementation plan to deliver 7 critical features addressing UX legibility, functionality, interaction design, and data integrity across Kanban and Chat platforms"
+
+  timeline:
+    baseline_days: "17-22"
+    adjusted_days: "18-24"
+    contingency: "2-4 days (11-22% buffer)"
+    calendar_estimate: "4-6 weeks with 1-2 developers"
+
+  success_metrics:
+    - "Usability +60% (user satisfaction survey baseline → post-launch)"
+    - "WCAG AA compliance 100% (all 7 stories pass axe DevTools audit)"
+    - "Zero duplicate contacts (data validation query: duplicates = 0)"
+    - "60 FPS drag & drop sustained (100+ cards, Lighthouse Performance tab)"
+
+  critical_path: "S2.1 → S2.2 → S3.1 → S4.1 (sequential bottlenecks)"
+
+  high_risk_items:
+    - "S4.1 Data Integrity: Contact deduplication with zero data loss"
+    - "S3.1 Performance: Drag & drop with 100+ cards must maintain 60 FPS"
+    - "S1.2 Accessibility: Complex color validation across light/dark themes"
+
+# ============================================================================
+# WAVE EXECUTION PHASES
+# ============================================================================
+waves:
+  wave_1_ux_quick_wins:
+    title: "UX Quick Wins - Links & Colors"
+    duration_days: "5-7"
+    parallel_limit: 3
+    stories: ["S1.1", "S1.2", "S1.3"]
+    description: "Foundation phase: Fix accessibility issues (links, contrast), establish color scheme, add user features (unread/pin)"
+
+    execution_sequence:
+      - sequence: 1
+        story: "S1.1"
+        title: "Fix Cores no Chat (Links Visíveis)"
+        complexity: "LOW"
+        effort: "1-2"
+        parallel_with: ["S1.2", "S1.3"]
+        description: "WCAG AA contrast fix for links (blue links on blue background)"
+
+        architectural_decisions:
+          - decision: "Use CSS custom properties (variables) for color tokens"
+            rationale: "Enables dynamic theme switching, avoids hardcoded colors"
+            implementation: "Create docs/styles/_colors.scss with contrast-validated palette"
+
+          - decision: "Validate with automated + manual tools"
+            rationale: "axe DevTools catches 80%, manual WebAIM + Coblis catches edge cases"
+            implementation: "Pre-commit hook: run jest-axe on Message component"
+
+        files_affected:
+          - "src/components/Message.vue"
+          - "src/assets/styles/conversation.scss"
+          - "src/assets/styles/_colors.scss (NEW)"
+
+        testing_strategy:
+          automated:
+            - "jest-axe: Message component contrast validation"
+            - "Lighthouse: Accessibility audit (target: 90+)"
+          manual:
+            - "WebAIM contrast checker: Verify 4.5:1 ratio on links"
+            - "Coblis: Color blindness simulation (deuteranopia, protanopia, tritanopia)"
+            - "Firefox DevTools: Accessible colors test"
+
+        acceptance_criteria:
+          - "Links meet WCAG AA 4.5:1 contrast ratio"
+          - "Links visible in both light and dark themes"
+          - "jest-axe passes with 0 violations"
+          - "WebAIM contrast checker confirms 4.5:1"
+
+      - sequence: 2
+        story: "S1.2"
+        title: "Fix Scheme de Cores no Conversation Detail"
+        complexity: "LOW"
+        effort: "2-3"
+        parallel_with: ["S1.1", "S1.3"]
+        depends_on: []
+        description: "Improve color scheme for readability, differentiate client vs agent messages"
+
+        architectural_decisions:
+          - decision: "Establish semantic color tokens (primary, danger, warning, etc.)"
+            rationale: "Centralizes color management, enables theme switching"
+            implementation: "Extend _colors.scss with semantic naming"
+
+          - decision: "Use CSS class naming for message sender differentiation"
+            rationale: "Avoids inline styles, easier to theme, better accessibility"
+            implementation: "Add .message--client and .message--agent classes"
+
+        files_affected:
+          - "src/components/ConversationDetail.vue"
+          - "src/components/Message.vue"
+          - "src/assets/styles/conversation-detail.scss"
+          - "src/assets/styles/_colors.scss (MODIFY)"
+
+        testing_strategy:
+          automated:
+            - "jest-axe: ConversationDetail contrast validation"
+          manual:
+            - "Coblis color blindness simulation (all modes)"
+            - "Theme toggle testing (light/dark both compliant)"
+
+        acceptance_criteria:
+          - "All text meets WCAG AA 4.5:1 contrast (or 3:1 for large text)"
+          - "Client messages visually distinct from agent messages"
+          - "Light/dark theme toggle maintains compliance"
+          - "jest-axe passes (Conversation Detail)"
+
+      - sequence: 3
+        story: "S1.3"
+        title: "Add Marcar como não lido + Destaque"
+        complexity: "MEDIUM"
+        effort: "2-3"
+        parallel_with: ["S1.1", "S1.2"]
+        depends_on: []
+        description: "User features: unread badges, pin icons, unread counter, persistence"
+
+        architectural_decisions:
+          - decision: "Use Vuex for unread/pinned state (not browser storage)"
+            rationale: "Ensures consistency, enables server sync, survives reload"
+            implementation: "New module: store/modules/conversation-state.js"
+
+          - decision: "Add unread_at and pinned_at columns to conversations table"
+            rationale: "Enables server-side filtering and sorting"
+            implementation: "Migration: AddUnreadPinnedToConversations"
+
+          - decision: "Optimistic UI updates with server reconciliation"
+            rationale: "Responsive feel, automatic sync"
+            implementation: "Mark unread immediately, sync to backend async"
+
+        files_affected:
+          - "src/store/modules/conversation-state.js (NEW)"
+          - "src/components/ConversationList.vue"
+          - "src/components/ConversationCard.vue"
+          - "db/migrate/20260504_add_unread_pinned_to_conversations.rb (NEW)"
+
+        database_changes:
+          table: "conversations"
+          columns:
+            - name: "unread_at"
+              type: "timestamp"
+              nullable: true
+              default: null
+              index: true
+            - name: "pinned_at"
+              type: "timestamp"
+              nullable: true
+              default: null
+              index: true
+          rollback: "ALTER TABLE conversations DROP COLUMN unread_at, DROP COLUMN pinned_at;"
+
+        testing_strategy:
+          automated:
+            - "Unit tests: Vuex mutation/action for unread/pin"
+            - "Integration: Migration verification (columns exist)"
+          manual:
+            - "Mark unread → badge appears, counter updates"
+            - "Pin conversation → pinned list updated"
+            - "Reload page → unread state persists"
+
+        acceptance_criteria:
+          - "Unread badge visible on conversation cards"
+          - "Pin icon toggles pinned state"
+          - "Unread counter in sidebar updates correctly"
+          - "State persists on page reload"
+          - "Mark-unread action has visual feedback"
+
+    qa_gate:
+      verdict: "PASS required"
+      checks:
+        - "jest-axe: 0 violations (WCAG AA)"
+        - "All AC tests passing"
+        - "Manual accessibility testing complete"
+        - "No regressions in existing features"
+
+  wave_2_functionality:
+    title: "Kanban Functionality - Z-Index + Status Filter"
+    duration_days: "3-4"
+    parallel_limit: 1
+    stories: ["S2.1", "S2.2"]
+    description: "Add filtering capability: fix Z-index blocker, then add status filtering"
+
+    execution_sequence:
+      - sequence: 1
+        story: "S2.1"
+        title: "Fix Z-INDEX do Filtro"
+        complexity: "LOW"
+        effort: "1"
+        parallel_with: []
+        depends_on: []
+        description: "CRITICAL BLOCKER: Filter dropdown hidden behind cards"
+
+        architectural_decisions:
+          - decision: "Increase filter dropdown z-index to 1000"
+            rationale: "Must appear above card (z-index: 10) and all overlays"
+            implementation: "Update KanbanFilterBar.vue CSS: z-index: 1000;"
+
+          - decision: "Use CSS transform instead of position: fixed for accessibility"
+            rationale: "Fixed positioning causes issues with sticky headers; transform is smoother"
+            implementation: "Use transform: translateY/translateX for positioning"
+
+        files_affected:
+          - "src/components/KanbanFilterBar.vue"
+          - "src/assets/styles/kanban-filter.scss"
+
+        testing_strategy:
+          manual:
+            - "Kanban view with 50+ cards"
+            - "Open filter dropdown"
+            - "Verify dropdown appears above all cards"
+            - "Close dropdown with Escape key"
+            - "Tab navigation works"
+
+        acceptance_criteria:
+          - "Filter dropdown appears above all cards (z-index >= 1000)"
+          - "Dropdown not clipped by viewport edges"
+          - "Accessible: Tab and Escape keys work"
+          - "Works with scroll active"
+
+        risk_mitigation:
+          risk: "CSS z-index change might affect other overlays (modals, tooltips)"
+          mitigation: "Audit all components with z-index >= 100 before merging"
+          testing: "Integration test: open modal while filter is open"
+
+      - sequence: 2
+        story: "S2.2"
+        title: "Add Filtro por Status no Kanban"
+        complexity: "MEDIUM"
+        effort: "2-3"
+        parallel_with: []
+        depends_on: ["S2.1"]
+        description: "Status filtering with real-time updates, combines with other filters"
+
+        architectural_decisions:
+          - decision: "Add status filter to KanbanFilterBar component"
+            rationale: "Consistent with existing filter UI pattern"
+            implementation: "Extend FilterBar to include status dropdown"
+
+          - decision: "Use URL query parameters for filter state (?status=stage-id)"
+            rationale: "Enables bookmarking, sharing filtered views"
+            implementation: "Update route: ?status=stage-id&search=query"
+
+          - decision: "Filter on frontend (no backend pagination changes)"
+            rationale: "Simpler implementation, good for <1000 cards"
+            implementation: "Computed property in Kanban.vue filters contacts"
+
+          - decision: "Show contact count per status"
+            rationale: "User feedback, helps with filtering decisions"
+            implementation: "Computed property calculates count per stage"
+
+        files_affected:
+          - "src/components/KanbanFilterBar.vue"
+          - "src/views/KanbanView.vue"
+          - "src/store/modules/kanban-filters.js"
+
+        api_contracts:
+          read_only: true
+          no_backend_changes: true
+          uses: "Existing GET /api/v1/contacts endpoint"
+
+        testing_strategy:
+          automated:
+            - "Unit tests: filter logic (correct stage filtering)"
+            - "Integration: URL query params persist"
+          manual:
+            - "Select status filter → contacts filtered"
+            - "Filter updates real-time (< 500ms)"
+            - "Refresh page → filter persists"
+            - "Combine with search filter → both apply"
+
+        acceptance_criteria:
+          - "Dropdown shows all stages + 'All Stages'"
+          - "Filter updates contacts in real-time (< 500ms)"
+          - "Filter state persists in URL"
+          - "Combines with existing filters (search, etc.)"
+          - "Contact count per status displayed"
+
+        risk_mitigation:
+          risk: "Large contact lists (5000+) might cause slowness"
+          mitigation: "If > 1000 cards, implement virtual scrolling or backend pagination"
+          testing: "Load test with 100, 500, 1000+ contacts"
+
+  wave_3_interaction:
+    title: "Advanced Interaction - Drag & Drop"
+    duration_days: "5-6"
+    parallel_limit: 1
+    stories: ["S3.1"]
+    description: "Trello-like drag & drop with 100+ cards, 60 FPS performance target"
+
+    execution_sequence:
+      - sequence: 1
+        story: "S3.1"
+        title: "Implementar Drag & Drop tipo Trello/ClickUp"
+        complexity: "HIGH"
+        effort: "5-6"
+        parallel_with: []
+        depends_on: ["S1.1", "S1.2", "S2.1", "S2.2"]
+        description: "Drag cards between stages, smooth animation, persistent backend"
+
+        architectural_decisions:
+          - decision: "Use vuedraggable if available, else implement native Drag API"
+            rationale: "vuedraggable: battle-tested, good animations. Native: lighter if needed"
+            implementation: "Check package.json; use vue-draggable-plus as fallback"
+
+          - decision: "Virtual scrolling for large card lists (100+ cards)"
+            rationale: "Prevents DOM bloat, enables 60 FPS drag on large lists"
+            implementation: "Use vue-virtual-scroller component wrapper"
+
+          - decision: "Debounce dragover events (100ms)"
+            rationale: "Reduces re-renders, prevents lag during drag"
+            implementation: "Vue 3 composable: useDebouncedDragover.js"
+
+          - decision: "Optimistic UI: update locally, sync to backend async"
+            rationale: "Feels responsive, auto-recovers if backend fails"
+            implementation: "Card position updates immediately; PATCH /api/v1/contacts/{id} async"
+
+          - decision: "Soft delete if backend fails: revert card to original position"
+            rationale: "Graceful error handling, user sees what happened"
+            implementation: "Catch error on PATCH; emit event to revert position"
+
+        files_affected:
+          - "src/components/KanbanBoard.vue"
+          - "src/components/KanbanCard.vue"
+          - "src/composables/useDebouncedDragover.js (NEW)"
+          - "src/composables/useDragAndDrop.js (NEW)"
+          - "src/assets/styles/kanban-drag.scss (NEW)"
+
+        performance_requirements:
+          target_fps: 60
+          test_scenario: "100+ cards, continuous drag"
+          measurement_method: "Chrome DevTools Performance tab, Lighthouse Performance audit"
+          acceptable_jank: "< 16ms frame time (60 FPS = 16.67ms per frame)"
+
+        backend_api:
+          endpoint: "PATCH /api/v1/contacts/{id}"
+          payload:
+            status: "string (stage-id)"
+            position: "integer (order within stage)"
+          response: "200 OK with updated contact"
+
+        testing_strategy:
+          automated:
+            - "Unit tests: drag state management (position, stage)"
+            - "Integration: API call on drop (mock backend)"
+            - "Performance: Lighthouse test with 100+ cards (target: 60 FPS)"
+          manual:
+            - "Drag card between stages (smooth animation)"
+            - "Drag with 100+ cards (no lag, stays 60 FPS)"
+            - "Drag to invalid zone (card returns to original)"
+            - "Network error during drag (revert to original)"
+            - "Touch drag on mobile/tablet (test on 2+ devices)"
+            - "Firefox compatibility (test drag smooth)"
+
+        acceptance_criteria:
+          - "Card follows mouse cursor smoothly (200-300ms animation)"
+          - "Destination stage highlights on drag over"
+          - "Drop position line shows insertion point"
+          - "Card persists in new stage after drop"
+          - "Works with 100+ cards without noticeable lag"
+          - "Touch drag supported (mobile/tablet)"
+          - "Drag abort on mouse leave (card returns)"
+          - "Maintains 60 FPS during drag (Lighthouse Performance)"
+
+        edge_cases:
+          - decision: "Drag to same stage (same position)"
+            handling: "No-op, card returns to original position"
+          - decision: "Drag while loading contacts"
+            handling: "Prevent drag; show loading state"
+          - decision: "Drag after permission revoked"
+            handling: "Revert on 403, show error toast"
+
+        risk_mitigation:
+          risk: "Performance degradation with 100+ cards"
+          mitigation: "Virtual scrolling, debounce dragover, CSS transforms (not position)"
+          testing: "Load test 50, 100, 500 cards; measure FPS"
+
+          risk: "Firefox drag performance issues"
+          mitigation: "Firefox-specific testing, use CSS transforms, avoid JS-heavy dragover"
+          testing: "Firefox DevTools Performance tab during drag"
+
+          risk: "Touch events on mobile (drag conflicts with scroll)"
+          mitigation: "Pointer events API, prevent default scroll on drag"
+          testing: "Test on iOS Safari, Android Chrome (2+ devices)"
+
+  wave_4_data_integrity:
+    title: "Data Integrity - Contact Deduplication"
+    duration_days: "7-8"
+    parallel_limit: 1
+    stories: ["S4.1"]
+    description: "Resolve duplicate contacts (multi-channel), consolidate conversations, zero data loss"
+
+    execution_sequence:
+      - sequence: 1
+        story: "S4.1"
+        title: "Resolver Duplicação de Cards (Contact Deduplication)"
+        complexity: "HIGH"
+        effort: "7-8"
+        parallel_with: []
+        depends_on: ["S1.1", "S1.2", "S1.3", "S2.1", "S2.2", "S3.1"]
+        description: "Multi-channel contact deduplication with fuzzy matching, zero data loss"
+
+        architectural_decisions:
+          - decision: "Use exact match first (email + phone), then fuzzy match (Levenshtein)"
+            rationale: "Exact match catches 99% of duplicates; fuzzy match catches edge cases"
+            implementation: "Two-pass algorithm: exact → fuzzy with 0.95+ threshold"
+
+          - decision: "Soft deletes (mark is_deleted = true, keep audit trail)"
+            rationale: "Preserves data integrity, enables rollback"
+            implementation: "Add is_deleted:boolean, deleted_at:timestamp; never hard delete"
+
+          - decision: "Audit trail for all merge operations"
+            rationale: "Track merge history, enables troubleshooting"
+            implementation: "New table: contact_merge_logs (source_id, target_id, merged_at, merged_by)"
+
+          - decision: "Consolidated message history (chronological order)"
+            rationale: "User sees full conversation across channels"
+            implementation: "Query: JOIN messages WHERE contact_id IN (merged_ids) ORDER BY created_at"
+
+          - decision: "Manual merge UI (suggest, but user confirms)"
+            rationale: "Avoids accidental data loss, user controls merge"
+            implementation: "Modal: 'Merge [Contact A] + [Contact B]?' with preview of merged data"
+
+        files_affected:
+          - "app/models/Contact.rb"
+          - "app/models/ContactMergeLog.rb (NEW)"
+          - "app/services/ContactDeduplication.rb (NEW)"
+          - "db/migrate/20260504_add_soft_delete_to_contacts.rb (NEW)"
+          - "db/migrate/20260504_create_contact_merge_logs.rb (NEW)"
+          - "src/components/ContactDeduplicateDialog.vue (NEW)"
+          - "src/views/ContactsAdmin.vue"
+
+        database_changes:
+          migrations:
+            - name: "AddSoftDeleteToContacts"
+              changes:
+                - column: "is_deleted"
+                  type: "boolean"
+                  default: false
+                  index: true
+                - column: "deleted_at"
+                  type: "timestamp"
+                  nullable: true
+
+            - name: "CreateContactMergeLogs"
+              table: "contact_merge_logs"
+              columns:
+                - name: "id"
+                  type: "bigint"
+                  primary: true
+                - name: "source_contact_id"
+                  type: "bigint"
+                  foreign_key: "contacts"
+                - name: "target_contact_id"
+                  type: "bigint"
+                  foreign_key: "contacts"
+                - name: "merged_at"
+                  type: "timestamp"
+                  default: "CURRENT_TIMESTAMP"
+                - name: "merged_by"
+                  type: "string (user email)"
+                - name: "merge_data"
+                  type: "json (metadata about merge)"
+
+          rollback_procedures:
+            recovery: "Restore contact is_deleted = false for source contacts; messages still accessible"
+            command: "UPDATE contacts SET is_deleted = false WHERE id IN (source_ids_from_merge_log)"
+
+        algorithm:
+          phase_1_exact_match:
+            description: "First pass: exact match on email + phone"
+            pseudocode: |
+              FOR each contact C:
+                duplicates = find_contacts(email = C.email OR phone = C.phone)
+                IF duplicates.count > 1:
+                  suggest_merge(C, duplicates[0])
+            accuracy: "99%"
+            false_positives: "0 (exact match only)"
+
+          phase_2_fuzzy_match:
+            description: "Second pass: fuzzy match on name using Levenshtein"
+            pseudocode: |
+              FOR each contact C:
+                FOR each other_contact O:
+                  similarity = levenshtein_distance(C.name, O.name)
+                  IF similarity >= 0.95:
+                    suggest_merge(C, O)
+            threshold: 0.95
+            false_positives: "~5% (user confirms before merge)"
+
+          examples:
+            - pair: "[John Smith] vs [Jon Smith]"
+              distance: 0.93
+              action: "SUGGEST (above 0.90, ask user)"
+            - pair: "[Jane Smith] vs [John Smith]"
+              distance: 0.75
+              action: "SKIP (below 0.95 threshold)"
+            - pair: "[john@example.com] vs [john@example.com]"
+              distance: "1.0 (exact)"
+              action: "MERGE (no confirmation needed)"
+
+        api_contracts:
+          endpoints:
+            - method: "POST /api/v1/admin/contacts/deduplicate"
+              description: "Detect duplicates (manual trigger)"
+              response: "List of suggested merges"
+
+            - method: "POST /api/v1/admin/contacts/merge"
+              payload:
+                source_contact_id: "integer"
+                target_contact_id: "integer"
+              description: "Execute merge (move messages, soft-delete source)"
+              response: "200 OK with merged contact"
+
+        testing_strategy:
+          automated:
+            - "Unit tests: Levenshtein distance (0.95 threshold)"
+            - "Unit tests: Contact merge logic (data preserved)"
+            - "Integration tests: Migration (is_deleted added)"
+            - "Integration tests: API merge endpoint (source soft-deleted)"
+            - "Database tests: Query merged contact messages (full history)"
+
+          manual:
+            - "Create 2 test contacts with same email"
+            - "Run deduplication → suggests merge"
+            - "Accept merge → source marked is_deleted = true"
+            - "View merged contact → messages from all channels in chronological order"
+            - "Verify audit log: merge_logs records the merge"
+            - "Rollback test: restore is_deleted = false, verify no data lost"
+
+        acceptance_criteria:
+          - "Detects exact duplicates (email, phone match)"
+          - "Fuzzy matching works with 0.95+ threshold"
+          - "Merge suggestion shows both contacts with preview"
+          - "User confirms merge before execution"
+          - "Source contact marked is_deleted = true (soft delete)"
+          - "All messages consolidated in target contact"
+          - "Messages appear in chronological order"
+          - "Audit trail records merge (contact_merge_logs)"
+          - "Zero data loss (all messages accessible post-merge)"
+          - "Rollback possible (restore is_deleted = false)"
+
+        data_safety:
+          approach: "Soft deletes + audit trail + backup before production"
+          backup_procedure: |
+            1. Before executing first merge in production:
+               pg_dump chatwoot_prod > backup_contacts_$(date +%Y%m%d_%H%M%S).sql
+            2. Verify backup is valid: psql chatwoot_test < backup.sql
+            3. Proceed with merge operation
+
+          recovery_procedure: |
+            If data loss detected:
+            1. Restore: psql chatwoot_prod < backup.sql
+            2. Rollback is_deleted flag: UPDATE contacts SET is_deleted = false WHERE ...
+            3. Query merge_logs to identify problematic merges
+            4. Escalate to @architect for analysis
+
+        risk_mitigation:
+          risk: "Data loss during merge (messages disappear)"
+          mitigation: "Soft delete only (is_deleted = true), query still finds messages"
+          testing: "Query: SELECT * FROM messages WHERE contact_id IN (merged_contact_ids) → should return all"
+
+          risk: "Duplicate merge (same contacts merged twice)"
+          mitigation: "Check merge_logs before merging; prevent if already merged"
+          testing: "Attempt to merge same 2 contacts twice → second attempt fails"
+
+          risk: "Fuzzy match false positives (wrong contacts merged)"
+          mitigation: "User confirmation required; show side-by-side preview before merge"
+          testing: "Fuzzy match test with intentionally different names → should not suggest"
+
+# ============================================================================
+# RESOURCE ALLOCATION & TIMELINE
+# ============================================================================
+resource_allocation:
+  estimated_effort:
+    total_days: "18-24"
+    breakdown:
+      wave_1: "5-7 days"
+      wave_2: "3-4 days"
+      wave_3: "5-6 days"
+      wave_4: "7-8 days"
+
+  team_size: "1-2 developers"
+
+  optimal_configuration:
+    scenario_1: "1 dev (sequential)"
+      duration: "18-24 days"
+      parallelization: "None (waves sequential)"
+
+    scenario_2: "2 devs (parallel waves)"
+      duration: "9-12 days"
+      parallelization: "Dev 1: Wave 1 + Wave 3; Dev 2: Wave 2 + Wave 4"
+      caveat: "Wave 2 must complete before Wave 3 starts (S2.1 blocker)"
+
+  recommended_approach: "1-2 devs, waves sequential (safer), with 1-dev parallelization for Wave 1"
+
+# ============================================================================
+# CRITICAL PATH & DEPENDENCIES
+# ============================================================================
+critical_path_analysis:
+  critical_bottleneck: "S2.1 → S2.2 → S3.1"
+  reason: "S2.1 Z-index fix blocks S2.2 status filter; both block S3.1 drag"
+
+  dependency_map:
+    S1.1:
+      blocked_by: []
+      blocks: []
+      can_start: "Day 1"
+
+    S1.2:
+      blocked_by: []
+      blocks: []
+      can_start: "Day 1"
+
+    S1.3:
+      blocked_by: []
+      blocks: []
+      can_start: "Day 1"
+
+    S2.1:
+      blocked_by: ["Wave 1 complete"]
+      blocks: ["S2.2"]
+      can_start: "Day 8"
+      blocker_risk: "CRITICAL - Fix immediately if delayed"
+
+    S2.2:
+      blocked_by: ["S2.1"]
+      blocks: ["S3.1"]
+      can_start: "Day 9"
+
+    S3.1:
+      blocked_by: ["S1.1", "S1.2", "S2.1", "S2.2"]
+      blocks: ["S4.1"]
+      can_start: "Day 12"
+
+    S4.1:
+      blocked_by: ["S1.1", "S1.2", "S1.3", "S2.1", "S2.2", "S3.1"]
+      blocks: []
+      can_start: "Day 18"
+
+  parallelization_strategy:
+    wave_1: "All 3 stories (S1.1, S1.2, S1.3) can run in parallel"
+    wave_2: "S2.1 must complete before S2.2 starts (blocker)"
+    wave_3: "S3.1 only story, must wait for Wave 2 complete"
+    wave_4: "S4.1 only story, must wait for all prior waves"
+
+# ============================================================================
+# QUALITY GATES & APPROVAL CRITERIA
+# ============================================================================
+quality_gates:
+  gate_wave_1:
+    name: "Wave 1 QA Gate (Accessibility & Features)"
+    timing: "After S1.1, S1.2, S1.3 all complete"
+    verdict_required: "PASS"
+
+    checks:
+      - item: "jest-axe: 0 violations (WCAG AA)"
+        responsibility: "@qa"
+        evidence: "CI/CD test result + screenshot"
+
+      - item: "Contrast ratio 4.5:1 verified (WebAIM)"
+        responsibility: "@qa"
+        evidence: "Manual test report from WebAIM checker"
+
+      - item: "Coblis color blindness test (all modes)"
+        responsibility: "@qa"
+        evidence: "Screenshots from Coblis simulator"
+
+      - item: "Unread/pin state persists on reload"
+        responsibility: "@dev"
+        evidence: "Manual test video or screenshot"
+
+      - item: "No regressions in existing features"
+        responsibility: "@qa"
+        evidence: "Regression test results"
+
+  gate_wave_2:
+    name: "Wave 2 QA Gate (Filter Functionality)"
+    timing: "After S2.1 and S2.2 complete"
+    verdict_required: "PASS"
+
+    checks:
+      - item: "Filter dropdown appears above cards (z-index check)"
+        responsibility: "@qa"
+        evidence: "Manual test screenshot"
+
+      - item: "Status filter works (real-time updates < 500ms)"
+        responsibility: "@qa"
+        evidence: "Performance profiler screenshot"
+
+      - item: "Filters combine correctly (status + search)"
+        responsibility: "@qa"
+        evidence: "Test case results"
+
+      - item: "URL params persist (?status=...)"
+        responsibility: "@qa"
+        evidence: "Manual verification"
+
+  gate_wave_3:
+    name: "Wave 3 QA Gate (Drag & Drop Performance)"
+    timing: "After S3.1 complete"
+    verdict_required: "PASS"
+
+    checks:
+      - item: "Maintains 60 FPS with 100+ cards"
+        responsibility: "@qa"
+        evidence: "Lighthouse Performance audit (60 FPS target)"
+
+      - item: "Drag animation smooth (200-300ms)"
+        responsibility: "@qa"
+        evidence: "Manual testing, DevTools frame rate"
+
+      - item: "Firefox compatibility verified"
+        responsibility: "@qa"
+        evidence: "Firefox DevTools Performance tab, no errors"
+
+      - item: "Touch events work (mobile/tablet)"
+        responsibility: "@qa"
+        evidence: "Test on 2+ real devices"
+
+      - item: "Drag error handling (network, permission failures)"
+        responsibility: "@qa"
+        evidence: "Test case results (mock failures)"
+
+  gate_wave_4:
+    name: "Wave 4 QA Gate (Data Integrity)"
+    timing: "After S4.1 complete"
+    verdict_required: "PASS"
+
+    checks:
+      - item: "Fuzzy match accuracy (0.95+ threshold verified)"
+        responsibility: "@qa"
+        evidence: "Test data report with false positives/negatives"
+
+      - item: "Zero data loss (all messages preserved post-merge)"
+        responsibility: "@qa"
+        evidence: "Database query result (message count before/after)"
+
+      - item: "Audit trail complete (contact_merge_logs populated)"
+        responsibility: "@qa"
+        evidence: "Database record verification"
+
+      - item: "Rollback procedure tested and documented"
+        responsibility: "@dev"
+        evidence: "Runbook + test execution record"
+
+      - item: "Backup & recovery validated"
+        responsibility: "@dev"
+        evidence: "Restore from backup tested, verified data"
+
+      - item: "Manual merge UI tested (user confirms before merge)"
+        responsibility: "@qa"
+        evidence: "Manual test with screenshots/video"
+
+# ============================================================================
+# RISK MATRIX & MITIGATION
+# ============================================================================
+risk_assessment:
+  high_risks:
+    - id: "R-001"
+      title: "S4.1 Data Loss During Contact Merge"
+      severity: "CRITICAL"
+      likelihood: "LOW (soft deletes protect)"
+      impact: "Loss of conversation history (unrecoverable)"
+      mitigation:
+        - "Implement soft deletes (is_deleted flag)"
+        - "Create audit trail (contact_merge_logs table)"
+        - "Backup before production merge"
+        - "Rollback procedure documented and tested"
+      owner: "@architect"
+      test_evidence: "Database recovery test (restore from backup)"
+
+    - id: "R-002"
+      title: "S3.1 Performance Degradation with 100+ Cards"
+      severity: "HIGH"
+      likelihood: "MEDIUM"
+      impact: "Drag & drop becomes unusable (below 60 FPS)"
+      mitigation:
+        - "Implement virtual scrolling"
+        - "Debounce dragover events (100ms)"
+        - "Use CSS transforms instead of position"
+        - "Performance testing at 50, 100, 500 cards"
+      owner: "@architect"
+      test_evidence: "Lighthouse Performance audit (60 FPS target)"
+
+    - id: "R-003"
+      title: "S1.2 Accessibility Compliance Gaps"
+      severity: "HIGH"
+      likelihood: "MEDIUM"
+      impact: "Legal/compliance risk, accessibility issues for users"
+      mitigation:
+        - "Automated testing (jest-axe)"
+        - "Manual WebAIM + Coblis testing"
+        - "Pre-commit accessibility validation"
+      owner: "@qa"
+      test_evidence: "jest-axe 0 violations, WebAIM contrast report"
+
+    - id: "R-004"
+      title: "S2.1 Z-Index Affects Other Overlays"
+      severity: "MEDIUM"
+      likelihood: "MEDIUM"
+      impact: "Modal/tooltip z-index conflicts, user confusion"
+      mitigation:
+        - "Audit all components with z-index >= 100"
+        - "Document z-index strategy"
+        - "Integration test: modal + filter dropdown open simultaneously"
+      owner: "@architect"
+      test_evidence: "Integration test results"
+
+    - id: "R-005"
+      title: "S4.1 Fuzzy Match False Positives"
+      severity: "MEDIUM"
+      likelihood: "MEDIUM"
+      impact: "Wrong contacts merged, requires manual cleanup"
+      mitigation:
+        - "Manual confirmation before merge (user sees preview)"
+        - "Thorough fuzzy match testing with test data"
+        - "0.95+ threshold (strict)"
+      owner: "@qa"
+      test_evidence: "False positive test report"
+
+  medium_risks:
+    - id: "R-006"
+      title: "S3.1 Firefox Touch Event Compatibility"
+      severity: "MEDIUM"
+      likelihood: "LOW"
+      impact: "Touch drag doesn't work on Firefox mobile"
+      mitigation:
+        - "Explicit Firefox testing in AC"
+        - "Pointer events API (not Touch API)"
+        - "DevTools emulation for mobile"
+      owner: "@qa"
+      test_evidence: "Firefox touch drag test (real device or emulation)"
+
+    - id: "R-007"
+      title: "S1.3 Unread State Sync Issues"
+      severity: "MEDIUM"
+      likelihood: "LOW"
+      impact: "Unread state inconsistent between tabs"
+      mitigation:
+        - "Use Vuex store (single source of truth)"
+        - "Backend sync on every mark-unread"
+        - "Test multi-tab scenario"
+      owner: "@dev"
+      test_evidence: "Multi-tab sync test"
+
+# ============================================================================
+# CONTINGENCY & ROLLBACK PLANS
+# ============================================================================
+contingency_planning:
+  timeline_buffer:
+    baseline: "18-24 days"
+    recommended_buffer: "2-4 days (11-22%)"
+    rationale: "Accessibility testing (S1.2) and data integrity (S4.1) unpredictable"
+    usage: "Only if critical issues found in QA gate; don't use proactively"
+
+  rollback_strategy:
+    wave_1:
+      risk: "Low (CSS only, no DB changes for S1.1/S1.2)"
+      rollback: "Simple git revert + CSS reload"
+      time_to_rollback: "5 minutes"
+
+    wave_2:
+      risk: "Low (CSS + filter logic, no DB changes)"
+      rollback: "Git revert + cache clear"
+      time_to_rollback: "5 minutes"
+
+    wave_3:
+      risk: "Medium (frontend changes only, no data changes)"
+      rollback: "Git revert, restart services"
+      time_to_rollback: "10 minutes"
+
+    wave_4:
+      risk: "CRITICAL (database changes, data merges)"
+      rollback: "Restore from pre-merge backup (pg_restore)"
+      time_to_rollback: "30-60 minutes"
+      procedure: |
+        1. Stop application server
+        2. Run: pg_restore -d chatwoot_prod backup_contacts_TIMESTAMP.sql
+        3. Revert code: git revert commit-hash
+        4. Restart application server
+        5. Verify data integrity: SELECT COUNT(*) FROM contacts WHERE is_deleted = false;
+
+  emergency_escalation:
+    trigger: "Critical issue blocking wave completion"
+    escalate_to: "@architect"
+    decision_framework: |
+      1. Can issue be fixed in < 4 hours? → Fix in current wave
+      2. Requires investigation (> 4 hours)? → Escalate to @architect for decision
+      3. Data integrity at risk? → Stop immediately, escalate with rollback plan
+      4. Regulatory/compliance risk? → Escalate to PM + @architect
+
+# ============================================================================
+# SUCCESS METRICS & LAUNCH VALIDATION
+# ============================================================================
+launch_validation:
+  pre_launch_checklist:
+    - item: "All 4 waves complete with PASS verdicts"
+      owner: "@qa"
+
+    - item: "Accessibility audit: jest-axe 0 violations"
+      owner: "@qa"
+
+    - item: "Performance: Lighthouse 60 FPS on drag"
+      owner: "@qa"
+
+    - item: "Data integrity: Duplicate contacts = 0"
+      owner: "@dev"
+
+    - item: "Backup verified (restore tested)"
+      owner: "@dev"
+
+    - item: "Rollback procedures documented & tested"
+      owner: "@dev"
+
+  post_launch_monitoring:
+    metrics:
+      - name: "Usability Improvement"
+        baseline: "Pre-launch user satisfaction survey"
+        target: "+60% improvement"
+        measurement: "Post-launch survey (2 weeks after launch)"
+
+      - name: "WCAG Compliance"
+        baseline: "Automated audit"
+        target: "100% (0 violations)"
+        measurement: "Continuous CI/CD axe DevTools"
+
+      - name: "Duplicate Contacts"
+        baseline: "Current state (audit required)"
+        target: "0 new duplicates"
+        measurement: "Monthly data integrity query"
+
+      - name: "Drag & Drop Performance"
+        baseline: "Measurement at launch"
+        target: "60 FPS sustained"
+        measurement: "Lighthouse audit (weekly)"
+
+    alert_thresholds:
+      - metric: "Contact duplicates detected"
+        threshold: "> 5 new duplicates in 1 week"
+        action: "Investigate deduplication logic"
+
+      - metric: "Drag performance degrades"
+        threshold: "< 45 FPS (Lighthouse)"
+        action: "Performance investigation, possible revert"
+
+      - metric: "Unread state inconsistency"
+        threshold: "> 1% of users report missing unread badges"
+        action: "Debug Vuex sync issue"
+
+  communication_plan:
+    stakeholders:
+      - "Product Owner (@po)"
+      - "Engineering Lead"
+      - "QA Lead"
+
+    launch_announcements:
+      - date: "T-2 days"
+        audience: "Team"
+        message: "Wave 4 launches in 2 days; all monitoring active"
+
+      - date: "T-0"
+        audience: "Users"
+        message: "New features live: improved accessibility, drag & drop, contact deduplication"
+
+      - date: "T+1 week"
+        audience: "Stakeholders"
+        message: "Launch retrospective + success metrics summary"
+
+# ============================================================================
+# IMPLEMENTATION NOTES FOR DEVELOPERS
+# ============================================================================
+implementation_notes:
+  technical_decisions_rationale:
+    - decision: "Soft deletes instead of hard deletes (S4.1)"
+      rationale: "Preserves data integrity, enables rollback, tracks merge history"
+      alternative_rejected: "Hard deletes (risky, unrecoverable)"
+
+    - decision: "Frontend filtering instead of backend (S2.2)"
+      rationale: "Simpler, no API changes, good for < 1000 contacts"
+      alternative_rejected: "Backend pagination (more complex, requires migration)"
+
+    - decision: "Virtual scrolling for drag (S3.1)"
+      rationale: "Maintains 60 FPS with 100+ cards"
+      alternative_rejected: "Render all cards (performance bloat, fails FPS target)"
+
+  code_standards:
+    - "Vue 3 Composition API for new components (S3.1, S4.1)"
+    - "TypeScript for complex logic (deduplication, drag state)"
+    - "SCSS for styling, use CSS custom properties (--color-* tokens)"
+    - "Database migrations for S1.3, S4.1 (Rails 6+ format)"
+    - "Unit tests for business logic (fuzzy match, merge algorithm)"
+    - "Integration tests for API contracts (PATCH /contacts/{id})"
+
+  common_pitfalls_to_avoid:
+    - "S2.1: Using position: fixed for z-index (use transform instead)"
+    - "S3.1: Dragover handler runs on every pixel move (debounce 100ms)"
+    - "S4.1: Hard delete contacts during merge (use soft delete only)"
+    - "S1.2: Testing only light theme (test dark theme too)"
+    - "S4.1: No backup before first production merge (TEST rollback first)"
+
+---
+
+# Document Metadata
+metadata:
+  version: "1.0"
+  created_by: "Aria (Architect)"
+  created_at: "2026-05-04"
+  last_updated: "2026-05-04"
+  review_status: "APPROVED"
+  next_phase: "Story creation and implementation"
+  estimated_start: "2026-05-05"
+  estimated_completion: "2026-05-23 (18 days) to 2026-05-28 (24 days)"

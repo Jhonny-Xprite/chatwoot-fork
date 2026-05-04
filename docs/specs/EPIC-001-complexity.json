@@ -1,0 +1,565 @@
+{
+  "epic_id": "EPIC-001-KANBAN",
+  "assessment_phase": 2,
+  "assessed_at": "2026-05-04",
+  "assessed_by": "Aria (Architect)",
+  "status": "ASSESSED",
+
+  "assessment_summary": {
+    "total_effort_days": "17-22 dias (estimado original)",
+    "total_effort_adjusted": "18-24 dias (com riscos técnicos)",
+    "complexity_distribution": {
+      "low": 4,
+      "medium": 2,
+      "high": 1
+    },
+    "tech_stack_stability": "STABLE - Usa tecnologias presentes no projeto",
+    "critical_path": "S2.1 → S2.2 → S3.1 (Wave 3 depende de Wave 2)",
+    "biggest_risk": "S4.1 (Deduplication) - Data integrity crítica, complex business logic"
+  },
+
+  "complexity_dimensions": {
+    "scope_factor": {
+      "description": "Quantidade de arquivos e linhas de código afetadas",
+      "weight": 1,
+      "scoring": {
+        "low": "1-3 arquivos, <200 linhas",
+        "medium": "4-8 arquivos, 200-500 linhas",
+        "high": "8+ arquivos, 500+ linhas"
+      }
+    },
+    "integration_factor": {
+      "description": "Quantidade de componentes que precisam ser integrados",
+      "weight": 1.2,
+      "scoring": {
+        "low": "Isolado (1-2 componentes)",
+        "medium": "Moderado (3-5 componentes)",
+        "high": "Alto acoplamento (6+ componentes ou backend)"
+      }
+    },
+    "infrastructure_factor": {
+      "description": "Mudanças na infraestrutura, banco de dados, API",
+      "weight": 1.5,
+      "scoring": {
+        "low": "Nenhuma (CSS/JS puro)",
+        "medium": "Alterações menores (1-2 endpoints)",
+        "high": "Novas migrations, jobs, services"
+      }
+    },
+    "knowledge_factor": {
+      "description": "Familiaridade do time com padrões/tecnologias necessárias",
+      "weight": 0.8,
+      "scoring": {
+        "low": "Padrões conhecidos no projeto",
+        "medium": "Alguns padrões novos",
+        "high": "Padrões/tecnologias pouco familiares"
+      }
+    },
+    "risk_factor": {
+      "description": "Risco de data loss, performance issues, ou regressões",
+      "weight": 1.3,
+      "scoring": {
+        "low": "Seguro - rollback fácil",
+        "medium": "Moderado - precisa testes bem feitos",
+        "high": "Crítico - afeta dados, precisa validação rigorosa"
+      }
+    }
+  },
+
+  "stories_detailed_assessment": {
+    "S1.1-fix-link-colors": {
+      "title": "Fix Cores no Chat (Links Visíveis)",
+      "wave": 1,
+      "estimated_points": 2,
+      "estimated_days": "1-2",
+
+      "scope_analysis": {
+        "files_affected": 2,
+        "description": "Message.vue + conversation.scss",
+        "lines_of_code_estimate": 50,
+        "complexity_score": 1
+      },
+
+      "technical_assessment": {
+        "technologies": ["Vue 3 (template)", "SCSS", "CSS custom properties"],
+        "integration_points": [
+          "Message.vue component",
+          "conversation.scss global styles",
+          "Light/dark theme system"
+        ],
+        "database_changes": false,
+        "api_changes": false,
+        "new_services": false
+      },
+
+      "wcag_compliance_risk": {
+        "risk": "Link contrast ratio must be >= 4.5:1",
+        "testing_required": ["WCAG contrast checker", "Manual browser testing", "Different protocols (http, https, ftp, mailto)"],
+        "mitigation": "Use design system colors, test with accessibility tools"
+      },
+
+      "dependencies": {
+        "blocks": [],
+        "blocked_by": []
+      },
+
+      "effort_breakdown": {
+        "development": "1 dia",
+        "testing": "0.5 dias",
+        "buffer": "0.5 dias",
+        "total": "2 dias"
+      },
+
+      "confidence": "HIGH",
+      "adjusted_complexity": "LOW",
+      "adjusted_days": "1-2",
+      "notes": "Quick win, isolated CSS changes, low risk of regression"
+    },
+
+    "S1.2-fix-conversation-colors": {
+      "title": "Fix Scheme de Cores no Conversation Detail",
+      "wave": 1,
+      "estimated_points": 2,
+      "estimated_days": "1-2",
+
+      "scope_analysis": {
+        "files_affected": 2,
+        "description": "ConversationDetails.vue + conversation-detail.scss",
+        "lines_of_code_estimate": 75,
+        "complexity_score": 1.2
+      },
+
+      "technical_assessment": {
+        "technologies": ["Vue 3", "SCSS", "CSS custom properties", "Accessibility testing"],
+        "integration_points": [
+          "ConversationDetails.vue component",
+          "conversation-detail.scss",
+          "Message sender type detection",
+          "Light/dark theme"
+        ],
+        "database_changes": false,
+        "api_changes": false,
+        "new_services": false
+      },
+
+      "wcag_compliance_risk": {
+        "risk": "HIGH - Complex layout with multiple text colors, backgrounds, status indicators",
+        "testing_required": [
+          "WCAG contrast checker (all text combinations)",
+          "Coblis daltonism simulator",
+          "Manual testing: Chrome, Firefox, Safari",
+          "Mobile responsive testing (320px, 768px, 1920px)"
+        ],
+        "mitigation": "CSS variables for theme, systematic color palette, accessibility audit before approval"
+      },
+
+      "dependencies": {
+        "blocks": [],
+        "blocked_by": []
+      },
+
+      "effort_breakdown": {
+        "development": "1 dia",
+        "accessibility_testing": "1 dia",
+        "buffer": "0.5 dias",
+        "total": "2.5 dias"
+      },
+
+      "confidence": "HIGH",
+      "adjusted_complexity": "LOW",
+      "adjusted_days": "2-3",
+      "notes": "Slightly more complex than S1.1 due to multi-component color coordination. WCAG testing critical."
+    },
+
+    "S1.3-unread-pinned": {
+      "title": "Add Marcar como não lido + Destaque",
+      "wave": 1,
+      "estimated_points": 5,
+      "estimated_days": "2-3",
+
+      "scope_analysis": {
+        "files_affected": 5,
+        "description": "ConversationHeader.vue, ContactPipelineCard.vue, migration, model, actions",
+        "lines_of_code_estimate": 250,
+        "complexity_score": 2
+      },
+
+      "technical_assessment": {
+        "technologies": ["Vue 3", "Vuex (state management)", "Rails migrations", "SCSS"],
+        "integration_points": [
+          "Conversation model (new columns)",
+          "Database migration (add columns)",
+          "Vuex store (new state + mutations)",
+          "API endpoints (PATCH endpoints)",
+          "UI components (header + card)"
+        ],
+        "database_changes": true,
+        "database_impact": "ALTER TABLE conversations ADD COLUMN is_unread, is_pinned",
+        "api_changes": true,
+        "api_endpoints": ["PATCH /conversations/:id/mark_unread", "PATCH /conversations/:id/pin"],
+        "new_services": false
+      },
+
+      "technical_risks": {
+        "migration_safety": "MEDIUM - Adding nullable columns is safe, but need careful testing",
+        "data_consistency": "Ensure is_unread and is_pinned flags sync properly with UI",
+        "performance": "Add index on is_unread for filtering queries"
+      },
+
+      "dependencies": {
+        "blocks": ["S2.2 (needs unread filter integration)"],
+        "blocked_by": []
+      },
+
+      "effort_breakdown": {
+        "database_migration": "0.5 dias",
+        "backend_api": "0.5 dias",
+        "frontend_components": "1 dia",
+        "vuex_integration": "0.5 dias",
+        "testing": "0.5 dias",
+        "total": "3 dias"
+      },
+
+      "confidence": "HIGH",
+      "adjusted_complexity": "MEDIUM",
+      "adjusted_days": "3 dias",
+      "notes": "Moderate complexity due to DB + API + Frontend coordination. Need careful testing of state persistence."
+    },
+
+    "S2.1-fix-zindex": {
+      "title": "Fix Z-INDEX do Filtro",
+      "wave": 2,
+      "estimated_points": 2,
+      "estimated_days": 1,
+
+      "scope_analysis": {
+        "files_affected": 2,
+        "description": "FilterBar.vue + filter.scss",
+        "lines_of_code_estimate": 30,
+        "complexity_score": 0.8
+      },
+
+      "technical_assessment": {
+        "technologies": ["Vue 3", "SCSS", "CSS positioning"],
+        "integration_points": ["FilterBar component", "Dropdown positioning"],
+        "database_changes": false,
+        "api_changes": false,
+        "new_services": false
+      },
+
+      "technical_notes": {
+        "approach": "Increase z-index to >= 50, use position: absolute with parent position: relative",
+        "alternatives": "Could use Popper.js (if installed) for smart positioning",
+        "edge_cases": "Test dropdown repositioning at viewport edges, with scrolling"
+      },
+
+      "dependencies": {
+        "blocks": ["S2.2 (must be fixed before S2.2 works properly)"],
+        "blocked_by": []
+      },
+
+      "effort_breakdown": {
+        "implementation": "1 dia",
+        "testing": "0.5 dias",
+        "total": "1-1.5 dias"
+      },
+
+      "confidence": "VERY_HIGH",
+      "adjusted_complexity": "LOW",
+      "adjusted_days": 1,
+      "notes": "Quick CSS fix. Critical blocker for S2.2, must be done first in Wave 2."
+    },
+
+    "S2.2-status-filter": {
+      "title": "Add Filtro por Status no Kanban",
+      "wave": 2,
+      "estimated_points": 5,
+      "estimated_days": "2-3",
+
+      "scope_analysis": {
+        "files_affected": 4,
+        "description": "FilterBar.vue, Pipelines.vue, pipeline.js store, mutation-types.js",
+        "lines_of_code_estimate": 150,
+        "complexity_score": 1.8
+      },
+
+      "technical_assessment": {
+        "technologies": ["Vue 3", "Vuex", "SCSS"],
+        "integration_points": [
+          "FilterBar component (new dropdown)",
+          "Vuex store (stageFilter state)",
+          "URL query params (?status=stage-id)",
+          "API filtering (include stage_id in request)",
+          "Watch/reactive updates"
+        ],
+        "database_changes": false,
+        "api_changes": false,
+        "backend_filtering_required": "Backend must support ?stage_id query param"
+      },
+
+      "technical_risks": {
+        "filter_combination": "MEDIUM - Must combine properly with other filters (assignee, labels, etc)",
+        "url_persistence": "Ensure query params persist correctly",
+        "real_time_updates": "Filter must update without page reload"
+      },
+
+      "dependencies": {
+        "blocks": [],
+        "blocked_by": ["S2.1 (Z-INDEX fix must be done first)"]
+      },
+
+      "effort_breakdown": {
+        "store_setup": "0.5 dias",
+        "filter_component": "1 dia",
+        "api_integration": "0.5 dias",
+        "url_params": "0.5 dias",
+        "testing": "0.5 dias",
+        "total": "3 dias"
+      },
+
+      "confidence": "HIGH",
+      "adjusted_complexity": "MEDIUM",
+      "adjusted_days": "2-3",
+      "notes": "Depends on S2.1. Must coordinate with existing filter system to avoid conflicts."
+    },
+
+    "S3.1-drag-drop": {
+      "title": "Implementar Drag & Drop tipo Trello/ClickUp",
+      "wave": 3,
+      "estimated_points": 13,
+      "estimated_days": "4-5",
+
+      "scope_analysis": {
+        "files_affected": 6,
+        "description": "PipelineBoard, PipelineColumn, ContactPipelineCard, pipeline.js (API), controller, SCSS",
+        "lines_of_code_estimate": 400,
+        "complexity_score": 3.5
+      },
+
+      "technical_assessment": {
+        "technologies": [
+          "Vue 3 (Composition API)",
+          "Vuedraggable (if available) OR native drag events",
+          "CSS animations",
+          "Backend API coordination"
+        ],
+        "integration_points": [
+          "PipelineBoard (manages state)",
+          "PipelineColumn (drag targets)",
+          "ContactPipelineCard (draggable items)",
+          "Backend API (POST /conversations/:id/move_to_stage)",
+          "Rails controller (validate, update DB)",
+          "SCSS (visual feedback, animations)"
+        ],
+        "database_changes": false,
+        "database_operations": "Update conversation.pipeline_stage_id",
+        "api_changes": true,
+        "new_endpoints": ["POST /conversations/:id/move_to_stage"],
+        "new_services": false
+      },
+
+      "performance_considerations": {
+        "critical": "VERY HIGH - Must handle 100+ cards without lag",
+        "requirements": [
+          "Virtual scrolling for large lists",
+          "Debounce dragover events",
+          "useCallback/useMemo for render functions",
+          "60 FPS target"
+        ],
+        "testing_required": ["Lighthouse performance audit", "Browser DevTools profiler", "Real-world load test (100+ cards)"]
+      },
+
+      "technical_complexity": {
+        "vue_challenge": "Complex state management with drag state + persistence",
+        "backend_challenge": "Transaction safety when moving between stages",
+        "ux_challenge": "Visual feedback (shadow, drop zone, insertion line) must feel responsive",
+        "browser_compat": "Touch events for mobile/tablet, different behavior in Firefox vs Chrome"
+      },
+
+      "dependencies": {
+        "blocks": [],
+        "blocked_by": ["Wave 1 + Wave 2 (should not start until S2.2 complete)"]
+      },
+
+      "effort_breakdown": {
+        "frontend_drag_logic": "1.5 dias",
+        "visual_feedback": "1 dia",
+        "backend_endpoint": "0.5 dias",
+        "touch_support": "0.5 dias",
+        "performance_optimization": "1 dia",
+        "testing": "1.5 dias",
+        "total": "6 dias"
+      },
+
+      "confidence": "MEDIUM",
+      "adjusted_complexity": "HIGH",
+      "adjusted_days": "5-6",
+      "notes": "LARGEST story by complexity. Performance-critical. Recommend vuedraggable if available, else native events. Firefox testing critical."
+    },
+
+    "S4.1-deduplication": {
+      "title": "Resolver Duplicação de Cards",
+      "wave": 4,
+      "estimated_points": 21,
+      "estimated_days": "5-6",
+
+      "scope_analysis": {
+        "files_affected": 7,
+        "description": "Contact model, ContactDeduplicationService, DedupContactsJob, 2 migrations, actions, component",
+        "lines_of_code_estimate": 600,
+        "complexity_score": 4
+      },
+
+      "technical_assessment": {
+        "technologies": [
+          "Rails service pattern",
+          "Background jobs (Sidekiq)",
+          "Database migrations",
+          "Transaction management",
+          "String similarity algorithms (Levenshtein)"
+        ],
+        "integration_points": [
+          "Contact model (relationships, scopes)",
+          "Database schema (merged_to_id, is_merged, merge_reason, audit fields)",
+          "ContactDeduplicationService (core merge logic)",
+          "DedupContactsJob (background dedup)",
+          "API endpoint (manual merge)",
+          "Frontend component (show multiple conversations)"
+        ],
+        "database_changes": true,
+        "database_impact": [
+          "Add columns: merged_to_id, is_merged, merge_reason, merged_at, merged_by_id",
+          "Add unique constraint: (account_id, phone_number, identifier) WHERE is_merged = false",
+          "Add index on merged_to_id and is_merged for query performance"
+        ],
+        "api_changes": true,
+        "new_endpoints": ["POST /contacts/:id/merge_with/:duplicate_id"],
+        "new_services": true,
+        "new_jobs": true
+      },
+
+      "data_integrity_risks": {
+        "criticality": "CRITICAL - Any data loss is unacceptable",
+        "risks": [
+          "Moving conversations between contacts without validating relationships",
+          "Merging contacts that shouldn't be merged (false positives in similarity)",
+          "Creating orphaned message records",
+          "Breaking audit trail during migration",
+          "Accidental cascading deletes"
+        ],
+        "mitigations": [
+          "Use soft deletes (mark as merged, don't delete)",
+          "Comprehensive audit trail (who merged, when, reason)",
+          "Backward compatibility - follow chain of merges",
+          "Test with real data before production",
+          "Dry-run migration script",
+          "Backup before any merge operation"
+        ]
+      },
+
+      "technical_complexity": {
+        "algorithm": "String similarity (Levenshtein) for name matching - need threshold (0.95+)",
+        "transaction": "Must handle multi-table updates atomically",
+        "background_job": "Handle partial failures, retries, idempotency",
+        "migration": "Huge dataset - need pagination/batching to avoid memory issues",
+        "rollback": "If merge detected as bad, need to unmerge (complex)"
+      },
+
+      "dependencies": {
+        "blocks": [],
+        "blocked_by": ["Wave 3 (should be done last for stability)"]
+      },
+
+      "effort_breakdown": {
+        "contact_model_refactor": "1 dia",
+        "deduplication_service": "1.5 dias",
+        "migrations": "1 dia",
+        "background_job": "1 dia",
+        "api_endpoint": "0.5 dias",
+        "frontend_component": "0.5 dias",
+        "comprehensive_testing": "2 dias",
+        "total": "8 dias"
+      },
+
+      "confidence": "LOW",
+      "adjusted_complexity": "HIGH",
+      "adjusted_days": "7-8",
+      "notes": "MOST COMPLEX story. Data integrity is paramount. Recommend: staging environment dry-run, comprehensive testing, small batch rollout, monitoring immediately after."
+    }
+  },
+
+  "technical_stack_assessment": {
+    "frontend": {
+      "technologies": ["Vue 3", "Vuex", "SCSS", "Vuedraggable (optional)"],
+      "stability": "STABLE - All used extensively in project",
+      "risk": "LOW"
+    },
+    "backend": {
+      "technologies": ["Rails", "ActiveRecord", "Sidekiq"],
+      "changes_required": [
+        "1 new service (ContactDeduplicationService)",
+        "1 new job (DedupContactsJob)",
+        "Multiple new API endpoints",
+        "2 database migrations"
+      ],
+      "stability": "STABLE",
+      "risk": "MEDIUM (due to data operations in S4.1)"
+    },
+    "database": {
+      "changes": "2 migrations (columns + constraints)",
+      "rollback_difficulty": "Easy (drop columns)",
+      "data_migration": "Required for S4.1",
+      "risk": "HIGH (if migration fails, need rollback)"
+    }
+  },
+
+  "critical_path_analysis": {
+    "dependency_chain": [
+      "S2.1 (Z-INDEX fix) → MUST BE DONE BEFORE S2.2",
+      "S1.1, S1.2, S1.3 (Wave 1) → Can be done in parallel",
+      "S2.1, S2.2 (Wave 2) → S2.1 MUST be first",
+      "S3.1 (Wave 3) → MUST BE AFTER Wave 1+2",
+      "S4.1 (Wave 4) → MUST BE LAST"
+    ],
+    "critical_blocker": "S2.1 (Z-INDEX) - if delayed, blocks S2.2",
+    "high_risk_blocker": "S4.1 (Deduplication) - data integrity critical, longest story"
+  },
+
+  "timeline_adjustment": {
+    "original_estimate": "17-22 dias",
+    "adjusted_estimate": "18-24 dias",
+    "adjustment_reason": [
+      "+1 dia: S1.2 accessibility testing (WCAG)",
+      "+1 dia: S3.1 performance optimization (100+ cards)",
+      "+2 dias: S4.1 data integrity testing (critical risk)"
+    ],
+    "risk_buffer": "Recommend 2-3 dias extra buffer for unknown unknowns"
+  },
+
+  "recommendations": {
+    "process": [
+      "1. Execute Wave 1 in parallel (S1.1, S1.2, S1.3 can overlap)",
+      "2. S2.1 MUST be first in Wave 2, then S2.2 (serial due to dependency)",
+      "3. Start Wave 3 (S3.1) only after Wave 1+2 complete",
+      "4. S4.1 must be last wave - highest risk, data integrity critical",
+      "5. 1 PR per story, do NOT combine waves in single PR"
+    ],
+    "testing": [
+      "Accessibility: Automated WCAG checker + manual Coblis testing for S1.1, S1.2",
+      "Performance: Lighthouse + browser profiler for S3.1 with 100+ cards",
+      "Data integrity: Comprehensive test suite for S4.1, dry-run on staging",
+      "Regression: Full test suite after each wave before proceeding"
+    ],
+    "team_allocation": [
+      "Ideal: 1-2 developers (can parallelize Wave 1)",
+      "Avoid: Single dev on S3.1 + S4.1 together (too risky)",
+      "Timeline: 3-4 weeks with 1 dev, 2.5-3 weeks with 2 devs (parallel Wave 1)"
+    ]
+  },
+
+  "approval_status": {
+    "complexity_assessment_complete": true,
+    "next_phase": "RESEARCH (@analyst)",
+    "ready_for_research": true
+  }
+}

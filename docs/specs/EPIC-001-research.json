@@ -1,0 +1,570 @@
+{
+  "epic_id": "EPIC-001-KANBAN",
+  "research_phase": 3,
+  "researched_at": "2026-05-04",
+  "researched_by": "Atlas (Analyst)",
+  "status": "RESEARCHED",
+
+  "research_focus_areas": [
+    "ui-accessibility (WCAG AA)",
+    "drag-drop-libraries (Vue ecosystem)",
+    "contact-deduplication-patterns",
+    "wcag-validation-tools"
+  ],
+
+  "findings_summary": {
+    "ui_accessibility": {
+      "wcag_aa_standard": "Industry standard for web accessibility - legally required in many jurisdictions",
+      "contrast_ratio": "4.5:1 for normal text, 3:1 for large text",
+      "implementation_difficulty": "MEDIUM - CSS changes required, but not complex",
+      "validation_tools": ["axe DevTools (Chrome/Firefox)", "WebAIM contrast checker", "Lighthouse (Chrome DevTools)"],
+      "testing_importance": "CRITICAL - manual + automated testing required"
+    },
+    "drag_drop": {
+      "library_options": [
+        {
+          "name": "vuedraggable",
+          "status": "STABLE",
+          "description": "Vue wrapper around SortableJS - simplest approach",
+          "pros": ["Easy to use", "Good mobile support", "Active maintenance"],
+          "cons": ["Minimal styling control"],
+          "recommendation": "USE IF AVAILABLE - check package.json"
+        },
+        {
+          "name": "native_drag_api",
+          "status": "WORKING",
+          "description": "HTML5 Drag and Drop API - more control",
+          "pros": ["No dependencies", "Full control over UX"],
+          "cons": ["More code", "Mobile support limited (needs touch events)"],
+          "recommendation": "FALLBACK if vuedraggable not available"
+        }
+      ],
+      "performance_patterns": [
+        "Virtual scrolling (react-window equivalent in Vue: vue-virtual-scroller)",
+        "Debounce dragover events (max 100ms)",
+        "Use useCallback equivalent (useMemo in Vue)",
+        "Avoid updating DOM during drag"
+      ]
+    },
+    "contact_deduplication": {
+      "pattern_types": [
+        {
+          "name": "Exact Match",
+          "description": "email + phone exact match",
+          "accuracy": "HIGH",
+          "false_positives": "NONE"
+        },
+        {
+          "name": "Similarity Based",
+          "description": "Levenshtein distance on name, email domain match",
+          "accuracy": "MEDIUM",
+          "false_positives": "YES - need threshold (0.95+)",
+          "libraries": ["fuzzyset.js (1.4KB)", "string-similarity (npm)"]
+        },
+        {
+          "name": "Machine Learning",
+          "description": "Train on historical data",
+          "accuracy": "VERY HIGH",
+          "complexity": "VERY HIGH",
+          "recommendation": "OVERKILL for this use case"
+        }
+      ],
+      "recommended_approach": {
+        "strategy": "Hybrid: Exact match first, then Levenshtein for fuzzy",
+        "implementation": "ContactDeduplicationService with configurable thresholds",
+        "data_safety": "Soft deletes + audit trail mandatory"
+      }
+    }
+  },
+
+  "research_details": {
+    "section_1_ui_accessibility_wcag_aa": {
+      "title": "UI Accessibility & WCAG AA Compliance",
+      "research_questions": [
+        "What does WCAG AA compliance mean for links and text colors?",
+        "What tools can validate contrast ratios automatically?",
+        "How to test with color blindness simulators?"
+      ],
+      "findings": [
+        {
+          "topic": "WCAG AA Standards for Color Contrast",
+          "finding": "WCAG AA requires minimum contrast ratio of 4.5:1 for normal text and 3:1 for large text (18pt+)",
+          "sources": ["wcag.org", "MDN Web Docs"],
+          "applicability": "Stories S1.1, S1.2, S2.1",
+          "action": "All text elements must meet 4.5:1 contrast"
+        },
+        {
+          "topic": "Link Color Requirements",
+          "finding": "Links must be distinguishable from surrounding text both by color AND another indicator (underline, icon, etc). Cannot rely on color alone.",
+          "sources": ["WCAG 2.1 Success Criterion 1.4.1"],
+          "applicability": "S1.1 (links in chat)",
+          "action": "Use non-blue color + underline/indicator"
+        },
+        {
+          "topic": "Dark/Light Theme Considerations",
+          "finding": "Contrast ratios must be maintained in BOTH light and dark themes. Different background colors change contrast calculations.",
+          "sources": ["WebAIM contrast checker"],
+          "applicability": "S1.1, S1.2, S2.1 all themes",
+          "action": "Test colors in both themes before approval"
+        },
+        {
+          "topic": "Validation Tools",
+          "finding": "Multiple free tools available: axe DevTools (automated), WebAIM contrast checker (manual), Lighthouse (Chromium)",
+          "tools": {
+            "axe_devtools": {
+              "type": "Browser Extension",
+              "cost": "Free",
+              "coverage": "~80% of WCAG issues",
+              "integration": "Chrome/Firefox DevTools"
+            },
+            "webaim_contrast": {
+              "type": "Web Tool",
+              "cost": "Free",
+              "coverage": "Contrast ratio only",
+              "url": "webaim.org/resources/contrastchecker"
+            },
+            "lighthouse": {
+              "type": "Integrated",
+              "cost": "Free",
+              "coverage": "Accessibility + performance",
+              "integration": "Chrome DevTools"
+            }
+          },
+          "recommendation": "Use axe DevTools during development, WebAIM for manual verification, Lighthouse before submission"
+        },
+        {
+          "topic": "Color Blindness Testing",
+          "finding": "Coblis simulator (online tool) allows testing color perception for deuteranopia, protanopia, tritanopia",
+          "tool": "Coblis - Color Blindness Simulator (coblis.org)",
+          "applicability": "S1.2 (complex color scheme with message types)",
+          "testing_protocol": "Test conversation detail view in all 3 color blindness types"
+        }
+      ]
+    },
+
+    "section_2_drag_drop_libraries": {
+      "title": "Drag & Drop Implementation Patterns & Libraries",
+      "research_questions": [
+        "What libraries are available in Vue 3 ecosystem?",
+        "Is vuedraggable available in this project?",
+        "What are performance considerations for 100+ cards?",
+        "How to handle touch events for mobile?"
+      ],
+      "findings": [
+        {
+          "topic": "Vuedraggable Library",
+          "description": "Vue wrapper around SortableJS - handles drag/drop with minimal code",
+          "status": "STABLE (v4.1.0+ for Vue 3)",
+          "npm_package": "@shopify/draggable OR vuedraggable@next",
+          "installation": "npm install vuedraggable@next",
+          "code_example": "Simple v-model binding, handles state automatically",
+          "browser_support": "All modern browsers, mobile touch support",
+          "pros": [
+            "Minimal code required",
+            "Good mobile support (touch events built-in)",
+            "Active maintenance",
+            "Handles animations automatically"
+          ],
+          "cons": [
+            "Limited visual customization (styling requires CSS)",
+            "Animation control limited"
+          ],
+          "applicability": "S3.1 (drag & drop)",
+          "recommendation": "CHECK if installed in package.json first. If yes, USE IT. If no, use native API."
+        },
+        {
+          "topic": "Native HTML5 Drag & Drop API",
+          "description": "Standard browser API for drag operations",
+          "browser_support": "All modern browsers, limited mobile support",
+          "pros": [
+            "No external dependencies",
+            "Full control over UX",
+            "Maximum customization"
+          ],
+          "cons": [
+            "More code required (~200-300 lines)",
+            "Mobile support requires separate touch event handlers",
+            "Firefox has different behavior than Chrome",
+            "Requires careful event management"
+          ],
+          "implementation_pattern": {
+            "on_mousedown": "Start drag after 200ms delay, create ghost image",
+            "on_mousemove": "Update drag overlay position, check drop targets",
+            "on_drop": "Validate target, post to backend, animate reallocation",
+            "edge_cases": [
+              "Mouse leaves viewport → abort drag",
+              "Drag over non-drop zones → visual feedback",
+              "Multiple cards → ensure single card selected"
+            ]
+          },
+          "applicability": "S3.1 (fallback if vuedraggable not available)",
+          "recommendation": "FALLBACK ONLY - use vuedraggable if available"
+        },
+        {
+          "topic": "Performance Optimization Patterns",
+          "description": "Techniques for smooth drag with 100+ cards",
+          "patterns": [
+            {
+              "pattern": "Virtual Scrolling",
+              "why": "Render only visible cards, not all 100+",
+              "library": "vue-virtual-scroller",
+              "implementation_effort": "MEDIUM - requires refactor",
+              "benefit": "Massive FPS improvement",
+              "when_to_use": "If >50 cards in view"
+            },
+            {
+              "pattern": "Debounce Dragover",
+              "why": "Dragover fires 100s of times/sec, reflows DOM excessively",
+              "code": "debounce dragover handler to 100ms",
+              "benefit": "Reduce layout recalculations",
+              "when_to_use": "Always (zero cost)"
+            },
+            {
+              "pattern": "useCallback/useMemo (Vue: computed/memoz)",
+              "why": "Prevent re-rendering of drag handlers on every render",
+              "code": "Memoize drop target calculations",
+              "benefit": "Reduce function allocations",
+              "when_to_use": "If drag handlers in loops"
+            },
+            {
+              "pattern": "Avoid DOM updates during drag",
+              "why": "Updating DOM position during drag causes reflows",
+              "code": "Use CSS transforms (will-change) instead of position",
+              "benefit": "Composited layers update faster",
+              "when_to_use": "Always"
+            }
+          ],
+          "applicability": "S3.1",
+          "testing": "Lighthouse performance audit, browser DevTools FPS counter"
+        },
+        {
+          "topic": "Mobile/Touch Support",
+          "description": "Handling drag on mobile and tablet",
+          "challenges": [
+            "Touch API different from mouse events",
+            "Long press detection required",
+            "No native drag API for touch",
+            "Viewport scrolling interferes with drag"
+          ],
+          "implementation": {
+            "approach": "Handle touchstart/touchmove/touchend separately",
+            "long_press": "Detect 500ms press before allowing drag",
+            "code_pattern": "Add touch event listeners paralleling mouse listeners",
+            "scrolling": "Prevent viewport scroll while dragging"
+          },
+          "libraries": [
+            "Hammer.js (gesture library) - can help with long press detection",
+            "Native touch events (simpler but more code)"
+          ],
+          "testing": "Real device testing (iPhone/Android), Chrome mobile emulation"
+        },
+        {
+          "topic": "Firefox Compatibility Notes",
+          "finding": "Firefox drag API behaves differently than Chrome: drag image handling, drop zone detection, animation timing",
+          "specific_issues": [
+            "setDragImage() doesn't work same way",
+            "Dragenter/dragover bubbling different",
+            "Performance profile different"
+          ],
+          "recommendation": "Test explicitly in Firefox DevTools, don't just assume Chrome behavior applies"
+        }
+      ]
+    },
+
+    "section_3_contact_deduplication": {
+      "title": "Contact Deduplication Patterns & Data Safety",
+      "research_questions": [
+        "What are proven patterns for contact merging?",
+        "How to avoid data loss?",
+        "What similarity threshold works best?",
+        "How do successful platforms (Slack, Gmail) handle this?"
+      ],
+      "findings": [
+        {
+          "topic": "Exact Match Strategy",
+          "description": "Find contacts matching on email + phone",
+          "accuracy": "100% (no false positives)",
+          "false_negatives": "High (misses similar but not identical)",
+          "implementation": "SQL query with both email AND phone matching",
+          "data_safety": "SAFE - only merges if both match",
+          "recommendation": "Phase 1: Implement this first, safe baseline"
+        },
+        {
+          "topic": "Similarity-Based Matching (Fuzzy)",
+          "description": "Levenshtein distance on name, phone normalization",
+          "accuracy": "90-95% (configurable threshold)",
+          "false_positives": "Possible if threshold too low (0.7-0.8)",
+          "false_negatives": "Low (catches variations)",
+          "algorithms": {
+            "levenshtein_distance": {
+              "description": "Measures edit distance between names",
+              "threshold": "0.95+ recommended (only very similar names)",
+              "js_library": "string-similarity (npm) or fuzzyset.js",
+              "example": "'John Smith' vs 'Jon Smith' = 0.857"
+            },
+            "phonetic_matching": {
+              "description": "Soundex/Metaphone for name pronunciation",
+              "accuracy": "Medium (works for English names)",
+              "complexity": "Medium"
+            },
+            "phone_normalization": {
+              "description": "Strip formatting, compare digits only",
+              "example": "'+1-555-0123' == '555.0123' == '5550123'",
+              "implementation": "Remove non-digits, compare"
+            }
+          },
+          "implementation": "ContactDeduplicationService with configurable thresholds",
+          "data_safety": "RISKY - need audit trail, soft deletes, careful testing",
+          "recommendation": "Phase 2: After exact match working, add fuzzy with threshold 0.95+"
+        },
+        {
+          "topic": "Platform Examples: How Slack/Gmail Handle It",
+          "finding": "Professional platforms use multi-stage approach:",
+          "examples": {
+            "slack": {
+              "approach": "Email-based deduplication, manual merge on workspace",
+              "data_safety": "Merges are reversible, audit logged",
+              "note": "Don't show duplicates - handle server-side"
+            },
+            "gmail": {
+              "approach": "Automatic exact match on email, manual merge for contacts",
+              "data_safety": "Complete history preserved, merge reversible",
+              "note": "User can unmerge if false positive"
+            },
+            "salesforce": {
+              "approach": "Multiple matching algorithms, human review for fuzzy matches",
+              "data_safety": "Zero data loss - logs everything, reversible"
+            }
+          },
+          "common_pattern": "Exact match (automatic) + Fuzzy match (manual review or high threshold) + Full audit trail"
+        },
+        {
+          "topic": "Data Safety: Soft Deletes vs Hard Deletes",
+          "finding": "NEVER hard-delete merged contacts - use soft deletes",
+          "patterns": {
+            "soft_delete": {
+              "columns": ["merged_to_id", "is_merged", "merge_reason", "merged_at"],
+              "approach": "Mark as merged but keep record",
+              "benefits": [
+                "Audit trail preserved",
+                "Can unmerge if needed",
+                "Historical data intact",
+                "Compliance-friendly"
+              ]
+            },
+            "hard_delete": {
+              "approach": "Actually delete records",
+              "risks": [
+                "Data loss if merge was mistake",
+                "Breaks audit trail",
+                "Foreign key violations",
+                "Legal/compliance issues"
+              ],
+              "recommendation": "NEVER for merged contacts"
+            }
+          },
+          "implementation": "Follow soft-delete pattern exactly as in S4.1 story"
+        },
+        {
+          "topic": "Handling Merge Chains",
+          "finding": "If A merges to B, B merges to C, queries must follow chain",
+          "problem": "SELECT * FROM contacts WHERE id=A → merged_to_id=B, but B also merged!",
+          "solution": "Follow merged_to_id chain: A → B → C (final contact)",
+          "code_pattern": {
+            "recursive": "Follow chain recursively or iteratively",
+            "caching": "Cache result to avoid N queries"
+          },
+          "applicability": "S4.1 implementation detail"
+        },
+        {
+          "topic": "Background Job Considerations",
+          "finding": "Large-scale deduplication should run as background job",
+          "why": [
+            "Can process 10K+ contacts without blocking requests",
+            "Can be retried if failed",
+            "Can log progress/errors",
+            "Can batch process to avoid memory overflow"
+          ],
+          "implementation": {
+            "tech": "Sidekiq background job",
+            "pattern": "Iterate in batches (e.g., 100 at a time)",
+            "batching": "Find duplicates in batch, merge, commit, move to next",
+            "logging": "Log each merge decision for audit"
+          },
+          "applicability": "S4.1 DedupContactsJob"
+        },
+        {
+          "topic": "Testing Strategy for Deduplication",
+          "finding": "Deduplication is critical path - needs comprehensive testing",
+          "test_cases": [
+            "Exact match on email + phone",
+            "Fuzzy match on name (80%, 90%, 95%)",
+            "Merging already-merged contacts (chain following)",
+            "Merging contacts with different channel conversations",
+            "Ensure NO data loss (all messages preserved)",
+            "Ensure audit trail complete",
+            "Verify unmerge doesn't break data",
+            "Staging environment dry-run with production data snapshot"
+          ],
+          "recommendation": "Write tests BEFORE implementation, use TDD approach"
+        }
+      ]
+    },
+
+    "section_4_wcag_validation_tools": {
+      "title": "WCAG Validation Tools & Testing Framework",
+      "research_questions": [
+        "What are best-in-class tools for WCAG validation?",
+        "Can testing be automated in CI/CD?",
+        "What's the cost/benefit of each tool?"
+      ],
+      "findings": [
+        {
+          "tool": "axe DevTools",
+          "type": "Browser Extension (Chrome, Firefox, Edge)",
+          "cost": "FREE",
+          "wcag_coverage": "~80% automated detection",
+          "accessibility": "Integration with DevTools",
+          "testing_speed": "Instant (runs on page load)",
+          "false_positives": "LOW (well-maintained)",
+          "recommendation": "PRIMARY TOOL - use during development",
+          "howto": "Install extension, open DevTools, click axe tab, scan page",
+          "applicable_to": "S1.1, S1.2, S2.1, S3.1"
+        },
+        {
+          "tool": "Lighthouse",
+          "type": "Integrated (Chrome DevTools, CLI)",
+          "cost": "FREE",
+          "wcag_coverage": "~60% accessibility + performance + SEO",
+          "accessibility": "DevTools tab or command line",
+          "testing_speed": "~30 seconds per page",
+          "false_positives": "MEDIUM (some issues are false positives)",
+          "recommendation": "SECONDARY TOOL - for performance + accessibility bundled",
+          "howto": "Chrome DevTools → Lighthouse tab, select categories",
+          "applicable_to": "All stories for performance + accessibility"
+        },
+        {
+          "tool": "WebAIM Contrast Checker",
+          "type": "Web-based tool",
+          "cost": "FREE",
+          "wcag_coverage": "Color contrast ratio only (very focused)",
+          "accessibility": "Manual color input or picker",
+          "testing_speed": "Instant",
+          "false_positives": "NONE (pure math)",
+          "recommendation": "MANDATORY - for manual verification of colors",
+          "url": "webaim.org/resources/contrastchecker",
+          "howto": "Enter foreground/background colors in hex, see ratio",
+          "applicable_to": "S1.1, S1.2 (critical for link/text colors)"
+        },
+        {
+          "tool": "Coblis - Color Blindness Simulator",
+          "type": "Web-based simulator",
+          "cost": "FREE",
+          "wcag_coverage": "Visual perception testing (not WCAG technical)",
+          "accessibility": "Upload screenshot or URL",
+          "testing_speed": "Instant",
+          "color_types": ["Deuteranopia (red-green)", "Protanopia", "Tritanopia"],
+          "recommendation": "CRITICAL for conversation detail (complex colors)",
+          "url": "coblis.org",
+          "howto": "Upload screenshot, see how it looks in different color blindness types",
+          "applicable_to": "S1.2 (message color differentiation)"
+        },
+        {
+          "tool": "Automated WCAG Testing in CI/CD",
+          "type": "npm packages for automated testing",
+          "packages": ["jest-axe (unit tests)", "cypress-axe (e2e tests)", "pa11y (CLI)"],
+          "cost": "FREE",
+          "integration": "Part of test suite",
+          "wcag_coverage": "Same as axe (~80%)",
+          "false_positives": "LOW",
+          "recommendation": "ADD to test suite - validates on every commit",
+          "howto": "npm install jest-axe, add test in Jest: expect(await axe(container)).toHaveNoViolations()",
+          "applicable_to": "All stories with unit/e2e tests"
+        },
+        {
+          "tool": "Manual Testing Checklist",
+          "type": "Process/checklist",
+          "cost": "TIME (human review)",
+          "wcag_coverage": "~100% if thorough",
+          "accessibility": "Human judgment + tools",
+          "recommendation": "MANDATORY for final approval",
+          "checklist_items": [
+            "Keyboard navigation (Tab, Shift+Tab, Enter, Escape)",
+            "Screen reader testing (NVDA on Windows, VoiceOver on Mac)",
+            "Zoom testing (page readable at 200% zoom)",
+            "Color contrast (WebAIM checker + visual inspection)",
+            "Color blindness simulation (Coblis)",
+            "Mobile testing (responsive + touch-friendly)",
+            "Browser testing (Chrome, Firefox, Safari)"
+          ]
+        }
+      ]
+    }
+  },
+
+  "recommendations": {
+    "for_s1_1_link_colors": [
+      "1. Use WebAIM contrast checker to validate colors meet 4.5:1",
+      "2. Use axe DevTools during development",
+      "3. Test links in both light/dark themes",
+      "4. Test with multiple protocols (http, https, ftp, mailto)",
+      "5. Final manual WCAG audit before approval"
+    ],
+    "for_s1_2_conversation_colors": [
+      "1. Use Coblis simulator to verify color blindness compliance",
+      "2. Use WebAIM for all text + background combinations",
+      "3. Use axe DevTools for comprehensive scan",
+      "4. Test responsive design on mobile",
+      "5. Lighthouse audit for accessibility + performance"
+    ],
+    "for_s3_1_drag_drop": [
+      "1. CHECK if vuedraggable is in package.json - if yes, USE IT",
+      "2. If not available, implement native HTML5 Drag API",
+      "3. Add debounce to dragover events (100ms)",
+      "4. Add explicit Firefox testing (different behavior)",
+      "5. Test with 100+ cards + Lighthouse performance audit",
+      "6. Test touch events on real mobile device"
+    ],
+    "for_s4_1_deduplication": [
+      "1. Start with exact match (email + phone) - zero false positives",
+      "2. Add fuzzy match with HIGH threshold (0.95+) only after exact match works",
+      "3. USE SOFT DELETES - never hard delete merged contacts",
+      "4. Log every merge decision in audit table",
+      "5. Test merge chain logic (A→B, B→C requires following chain)",
+      "6. Dry-run in staging with production data snapshot",
+      "7. Monitor merge logs after deployment",
+      "8. Implement unmerge capability as fallback"
+    ]
+  },
+
+  "libraries_and_tools_summary": {
+    "wcag_validation": {
+      "axe_devtools": "Primary - instant dev feedback",
+      "lighthouse": "Secondary - bundled metrics",
+      "webaim_contrast": "Manual - mandatory color verification",
+      "coblis": "Manual - color blindness testing",
+      "jest_axe": "Automated - CI/CD integration"
+    },
+    "drag_drop": {
+      "vuedraggable": "Primary - if available",
+      "native_html5": "Fallback - if vuedraggable not available"
+    },
+    "deduplication": {
+      "string_similarity": "npm package for Levenshtein",
+      "fuzzyset_js": "Alternative for string matching"
+    }
+  },
+
+  "open_questions_for_clarification": [
+    "Is vuedraggable already installed in project? (check package.json)",
+    "What is current Vue version? (need Vue 3 compatible libs)",
+    "Are there any existing WCAG testing integrations in CI/CD?",
+    "What is preferred string-similarity library threshold (0.9? 0.95?)?"
+  ],
+
+  "approval_status": {
+    "research_complete": true,
+    "ready_for_spec_writing": true,
+    "next_phase": "WRITE SPEC (@pm)"
+  }
+}

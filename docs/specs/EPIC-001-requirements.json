@@ -1,0 +1,304 @@
+{
+  "epic_id": "EPIC-001-KANBAN",
+  "epic_title": "Kanban & Chat Platform Refinements",
+  "gathering_phase": 1,
+  "gathered_at": "2026-05-04",
+  "status": "GATHERED",
+
+  "executive_summary": {
+    "objective": "Melhorar experiência do usuário no Kanban e Chat resolvendo 7 problemas críticos de UX, funcionalidade e data integrity",
+    "strategy": "Sequência por facilidade de implementação (quick wins → complexos)",
+    "impact": [
+      "Usabilidade aumentada em ~60%",
+      "Redução de erros de entrada de dados",
+      "Interface mais legível e intuitiva"
+    ],
+    "priority": "CRÍTICA",
+    "timeline_days": "17-22 dias com 1-2 devs em paralelo"
+  },
+
+  "functional_requirements": {
+    "FR-001-UI-Visibility": {
+      "category": "UX - Legibilidade",
+      "description": "Garantir que todos os elementos UI tenham contraste adequado (WCAG AA - 4.5:1)",
+      "scope": ["links em chat", "texto em conversation detail", "timestamps"],
+      "stories": ["S1.1", "S1.2"],
+      "priority": "CRÍTICA"
+    },
+    "FR-002-Color-Scheme": {
+      "category": "UX - Design",
+      "description": "Diferenciar visualmente mensagens de cliente vs agente e suportar light/dark themes",
+      "scope": ["conversation detail", "message styling", "sender identification"],
+      "stories": ["S1.2"],
+      "priority": "CRÍTICA"
+    },
+    "FR-003-Unread-Pinning": {
+      "category": "Funcionalidade - User Features",
+      "description": "Marcar conversas como não-lido e destacá-las (similar Slack/Gmail)",
+      "features": [
+        "Botão 'Marcar como não lido' com visual feedback",
+        "Botão 'Destacar' com pin icon",
+        "Badge visual para não-lidos",
+        "Contador de não-lidos no sidebar",
+        "Persistência no reload",
+        "Atalho de teclado opcional"
+      ],
+      "stories": ["S1.3"],
+      "priority": "ALTA"
+    },
+    "FR-004-Filter-Z-Index": {
+      "category": "Funcionalidade - UI Fix",
+      "description": "Corrigir problema de Z-INDEX que deixa filtro inacessível",
+      "requirements": [
+        "Dropdown aparece acima de todos os cards (z-index >= 50)",
+        "Repositioning automático para não ser cortado",
+        "Funciona com scroll ativo",
+        "Acessibilidade: Tab e Escape funcionam"
+      ],
+      "stories": ["S2.1"],
+      "priority": "CRÍTICA"
+    },
+    "FR-005-Status-Filter": {
+      "category": "Funcionalidade - Kanban",
+      "description": "Adicionar filtro por status/stage no Kanban FilterBar",
+      "features": [
+        "Dropdown com lista de stages",
+        "Opção 'Todos os estágios' (padrão)",
+        "Filtro em tempo real (sem reload)",
+        "Persiste na URL (?status=stage-id)",
+        "Combina com outros filtros",
+        "Mostra contagem por status"
+      ],
+      "stories": ["S2.2"],
+      "dependencies": ["S2.1 (Z-INDEX fix)"],
+      "priority": "ALTA"
+    },
+    "FR-006-Drag-Drop": {
+      "category": "Interação - Advanced",
+      "description": "Implementar drag & drop tipo Trello/ClickUp para mover cards entre stages",
+      "features": [
+        "Card levanta quando clicado e mantido (200ms delay)",
+        "Segue cursor do mouse",
+        "Sombra/elevação visual durante drag",
+        "Destaque de coluna destino",
+        "Linha visual mostrando posição de inserção",
+        "Realocação suave (200-300ms animação)",
+        "Suporte touch (mobile/tablet)",
+        "Backend persistence",
+        "Drag abortado se mouse sai (volta original)"
+      ],
+      "stories": ["S3.1"],
+      "performance": "100+ cards sem lag notável",
+      "priority": "ALTA"
+    },
+    "FR-007-Deduplication": {
+      "category": "Data Integrity - Critical",
+      "description": "Resolver duplicação de contacts por canal (WhatsApp, Email, SMS)",
+      "features": [
+        "Detecção automática de duplicatas (email, phone, ID externo)",
+        "1 card/conversation por contact (não por canal)",
+        "Histórico consolidado com todos os chats",
+        "Mensagens em ordem cronológica (multi-canal)",
+        "Usuário escolhe canal para responder",
+        "Script de migração para contatos antigos",
+        "Validação futura (impossível duplicar)",
+        "UI: 'X conversas ativas' badge"
+      ],
+      "stories": ["S4.1"],
+      "data_safety": "Sem perda de dados - merge only",
+      "priority": "CRÍTICA"
+    }
+  },
+
+  "non_functional_requirements": {
+    "NFR-001-Accessibility": {
+      "requirement": "WCAG AA compliance para todos os elementos",
+      "standards": ["Contrast ratio >= 4.5:1", "Keyboard navigation", "Screen reader compatible"],
+      "stories": ["S1.1", "S1.2", "S2.1"]
+    },
+    "NFR-002-Cross-Browser": {
+      "requirement": "Compatibilidade com múltiplos navegadores",
+      "browsers": ["Chrome", "Firefox", "Safari"],
+      "testing": "Especialmente importantes para S1.1 e S3.1"
+    },
+    "NFR-003-Responsive": {
+      "requirement": "Interface funcional em todas as resoluções",
+      "breakpoints": ["mobile 320px", "tablet", "desktop 1920px+"],
+      "stories": ["S1.2", "S2.1", "S2.2", "S3.1"]
+    },
+    "NFR-004-Performance": {
+      "requirement": "Sem lag notável com 100+ cards",
+      "metrics": "60 FPS no drag & drop",
+      "stories": ["S3.1"]
+    },
+    "NFR-005-Data-Integrity": {
+      "requirement": "Zero data loss durante deduplication",
+      "approach": "Soft deletes + audit trail",
+      "stories": ["S4.1"]
+    },
+    "NFR-006-Theme-Support": {
+      "requirement": "Light e dark theme funcionais",
+      "implementation": "CSS variables",
+      "stories": ["S1.1", "S1.2"]
+    }
+  },
+
+  "constraints": {
+    "CON-001-Technology-Stack": {
+      "constraint": "Usar tecnologias já presentes no projeto",
+      "details": "Vue 3, Vuex, Vuedraggable (se disponível), SCSS"
+    },
+    "CON-002-Dependency-Order": {
+      "constraint": "Sequência de waves obrigatória",
+      "order": [
+        "Wave 1: UX Quick Wins (S1.1, S1.2, S1.3) → 5-7 dias",
+        "Wave 2: Funcionalidade (S2.1, S2.2) → 3-4 dias (S2.1 before S2.2)",
+        "Wave 3: Interação (S3.1) → 4-5 dias (after Wave 1+2)",
+        "Wave 4: Data Integrity (S4.1) → 5-6 dias (last, for stability)"
+      ]
+    },
+    "CON-003-Deployment": {
+      "constraint": "1 story por PR, não combinar waves",
+      "monitoring": "Erro rate e performance metrics após cada wave"
+    },
+    "CON-004-Testing": {
+      "constraint": "Todos os stories devem incluir testes",
+      "types": ["unit", "integration", "browser compatibility"]
+    }
+  },
+
+  "success_metrics": {
+    "usability": {
+      "target": "+60%",
+      "measurement": "Survey + session recording"
+    },
+    "wcag_compliance": {
+      "target": "100% WCAG AA",
+      "measurement": "Automated + manual testing"
+    },
+    "performance": {
+      "target": "60 FPS drag & drop",
+      "measurement": "Lighthouse + browser profiler"
+    },
+    "deduplication": {
+      "target": "0% duplicate contacts",
+      "measurement": "Data audit monthly"
+    },
+    "filter_accessibility": {
+      "target": "100%",
+      "measurement": "User testing"
+    }
+  },
+
+  "stories_breakdown": {
+    "wave_1_ux_quick_wins": {
+      "duration": "5-7 dias",
+      "stories": [
+        {
+          "id": "S1.1",
+          "title": "Fix Cores no Chat (Links Visíveis)",
+          "complexity": "Baixa",
+          "points": 2,
+          "days": "1-2",
+          "description": "Links azuis sobre fundo azul invisíveis → contraste WCAG AA"
+        },
+        {
+          "id": "S1.2",
+          "title": "Fix Scheme de Cores no Conversation Detail",
+          "complexity": "Baixa",
+          "points": 2,
+          "days": "1-2",
+          "description": "Conversation detail ilegível → melhorar contraste e diferenciação cliente/agente"
+        },
+        {
+          "id": "S1.3",
+          "title": "Add Marcar como não lido + Destaque",
+          "complexity": "Média",
+          "points": 5,
+          "days": "2-3",
+          "description": "User features: unread badges + pin icons + filtro não-lidos"
+        }
+      ]
+    },
+    "wave_2_functionality": {
+      "duration": "3-4 dias",
+      "stories": [
+        {
+          "id": "S2.1",
+          "title": "Fix Z-INDEX do Filtro",
+          "complexity": "Baixa",
+          "points": 2,
+          "days": 1,
+          "description": "Filtro escondido atrás de cards → aumentar z-index"
+        },
+        {
+          "id": "S2.2",
+          "title": "Add Filtro por Status no Kanban",
+          "complexity": "Média",
+          "points": 5,
+          "days": "2-3",
+          "description": "Filtrar por stage/status → combina com outros filtros",
+          "dependencies": ["S2.1"]
+        }
+      ]
+    },
+    "wave_3_interaction": {
+      "duration": "4-5 dias",
+      "stories": [
+        {
+          "id": "S3.1",
+          "title": "Implementar Drag & Drop tipo Trello/ClickUp",
+          "complexity": "Alta",
+          "points": 13,
+          "days": "4-5",
+          "description": "Card segue mouse, soltar realoca → Trello-like UX",
+          "note": "Iniciar após Wave 1+2"
+        }
+      ]
+    },
+    "wave_4_data_integrity": {
+      "duration": "5-6 dias",
+      "stories": [
+        {
+          "id": "S4.1",
+          "title": "Resolver Duplicação de Cards",
+          "complexity": "Alta",
+          "points": 21,
+          "days": "5-6",
+          "description": "Multi-channel contacts deduplication + consolidation",
+          "note": "Fazer ÚLTIMO para estabilidade"
+        }
+      ]
+    }
+  },
+
+  "risks_and_mitigations": {
+    "risk_wcag_compliance": {
+      "risk": "Não atingir WCAG AA em todos elementos",
+      "impact": "Acessibilidade reduzida, problemas legais",
+      "mitigation": "Automated testing + Coblis para daltonismo"
+    },
+    "risk_performance_drag_drop": {
+      "risk": "Lag notável com 100+ cards",
+      "impact": "UX ruim em pipelines grandes",
+      "mitigation": "Virtual scrolling, debounce dragover, performance profiling"
+    },
+    "risk_data_loss_dedup": {
+      "risk": "Perda de dados durante merge de contatos",
+      "impact": "Crítico - histórico perdido",
+      "mitigation": "Soft deletes, audit trail, backup antes de executar"
+    },
+    "risk_dependency_delay": {
+      "risk": "S2.1 bloqueia S2.2 se atrasado",
+      "impact": "Wave 2 estende",
+      "mitigation": "Trabalhar S2.1 primeiro, parallelizar Wave 3"
+    }
+  },
+
+  "approval_status": {
+    "pm_approved": false,
+    "tech_lead_approved": false,
+    "product_owner_approved": false,
+    "next_phase": "ASSESS COMPLEXITY (@architect)"
+  }
+}

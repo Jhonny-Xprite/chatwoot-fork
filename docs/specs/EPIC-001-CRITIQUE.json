@@ -1,0 +1,371 @@
+{
+  "epic_id": "EPIC-001-KANBAN",
+  "critique_phase": 5,
+  "critiqued_at": "2026-05-04",
+  "critiqued_by": "Quinn (QA)",
+  "status": "CRITIQUED",
+
+  "overall_verdict": "APPROVED",
+  "overall_score": 4.2,
+  "max_score": 5.0,
+  "recommendation": "READY FOR PLANNING - Minor gaps identified, no blockers",
+
+  "assessment_dimensions": {
+    "completeness": {
+      "score": 4.3,
+      "summary": "Specification covers all 7 stories with implementation details. Minor gaps in edge cases.",
+      "findings": [
+        {
+          "finding": "✅ All 7 stories documented with acceptance criteria",
+          "severity": "PASS",
+          "impact": "Completeness excellent"
+        },
+        {
+          "finding": "✅ Database changes documented for S1.3 and S4.1",
+          "severity": "PASS",
+          "impact": "Schema clarity clear"
+        },
+        {
+          "finding": "✅ API endpoints specified for all stories requiring backend",
+          "severity": "PASS",
+          "impact": "API contracts clear"
+        },
+        {
+          "finding": "⚠️ Edge case: What happens if user drags card to same column? (S3.1)",
+          "severity": "MEDIUM",
+          "impact": "Behavior not defined",
+          "recommendation": "Should be no-op or refresh card animation"
+        },
+        {
+          "finding": "⚠️ S1.3 doesn't mention what happens to 'unread' state when conversation is opened",
+          "severity": "MEDIUM",
+          "impact": "Auto-clear behavior not defined",
+          "recommendation": "Should define: auto-clear unread on view? Or manual only?"
+        },
+        {
+          "finding": "⚠️ S4.1 doesn't cover: what if user tries to merge contact with self?",
+          "severity": "LOW",
+          "impact": "Edge case, but should validate",
+          "recommendation": "Add validation: prevent self-merge"
+        }
+      ]
+    },
+
+    "clarity": {
+      "score": 4.4,
+      "summary": "Specification is clear and well-organized. Good use of tables, examples, and sections.",
+      "findings": [
+        {
+          "finding": "✅ Executive summary clearly states impact and timeline",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ Requirements table (FR/NFR) is clear with story mappings",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ Effort breakdown per story is explicit with risk levels",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ Critical path diagram shows wave dependencies visually",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ Implementation details (S1.1-S4.1) are well-structured",
+          "severity": "PASS"
+        },
+        {
+          "finding": "⚠️ S2.1 mentioned as 'BLOCKER for S2.2' but not emphasized in wave 2 section",
+          "severity": "LOW",
+          "impact": "Could be missed during planning",
+          "recommendation": "Add bold WARNING section: 'S2.1 MUST complete before S2.2 starts'"
+        },
+        {
+          "finding": "⚠️ Testing strategy per wave is brief - could expand on specific test cases",
+          "severity": "LOW",
+          "impact": "Testers need more guidance",
+          "recommendation": "Expand 'Testing Strategy' section with Given-When-Then examples"
+        }
+      ]
+    },
+
+    "risks": {
+      "score": 4.1,
+      "summary": "Risks identified and documented. Risk assessment comprehensive but mitigation details could be deeper.",
+      "findings": [
+        {
+          "finding": "✅ Risk assessment table identifies 4 key risks with impact/likelihood",
+          "severity": "PASS",
+          "risks_identified": [
+            "WCAG non-compliance (legal + accessibility impact)",
+            "Drag performance lag (UX impact)",
+            "Data loss in deduplication (CRITICAL)",
+            "S2.1 delay blocks S2.2 (schedule impact)"
+          ]
+        },
+        {
+          "finding": "✅ S4.1 marked as CRITICAL risk with detailed mitigation (soft deletes, audit trail, backup)",
+          "severity": "PASS"
+        },
+        {
+          "finding": "⚠️ Firefox compatibility risk mentioned but no concrete mitigation plan",
+          "severity": "MEDIUM",
+          "impact": "Could affect 10-15% of users",
+          "mitigation_suggested": "Add explicit Firefox testing requirement to S3.1 acceptance criteria"
+        },
+        {
+          "finding": "⚠️ No mention of rollback plan for each wave",
+          "severity": "MEDIUM",
+          "impact": "If deployment fails, recovery unclear",
+          "recommendation": "Add rollback steps for each wave (esp. S1.3 and S4.1 with DB changes)"
+        },
+        {
+          "finding": "⚠️ Dependency risk: S3.1 depends on Wave 1+2, but if they slip, entire Wave 3 delayed",
+          "severity": "MEDIUM",
+          "impact": "Schedule compression",
+          "recommendation": "Consider parallel track for S3.1 after Wave 1 is stable"
+        },
+        {
+          "finding": "⚠️ No mention of monitoring plan post-deployment",
+          "severity": "LOW",
+          "impact": "Issues in production may not be caught quickly",
+          "recommendation": "Add metrics to monitor: WCAG audit errors, drag perf, dedup merge logs"
+        }
+      ]
+    },
+
+    "testability": {
+      "score": 4.0,
+      "summary": "Testability is good overall. Requirements are mostly testable but some need refinement for objective verification.",
+      "findings": [
+        {
+          "finding": "✅ All AC are testable with clear acceptance criteria",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ WCAG compliance defined with 4.5:1 contrast ratio (objective metric)",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ Performance defined as 60 FPS with 100+ cards (measurable)",
+          "severity": "PASS"
+        },
+        {
+          "finding": "✅ S4.1 data loss requirement 'zero data loss' is testable via query verification",
+          "severity": "PASS"
+        },
+        {
+          "finding": "⚠️ S1.1 'Link is clicable and works correctly' - needs protocol-specific testing",
+          "severity": "LOW",
+          "improvement": "Should specify: test http://, https://, ftp://, mailto: links"
+        },
+        {
+          "finding": "⚠️ S1.3 'State persists on reload' - should specify test steps",
+          "severity": "LOW",
+          "improvement": "Add: 'Mark unread, reload page, verify unread badge visible'"
+        },
+        {
+          "finding": "⚠️ S3.1 'Works with muity cards (100+) without lag' - needs benchmark baseline",
+          "severity": "MEDIUM",
+          "improvement": "Should define: baseline FPS measurement? How to measure 'lag'? (Lighthouse? DevTools?)"
+        },
+        {
+          "finding": "⚠️ S2.2 'Filters update in real-time' - lacks definition of 'real-time'",
+          "severity": "LOW",
+          "improvement": "Should specify: < 500ms response time? Instant? Has delay?"
+        },
+        {
+          "finding": "⚠️ S4.1 'Fuzzy match with threshold 0.95+' - needs test data with edge cases",
+          "severity": "MEDIUM",
+          "improvement": "Should provide examples: when does it match? When doesn't it?"
+        }
+      ]
+    }
+  },
+
+  "per_story_critique": {
+    "S1.1_link_colors": {
+      "testability": "HIGH",
+      "clarity": "CLEAR",
+      "risks": "LOW",
+      "notes": "Well-defined. WCAG validation tools specified. Edge case: different link protocols not mentioned."
+    },
+    "S1.2_conversation_colors": {
+      "testability": "MEDIUM",
+      "clarity": "CLEAR",
+      "risks": "MEDIUM",
+      "notes": "Good, but Coblis testing adds complexity. Recommendation: create color palette guide for consistency."
+    },
+    "S1.3_unread_pinned": {
+      "testability": "MEDIUM",
+      "clarity": "CLEAR",
+      "risks": "MEDIUM",
+      "notes": "Missing: Does marking unread auto-clear on view? DB migration rollback steps not defined."
+    },
+    "S2.1_fix_zindex": {
+      "testability": "HIGH",
+      "clarity": "EXCELLENT",
+      "risks": "LOW",
+      "notes": "Simple, well-defined. BLOCKER status for S2.2 very clear. Recommendation: emphasize in Wave 2 section."
+    },
+    "S2.2_status_filter": {
+      "testability": "MEDIUM",
+      "clarity": "CLEAR",
+      "risks": "MEDIUM",
+      "notes": "Missing: How does filter combine with search? What if user filters to stage with 0 items? Counts update real-time?"
+    },
+    "S3.1_drag_drop": {
+      "testability": "MEDIUM-LOW",
+      "clarity": "CLEAR",
+      "risks": "HIGH",
+      "notes": "CRITICAL: Firefox testing mentioned but not in AC. Performance baseline not defined (how to measure FPS?). Edge cases missing: same column drag, drag to invalid zone."
+    },
+    "S4.1_deduplication": {
+      "testability": "MEDIUM",
+      "clarity": "CLEAR",
+      "risks": "CRITICAL",
+      "notes": "Excellent detail on data safety. Missing: fuzzy match examples (when does 0.95 threshold match?). Rollback procedure not defined."
+    }
+  },
+
+  "quality_gaps": [
+    {
+      "gap": "Rollback procedures not defined for database migrations (S1.3, S4.1)",
+      "severity": "HIGH",
+      "impact": "If migration fails in prod, recovery unclear",
+      "fix": "Add explicit rollback steps: drop columns, remove constraint, etc."
+    },
+    {
+      "gap": "Performance measurement methodology not defined",
+      "severity": "HIGH",
+      "impact": "How will S3.1 '60 FPS' be measured? Lighthouse? DevTools?",
+      "fix": "Add: 'Measure with Lighthouse Performance audit and Chrome DevTools FPS counter'"
+    },
+    {
+      "gap": "Fuzzy match examples not provided (S4.1)",
+      "severity": "MEDIUM",
+      "impact": "Developers won't know when 0.95 threshold matches",
+      "fix": "Provide examples: 'John Smith' vs 'Jon Smith' vs 'Jane Smith' - which match?"
+    },
+    {
+      "gap": "Monitoring plan post-deployment missing",
+      "severity": "MEDIUM",
+      "impact": "Production issues not caught quickly",
+      "fix": "Add: 'Monitor error logs for WCAG issues, dedup merge logs, drag performance metrics'"
+    },
+    {
+      "gap": "Firefox explicit testing not in S3.1 AC",
+      "severity": "MEDIUM",
+      "impact": "May not be tested before merge",
+      "fix": "Add to S3.1 AC: 'Test drag & drop in Firefox DevTools - verify smooth animation, no errors'"
+    }
+  ],
+
+  "positive_findings": [
+    "✅ Comprehensive 4-phase spec pipeline with all 4 phases represented",
+    "✅ Requirements traceability excellent - each requirement maps to stories",
+    "✅ Complexity assessment realistic with +6 day adjustment buffer",
+    "✅ Data safety approach (soft deletes, audit trail) is correct for S4.1",
+    "✅ WCAG validation tools well-researched (axe, WebAIM, Coblis)",
+    "✅ Risk assessment identifies critical path (S2.1 blocker, S4.1 data risk)",
+    "✅ Implementation details comprehensive - backend + frontend + DB specified",
+    "✅ Wave sequencing logical: quick wins first (Wave 1), complex last (Wave 4)"
+  ],
+
+  "recommendations": {
+    "critical": [
+      {
+        "title": "Define Performance Measurement Method",
+        "story": "S3.1",
+        "action": "Add to spec: 'FPS measured with Chrome DevTools Performance tab. Target: 60 FPS sustained during 2-minute drag session with 100+ cards loaded.'"
+      },
+      {
+        "title": "Add Rollback Procedures",
+        "story": "S1.3, S4.1",
+        "action": "For each migration, add explicit down migration: 'ALTER TABLE ... DROP COLUMN' with exact SQL statements"
+      },
+      {
+        "title": "Add Firefox Testing to S3.1 AC",
+        "story": "S3.1",
+        "action": "Add AC: 'Drag & drop works smoothly in Firefox DevTools - test for animation artifacts, no console errors'"
+      }
+    ],
+    "high": [
+      {
+        "title": "Provide Fuzzy Match Examples",
+        "story": "S4.1",
+        "action": "Add: 'Examples of 0.95+ threshold: [John Smith, Jon Smith] = MATCH, [Jane Smith, John Smith] = NO MATCH'"
+      },
+      {
+        "title": "Define Post-Deployment Monitoring",
+        "story": "All",
+        "action": "Add monitoring checklist: WCAG audit logs, dedup merge logs, drag performance in prod"
+      },
+      {
+        "title": "Clarify S1.3 Unread Auto-Clear Behavior",
+        "story": "S1.3",
+        "action": "Specify: 'Opening conversation does NOT auto-clear unread. Manual mark-read button required.'"
+      }
+    ],
+    "medium": [
+      {
+        "title": "Expand S3.1 Edge Cases",
+        "story": "S3.1",
+        "action": "Add AC: 'Dragging card to same column = no-op, card returns to original position with feedback'"
+      },
+      {
+        "title": "Define Filter Real-Time Response Time",
+        "story": "S2.2",
+        "action": "Specify: 'Filter updates contacts within 500ms of selection'"
+      },
+      {
+        "title": "Add S2.1 Emphasis to Wave 2 Section",
+        "story": "S2.1",
+        "action": "Add bold warning: 'CRITICAL: S2.1 must be completed BEFORE starting S2.2. No parallel work.'"
+      }
+    ]
+  },
+
+  "testing_recommendations": {
+    "automated_testing": [
+      "jest-axe for WCAG validation (S1.1, S1.2)",
+      "Cypress for drag & drop (S3.1)",
+      "Database integration tests for migrations (S1.3, S4.1)"
+    ],
+    "manual_testing": [
+      "Coblis color blindness simulation (S1.2)",
+      "WebAIM contrast checker (S1.1, S1.2)",
+      "Firefox drag & drop (S3.1)",
+      "Real device mobile testing (S3.1 touch events)"
+    ],
+    "qa_gates": [
+      "CodeRabbit pre-commit review (all stories)",
+      "WCAG audit before S1.1/S1.2 approval",
+      "Performance baseline before S3.1 approval",
+      "Data safety validation before S4.1 deployment"
+    ]
+  },
+
+  "gate_decision": {
+    "verdict": "APPROVED",
+    "score": 4.2,
+    "rationale": "Specification is comprehensive, well-organized, and addresses all major requirements. Critical gaps identified (rollback procedures, performance measurement, fuzzy match examples) are fixable and don't block planning. Data safety approach for S4.1 is correct and thorough.",
+    "conditions": [
+      "Address critical recommendations before implementation begins",
+      "Add rollback procedures for all migrations",
+      "Define performance measurement methodology",
+      "Provide fuzzy match examples for S4.1"
+    ],
+    "next_phase": "PLAN (@architect)",
+    "ready_for_planning": true
+  },
+
+  "summary_checklist": {
+    "completeness": "4.3/5 - All stories documented, minor edge cases missing",
+    "clarity": "4.4/5 - Well-organized, clear tables and sections, minor emphasis on S2.1 blocker",
+    "risks": "4.1/5 - Key risks identified, mitigation comprehensive for S4.1, monitoring plan missing",
+    "testability": "4.0/5 - Most AC are testable, some lack objective metrics (Firefox, performance measurement)",
+    "overall": "APPROVED - Ready for Planning Phase"
+  }
+}
