@@ -3,7 +3,7 @@
 ## Status
 - [ ] Draft
 - [x] Ready for Development
-- [ ] In Progress
+- [x] In Progress
 - [ ] In Review
 - [ ] QA Review
 - [ ] Done
@@ -63,18 +63,17 @@
 ## Task Breakdown
 
 ### Phase 1: Z-Index Fix
-- [ ] **T2.1.1: Identify current z-index value**
+- [x] **T2.1.1: Identify current z-index value**
   - Open browser DevTools
   - Inspect KanbanFilterBar dropdown element
-  - Note current z-index value
-  - Check if using fixed positioning vs transform
+  - Note current z-index value: Found `z-40` in ConversationFilter.vue
+  - Checked positioning: Using Tailwind class, no positioning conflict
 
-- [ ] **T2.1.2: Increase z-index to 1000**
-  - Edit `src/assets/styles/kanban-filter.scss`
-  - Find `.kanban-filter__dropdown` or similar selector
-  - Set `z-index: 1000;`
-  - Change positioning from `position: fixed` to `position: absolute` with `transform` if needed
-  - Rationale: fixed positioning can cause issues with sticky headers; transform is smoother
+- [x] **T2.1.2: Increase z-index to 1000**
+  - Edit `app/javascript/dashboard/components-next/filter/ConversationFilter.vue`
+  - Found `.z-40` in line 108, changed to `.z-[1000]`
+  - No positioning change needed (uses Tailwind with @apply)
+  - Commit: cc156ca85 "fix(crm): increase filter dropdown z-index to 1000 for proper stacking context [S2.1]"
 
 - [ ] **T2.1.3: Verify no other components use z-index >= 1000**
   - Search codebase: `grep -r "z-index" src/ | grep -E "[0-9]{4,}`
@@ -235,10 +234,15 @@ This is a pure frontend CSS fix.
 
 ## File List
 
-### Files Affected
-- `src/assets/styles/kanban-filter.scss` (MODIFY)
+### Files Modified
 
-### No Database Changes
+- `app/javascript/dashboard/components-next/filter/ConversationFilter.vue` (MODIFIED: z-40 → z-[1000])
+
+### Files Not Affected
+
+- No database changes
+- No backend changes
+- No other component changes
 
 ---
 
@@ -281,9 +285,10 @@ This is a pure frontend CSS fix.
 
 ## Change Log
 
-| Date | Author | Change | Status |
-|------|--------|--------|--------|
-| 2026-05-04 | Aria | Story created from EPIC-001-IMPLEMENTATION-PLAN | CREATED |
+| Date       | Author | Change                                                                             | Status      |
+|------------|--------|------------------------------------------------------------------------------------|-------------|
+| 2026-05-04 | Dex    | Implemented z-index fix: ConversationFilter.vue z-40 → z-[1000] (commit cc156ca85) | IN_PROGRESS |
+| 2026-05-04 | Aria   | Story created from EPIC-001-IMPLEMENTATION-PLAN                                    | CREATED     |
 
 ---
 
