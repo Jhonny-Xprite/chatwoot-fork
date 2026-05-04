@@ -302,6 +302,11 @@ const syncBoardContext = async () => {
       ? extractFiltersFromView(view)
       : { ...DEFAULT_FILTERS };
 
+    // Restore status filter from URL query param if present
+    if (route.query.status) {
+      filters.status = String(route.query.status);
+    }
+
     // Tenta resolver o ID da pipeline na ordem: Prop -> View -> Store (Active) -> Store (Primeira)
     let nextPipelineId =
       Number(props.pipelineId) ||
@@ -340,8 +345,29 @@ watch(
   () => [
     store.getters['crmPipeline/appliedFilters'].q,
     JSON.stringify(store.getters['crmPipeline/appliedFilters'].labels),
+    store.getters['crmPipeline/appliedFilters'].status,
+    store.getters['crmPipeline/appliedFilters'].scoreBand,
   ],
-  () => {
+  newVal => {
+    const [, , status] = newVal;
+    if (status) {
+      router.push({
+        name: 'crm_pipeline_details',
+        params: {
+          accountId: accountId.value,
+          pipelineId: selectedPipeline.value?.id,
+        },
+        query: { status },
+      });
+    } else if (route.query.status) {
+      router.push({
+        name: 'crm_pipeline_details',
+        params: {
+          accountId: accountId.value,
+          pipelineId: selectedPipeline.value?.id,
+        },
+      });
+    }
     fetchBoardContacts();
   }
 );
