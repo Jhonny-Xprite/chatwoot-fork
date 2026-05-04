@@ -130,8 +130,8 @@ const toggleConversationLayout = () => {
         <div class="relative">
           <NextButton
             id="conversation-filter-edit-button"
-            class="js-filter-modal-trigger"
             v-tooltip.top-end="$t('FILTER.CUSTOM_VIEWS.EDIT.EDIT_BUTTON')"
+            class="js-filter-modal-trigger"
             icon="i-lucide-pen-line"
             slate
             xs
@@ -157,8 +157,8 @@ const toggleConversationLayout = () => {
       <div v-else class="relative">
         <NextButton
           id="conversation-filter-toggle-button"
-          class="js-filter-modal-trigger"
           v-tooltip.right="$t('FILTER.TOOLTIP_LABEL')"
+          class="js-filter-modal-trigger"
           icon="i-lucide-list-filter"
           slate
           xs

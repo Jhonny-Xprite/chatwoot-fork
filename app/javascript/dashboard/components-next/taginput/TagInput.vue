@@ -86,7 +86,11 @@ const showDropdownMenu = computed(() =>
     : props.showDropdown && isFocused.value
 );
 
-const { position } = useDropdownPosition(triggerRef, dropdownRef, showDropdownMenu);
+const { position } = useDropdownPosition(
+  triggerRef,
+  dropdownRef,
+  showDropdownMenu
+);
 
 const filteredMenuItems = computed(() => {
   const items = buildTagMenuItems({
@@ -212,7 +216,6 @@ const handleBlur = e => emit('blur', e);
 
 <template>
   <div
-    ref="tagInputContainer"
     v-on-click-outside="() => handleClickOutside()"
     class="flex flex-wrap w-full gap-2 border border-transparent focus:outline-none"
     tabindex="0"
