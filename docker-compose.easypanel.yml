@@ -27,10 +27,7 @@ services:
       retries: 10
 
   chatwoot:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    image: chatwoot-stage:local
+    image: ghcr.io/jhonny-xprite/chatwoot-fork:latest
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-chatwoot}
       REDIS_URL: redis://redis:6379
@@ -62,10 +59,7 @@ services:
              bundle exec rails s -p 3000 -b 0.0.0.0"
 
   sidekiq:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
-    image: chatwoot-stage:local
+    image: ghcr.io/jhonny-xprite/chatwoot-fork:latest
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change-me}@postgres:5432/${POSTGRES_DB:-chatwoot}
       REDIS_URL: redis://redis:6379
