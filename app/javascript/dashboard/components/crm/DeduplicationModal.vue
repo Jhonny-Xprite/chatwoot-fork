@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isOpen" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50">
+  <div v-show="isOpen" class="fixed inset-0 z-[2000] flex items-center justify-center bg-black/50">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-auto">
       <!-- Header -->
       <div class="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
@@ -7,9 +7,9 @@
           Duplicate Contacts Detected
         </h2>
         <button
-          @click="close"
+          @click="handleClose"
           class="text-gray-400 hover:text-gray-500 transition"
-          aria-label="Close"
+          aria-label="Close dialog"
         >
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -41,7 +41,6 @@
             :class="{ 'bg-blue-50 border-blue-300': selectedIndex === idx }"
             @click="selectDuplicate(idx)"
           >
-            <!-- Summary -->
             <div class="flex items-start justify-between mb-3">
               <div>
                 <p class="font-medium text-gray-900">{{ dup.contact.name }}</p>
@@ -55,15 +54,14 @@
               </span>
             </div>
 
-            <!-- Contact Details -->
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Email</p>
-                <p class="text-gray-900">{{ dup.contact.email || '—' }}</p>
+                <p class="text-gray-900">{{ dup.contact.email || '-' }}</p>
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Phone</p>
-                <p class="text-gray-900">{{ dup.contact.phone_number || '—' }}</p>
+                <p class="text-gray-900">{{ dup.contact.phone_number || '-' }}</p>
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Messages</p>
@@ -71,16 +69,12 @@
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Similarity</p>
-                <p class="text-gray-900" v-if="dup.similarity_score">
-                  {{ (dup.similarity_score * 100).toFixed(1) }}%
-                </p>
-                <p v-else class="text-gray-900">Exact match</p>
+                <p class="text-gray-900">{{ dup.similarity_score ? ((dup.similarity_score * 100).toFixed(1) + '%') : 'Exact match' }}</p>
               </div>
             </div>
 
-            <!-- Selection Indicator -->
             <div v-if="selectedIndex === idx" class="mt-3 pt-3 border-t border-blue-200">
-              <p class="text-xs text-blue-700 font-medium">✓ Selected for merge</p>
+              <p class="text-xs text-blue-700 font-medium">Selected for merge</p>
             </div>
           </div>
         </div>
@@ -89,13 +83,13 @@
       <!-- Footer -->
       <div class="sticky bottom-0 bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-end gap-3">
         <button
-          @click="close"
+          @click="handleClose"
           class="px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition font-medium"
         >
           Cancel
         </button>
         <button
-          @click="confirmMerge"
+          @click="handleMerge"
           :disabled="selectedIndex === null || merging"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition font-medium"
         >
@@ -110,12 +104,11 @@
       </div>
     </div>
 
-    <!-- Merge Confirmation Dialog (nested) -->
     <MergeConfirmationDialog
       v-if="showConfirmation && selectedIndex !== null"
       :source="duplicates[selectedIndex].contact"
       :target="sourceContact"
-      @confirm="executeMerge"
+      @confirm="handleExecuteMerge"
       @cancel="showConfirmation = false"
       :loading="merging"
     />
@@ -123,18 +116,12 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, watch } from 'vue';
 import MergeConfirmationDialog from './MergeConfirmationDialog.vue';
 
 const props = defineProps({
-  isOpen: {
-    type: Boolean,
-    default: false
-  },
-  sourceContact: {
-    type: Object,
-    required: true
-  }
+  isOpen: { type: Boolean, default: false },
+  sourceContact: { type: Object, required: true }
 });
 
 const emit = defineEmits(['close', 'merged']);
@@ -146,35 +133,16 @@ const merging = ref(false);
 const showConfirmation = ref(false);
 
 const confidenceClass = (confidence) => {
-  const baseClass = 'px-3 py-1 rounded-full text-xs font-medium';
-  if (confidence === 'HIGH') return `${baseClass} bg-green-100 text-green-800`;
-  if (confidence === 'MEDIUM') return `${baseClass} bg-yellow-100 text-yellow-800`;
-  return `${baseClass} bg-gray-100 text-gray-800`;
+  const base = 'px-3 py-1 rounded-full text-xs font-medium';
+  if (confidence === 'HIGH') return `${base} bg-green-100 text-green-800`;
+  if (confidence === 'MEDIUM') return `${base} bg-yellow-100 text-yellow-800`;
+  return `${base} bg-gray-100 text-gray-800`;
 };
 
-const fetchDuplicates = async () => {
-  loading.value = true;
-  try {
-    const response = await fetch(`/api/v1/admin/contacts/deduplicate`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-      },
-      body: JSON.stringify({ contact_id: props.sourceContact.id })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      duplicates.value = data.duplicates || [];
-    } else {
-      console.error('Failed to fetch duplicates');
-    }
-  } catch (error) {
-    console.error('Error fetching duplicates:', error);
-  } finally {
-    loading.value = false;
-  }
+const handleClose = () => {
+  emit('close');
+  selectedIndex.value = null;
+  showConfirmation.value = false;
 };
 
 const selectDuplicate = (idx) => {
@@ -182,13 +150,16 @@ const selectDuplicate = (idx) => {
   showConfirmation.value = true;
 };
 
-const executeMerge = async () => {
-  if (selectedIndex.value === null) return;
+const handleMerge = () => {
+  showConfirmation.value = true;
+};
 
+const handleExecuteMerge = async () => {
+  if (selectedIndex.value === null) return;
   merging.value = true;
   try {
     const target = duplicates.value[selectedIndex.value].contact;
-    const response = await fetch(`/api/v1/admin/contacts/merge`, {
+    const response = await fetch(`/api/v1/accounts/${props.sourceContact.account_id}/contacts/merge`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -203,35 +174,35 @@ const executeMerge = async () => {
     if (response.ok) {
       emit('merged', { source: props.sourceContact, target });
       showConfirmation.value = false;
-      close();
-    } else {
-      const error = await response.json();
-      console.error('Merge failed:', error);
+      handleClose();
     }
-  } catch (error) {
-    console.error('Error executing merge:', error);
   } finally {
     merging.value = false;
   }
 };
 
-const confirmMerge = () => {
-  showConfirmation.value = true;
-};
+const fetchDuplicates = async () => {
+  loading.value = true;
+  try {
+    const response = await fetch(`/api/v1/accounts/${props.sourceContact.account_id}/contacts/deduplicate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+      },
+      body: JSON.stringify({ contact_id: props.sourceContact.id })
+    });
 
-const close = () => {
-  emit('close');
-  selectedIndex.value = null;
-  showConfirmation.value = false;
-};
-
-// Fetch duplicates when modal opens
-const observer = computed(() => props.isOpen);
-watch(observer, async (newVal) => {
-  if (newVal) {
-    await fetchDuplicates();
+    if (response.ok) {
+      const data = await response.json();
+      duplicates.value = data.duplicates || [];
+    }
+  } finally {
+    loading.value = false;
   }
-});
+};
 
-import { watch } from 'vue';
+watch(() => props.isOpen, async (newVal) => {
+  if (newVal) await fetchDuplicates();
+});
 </script>

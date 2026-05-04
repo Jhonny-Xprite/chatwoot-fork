@@ -1,21 +1,13 @@
 <template>
   <div class="fixed inset-0 z-[2100] flex items-center justify-center bg-black/50">
     <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl mx-4">
-      <!-- Header -->
       <div class="border-b border-gray-200 px-6 py-4">
-        <h2 class="text-lg font-semibold text-gray-900">
-          Confirm Merge
-        </h2>
-        <p class="text-sm text-gray-500 mt-1">
-          Review the contacts before merging
-        </p>
+        <h2 class="text-lg font-semibold text-gray-900">Confirm Merge</h2>
+        <p class="text-sm text-gray-500 mt-1">Review the contacts before merging</p>
       </div>
 
-      <!-- Content -->
       <div class="px-6 py-6">
-        <!-- Side by side comparison -->
         <div class="grid grid-cols-2 gap-6 mb-6">
-          <!-- Source Contact (will be merged) -->
           <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-semibold text-gray-900">Source Contact</h3>
@@ -23,7 +15,6 @@
                 Will be deleted
               </span>
             </div>
-
             <div class="space-y-3 text-sm">
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Name</p>
@@ -31,11 +22,11 @@
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Email</p>
-                <p class="text-gray-900">{{ source.email || '—' }}</p>
+                <p class="text-gray-900">{{ source.email || '-' }}</p>
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Phone</p>
-                <p class="text-gray-900">{{ source.phone_number || '—' }}</p>
+                <p class="text-gray-900">{{ source.phone_number || '-' }}</p>
               </div>
               <div class="pt-2 border-t border-red-200">
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Messages</p>
@@ -44,7 +35,6 @@
             </div>
           </div>
 
-          <!-- Target Contact (will absorb messages) -->
           <div class="border-2 border-green-200 rounded-lg p-4 bg-green-50">
             <div class="flex items-center justify-between mb-4">
               <h3 class="font-semibold text-gray-900">Target Contact</h3>
@@ -52,7 +42,6 @@
                 Will receive messages
               </span>
             </div>
-
             <div class="space-y-3 text-sm">
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Name</p>
@@ -60,11 +49,11 @@
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Email</p>
-                <p class="text-gray-900">{{ target.email || '—' }}</p>
+                <p class="text-gray-900">{{ target.email || '-' }}</p>
               </div>
               <div>
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Phone</p>
-                <p class="text-gray-900">{{ target.phone_number || '—' }}</p>
+                <p class="text-gray-900">{{ target.phone_number || '-' }}</p>
               </div>
               <div class="pt-2 border-t border-green-200">
                 <p class="text-gray-500 text-xs uppercase tracking-wider">Messages</p>
@@ -74,42 +63,31 @@
           </div>
         </div>
 
-        <!-- Merge summary -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
           <div class="flex items-start gap-3">
             <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M18 5v8a2 2 0 01-2 2h-5l-5 4v-4H4a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2zm-11-1h2v2H7V4zm2 4H7v2h2V8zm2-4h2v2h-2V4zm2 4h-2v2h2V8z" clip-rule="evenodd" />
             </svg>
             <div>
-              <p class="font-medium text-blue-900">
-                {{ source.message_count + target.message_count }} messages will be consolidated
-              </p>
-              <p class="text-sm text-blue-800 mt-1">
-                All messages from "{{ source.name }}" will be moved to "{{ target.name }}" and appear in chronological order.
-              </p>
+              <p class="font-medium text-blue-900">{{ source.message_count + target.message_count }} messages will be consolidated</p>
+              <p class="text-sm text-blue-800 mt-1">All messages from "{{ source.name }}" will be moved to "{{ target.name }}" and appear in chronological order.</p>
             </div>
           </div>
         </div>
 
-        <!-- Warning -->
         <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div class="flex items-start gap-3">
             <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
             </svg>
             <div>
-              <p class="font-medium text-yellow-900">
-                This action cannot be easily undone
-              </p>
-              <p class="text-sm text-yellow-800 mt-1">
-                The source contact will be marked as deleted but can be restored by an administrator if needed.
-              </p>
+              <p class="font-medium text-yellow-900">This action cannot be easily undone</p>
+              <p class="text-sm text-yellow-800 mt-1">The source contact will be marked as deleted but can be restored by an administrator if needed.</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Footer -->
       <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-end gap-3">
         <button
           @click="emit('cancel')"
